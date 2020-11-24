@@ -1,0 +1,116 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Lido
+    network: goerli
+    source:
+      address: "0xdA47446A4784ec0F30c840b04bD0B095D7d9C48B"
+      abi: Lido
+      startBlock: 3801722
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - LidoSubmission
+        - LidoFee
+        - LidoFeeDistribution
+      abis:
+        - name: Lido
+          file: ./abis/Lido.json
+      eventHandlers:
+        - event: FeeSet(uint16)
+          handler: handleFeeSet
+        - event: FeeDistributionSet(uint16,uint16,uint16)
+          handler: handleFeeDistributionSet
+        - event: Submitted(indexed address,uint256,address)
+          handler: handleSubmit
+      file: ./src/Lido.ts
+  - kind: ethereum/contract
+    name: LidoOracle
+    network: goerli
+    source:
+      address: "0x6fbA440b943731940D1fcb493497a539F00030c3"
+      abi: LidoOracle
+      startBlock: 3801547
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - OracleCompleted
+        - OracleMember
+        - OracleQuorumChange
+      abis:
+        - name: LidoOracle
+          file: ./abis/LidoOracle.json
+      eventHandlers:
+        - event: Completed(uint256,uint128,uint128)
+          handler: handleCompleted
+        - event: MemberAdded(address)
+          handler: handleMemberAdded
+        - event: MemberRemoved(address)
+          handler: handleMemberRemoved
+        - event: QuorumChanged(uint256)
+          handler: handleQuorumChanged
+      file: ./src/LidoOracle.ts
+  - kind: ethereum/contract
+    name: NodeOperatorsRegistry
+    network: goerli
+    source:
+      address: "0xeAD4d2B5E385AA0cA4B4A05F5C5D20BC723D815D"
+      abi: NodeOperatorsRegistry
+      startBlock: 3801757
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - NodeOperatorSigningKey
+        - NodeOperator
+      abis:
+        - name: NodeOperatorsRegistry
+          file: ./abis/NodeOperatorsRegistry.json
+      eventHandlers:
+        - event: NodeOperatorAdded(uint256,string,address,uint64)
+          handler: handleNodeOperatorAdded
+        - event: NodeOperatorActiveSet(indexed uint256,bool)
+          handler: handleNodeOperatorActiveSet
+        - event: NodeOperatorNameSet(indexed uint256,string)
+          handler: handleNodeOperatorNameSet
+        - event: NodeOperatorRewardAddressSet(indexed uint256,address)
+          handler: handleNodeOperatorRewardAddressSet
+        - event: NodeOperatorStakingLimitSet(indexed uint256,uint64)
+          handler: handleNodeOperatorStakingLimitSet
+        - event: NodeOperatorTotalStoppedValidatorsReported(indexed uint256,uint64)
+          handler: handleNodeOperatorTotalStoppedValidatorsReported
+        - event: SigningKeyAdded(indexed uint256,bytes)
+          handler: handleSigningKeyAdded
+        - event: SigningKeyRemoved(indexed uint256,bytes)
+          handler: handleSigningKeyRemoved
+      file: ./src/NodeOperatorsRegistry.ts
+  - kind: ethereum/contract
+    name: StETH
+    network: goerli
+    source:
+      address: "0xdEC32c1abAF3ad7a80e114de0E32B4be580FeD3d"
+      abi: StETH
+      startBlock: 3801816
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - StETHTransfer
+        - StETHApproval
+      abis:
+        - name: StETH
+          file: ./abis/StETH.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+      file: ./src/StETH.ts

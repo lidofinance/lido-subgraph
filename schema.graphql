@@ -1,0 +1,78 @@
+"""
+Lido
+"""
+type LidoSubmission @entity {
+  id: ID!
+  sender: Bytes!
+  amount: BigInt!
+  referral: Bytes!
+}
+
+type LidoFee @entity {
+  id: ID!
+  feeBasisPoints: Int!
+}
+
+type LidoFeeDistribution @entity {
+  id: ID!
+  treasuryFeeBasisPoints: Int!
+  insuranceFeeBasisPoints: Int!
+  operatorsFeeBasisPoints: Int!
+}
+
+"""
+LidoOracle
+"""
+type OracleCompleted @entity {
+  id: ID!
+  epochId: BigInt!
+  beaconBalance: BigInt!
+  beaconValidators: BigInt!
+}
+
+type OracleMember @entity {
+  id: ID!
+  member: Bytes!
+  removed: Boolean!
+}
+
+type OracleQuorumChange @entity {
+  id: ID!
+  quorum: BigInt!
+}
+
+"""
+NodeOperatorsRegistry
+"""
+type NodeOperatorSigningKey @entity {
+  id: ID!
+  operatorId: BigInt!
+  pubkey: Bytes!
+  removed: Boolean!
+}
+
+type NodeOperator @entity {
+  id: ID!
+  name: String!
+  rewardAddress: Bytes!
+  stakingLimit: BigInt!
+  active: Boolean!
+  totalStoppedValidators: BigInt
+}
+
+"""
+StETH
+"""
+type StETHTransfer @entity {
+  id: ID!
+  from: Bytes!
+  to: Bytes!
+  value: BigInt!
+}
+
+type StETHApproval @entity {
+  id: ID!
+  owner: Bytes!
+  spender: Bytes!
+  value: BigInt!
+}
