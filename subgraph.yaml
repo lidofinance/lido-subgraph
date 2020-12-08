@@ -6,7 +6,7 @@ dataSources:
     name: Lido
     network: goerli
     source:
-      address: "0xdA47446A4784ec0F30c840b04bD0B095D7d9C48B"
+      address: "0xA5d26F68130c989ef3e063c9bdE33BC50a86629D"
       abi: Lido
       startBlock: 3801722
     mapping:
@@ -32,7 +32,7 @@ dataSources:
     name: LidoOracle
     network: goerli
     source:
-      address: "0x6fbA440b943731940D1fcb493497a539F00030c3"
+      address: "0x8aA931352fEdC2A5a5b3E20ed3A546414E40D86C"
       abi: LidoOracle
       startBlock: 3801547
     mapping:
@@ -60,7 +60,7 @@ dataSources:
     name: NodeOperatorsRegistry
     network: goerli
     source:
-      address: "0xeAD4d2B5E385AA0cA4B4A05F5C5D20BC723D815D"
+      address: "0xB1e7Fb9E9A71063ab552dDEE87Ea8C6eEc7F5c7A"
       abi: NodeOperatorsRegistry
       startBlock: 3801757
     mapping:
@@ -95,7 +95,7 @@ dataSources:
     name: StETH
     network: goerli
     source:
-      address: "0xdEC32c1abAF3ad7a80e114de0E32B4be580FeD3d"
+      address: "0xA0cA1c13721BAB3371E0609FFBdB6A6B8e155CC0"
       abi: StETH
       startBlock: 3801816
     mapping:

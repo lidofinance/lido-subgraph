@@ -7,7 +7,9 @@
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lido-subgraph",
     "create-local": "graph create --node http://localhost:8020/ lido-subgraph",
     "remove-local": "graph remove --node http://localhost:8020/ lido-subgraph",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 lido-subgraph"
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 lido-subgraph",
+    "create-goerli": "graph create --node https://goerli.lido.fi/graph-rpc lido-subgraph",
+    "deploy-goerli": "graph deploy --node https://goerli.lido.fi/graph-rpc --ipfs https://goerli.lido.fi/ipfs lido-subgraph"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.19.0",
