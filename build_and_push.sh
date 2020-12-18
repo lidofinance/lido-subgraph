@@ -11,4 +11,4 @@ echo "Building $IMG:$TAG Docker image..."
 docker build -t $IMG:$TAG .
 
 echo "Pushing $IMG:$TAG to the Docker Hub"
-# docker push $IMG:$TAG
+docker push $IMG:$TAG
