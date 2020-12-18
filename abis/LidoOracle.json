@@ -47,20 +47,6 @@
     },
     {
       "constant": true,
-      "inputs": [],
-      "name": "pool",
-      "outputs": [
-        {
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "constant": true,
       "inputs": [
         {
           "name": "_script",
@@ -107,32 +93,6 @@
       "type": "function"
     },
     {
-      "constant": true,
-      "inputs": [],
-      "name": "beaconSpec",
-      "outputs": [
-        {
-          "name": "epochsPerFrame",
-          "type": "uint64"
-        },
-        {
-          "name": "slotsPerEpoch",
-          "type": "uint64"
-        },
-        {
-          "name": "secondsPerSlot",
-          "type": "uint64"
-        },
-        {
-          "name": "genesisTime",
-          "type": "uint64"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
       "constant": false,
       "inputs": [
         {
@@ -152,6 +112,20 @@
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "getLido",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -405,6 +379,32 @@
       "type": "function"
     },
     {
+      "constant": true,
+      "inputs": [],
+      "name": "getBeaconSpec",
+      "outputs": [
+        {
+          "name": "epochsPerFrame",
+          "type": "uint64"
+        },
+        {
+          "name": "slotsPerEpoch",
+          "type": "uint64"
+        },
+        {
+          "name": "secondsPerSlot",
+          "type": "uint64"
+        },
+        {
+          "name": "genesisTime",
+          "type": "uint64"
+        }
+      ],
+      "payable": false,
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "constant": false,
       "inputs": [
         {
@@ -450,11 +450,11 @@
       "name": "getCurrentReportableEpochs",
       "outputs": [
         {
-          "name": "firstReportableEpochId",
+          "name": "minReportableEpochId",
           "type": "uint256"
         },
         {
-          "name": "lastReportableEpochId",
+          "name": "maxReportableEpochId",
           "type": "uint256"
         }
       ],
@@ -474,20 +474,6 @@
       "outputs": [],
       "payable": false,
       "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
-      "name": "earliestReportableEpochId",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "stateMutability": "view",
       "type": "function"
     },
     {

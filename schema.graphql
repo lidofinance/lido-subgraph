@@ -59,20 +59,3 @@ type NodeOperator @entity {
   active: Boolean!
   totalStoppedValidators: BigInt
 }
-
-"""
-StETH
-"""
-type StETHTransfer @entity {
-  id: ID!
-  from: Bytes!
-  to: Bytes!
-  value: BigInt!
-}
-
-type StETHApproval @entity {
-  id: ID!
-  owner: Bytes!
-  spender: Bytes!
-  value: BigInt!
-}

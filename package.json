@@ -4,15 +4,18 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lido-subgraph",
+    "create": "graph create --node $GRAPH_API_URL lido-subgraph",
+    "remove": "graph remove --node $GRAPH_API_URL lido-subgraph",
+    "deploy": "graph deploy --node $GRAPH_API_URL --ipfs $IPFS_API_URL lido-subgraph",
     "create-local": "graph create --node http://localhost:8020/ lido-subgraph",
     "remove-local": "graph remove --node http://localhost:8020/ lido-subgraph",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 lido-subgraph",
-    "create-goerli": "graph create --node https://goerli.lido.fi/graph-rpc lido-subgraph",
-    "deploy-goerli": "graph deploy --node https://goerli.lido.fi/graph-rpc --ipfs https://goerli.lido.fi/ipfs lido-subgraph"
+    "deploy-thegraph": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lido-subgraph",
+    "deploy-docker": "npm run create && npm run deploy"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.19.0",
-    "@graphprotocol/graph-ts": "0.19.0"
+    "@graphprotocol/graph-ts": "0.19.0",
+    "strip-ansi": "^6.0.0"
   }
 }
