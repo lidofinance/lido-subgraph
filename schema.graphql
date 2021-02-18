@@ -20,6 +20,34 @@ type LidoFeeDistribution @entity {
   operatorsFeeBasisPoints: Int!
 }
 
+type LidoWithdrawal @entity {
+  id: ID!
+  sender: Bytes!
+  tokenAmount: BigInt!
+  sentFromBuffer: BigInt!
+  pubkeyHash: Bytes!
+  etherAmount: BigInt!
+}
+
+type LidoUnbuffered @entity {
+  id: ID!
+  amount: BigInt!
+}
+
+type LidoTransfer @entity {
+  id: ID!
+  from: Bytes!
+  to: Bytes!
+  value: BigInt!
+}
+
+type LidoApproval @entity {
+  id: ID!
+  owner: Bytes!
+  spender: Bytes!
+  value: BigInt!
+}
+
 """
 LidoOracle
 """

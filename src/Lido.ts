@@ -1,8 +1,20 @@
-import { FeeSet, FeeDistributionSet, Submitted } from "../generated/Lido/Lido";
+import {
+  FeeSet,
+  FeeDistributionSet,
+  Submitted,
+  Withdrawal,
+  Unbuffered,
+  Transfer,
+  Approval,
+} from "../generated/Lido/Lido";
 import {
   LidoSubmission,
   LidoFee,
   LidoFeeDistribution,
+  LidoWithdrawal,
+  LidoUnbuffered,
+  LidoTransfer,
+  LidoApproval,
 } from "../generated/schema";
 
 export function handleSubmit(event: Submitted): void {
@@ -35,6 +47,54 @@ export function handleFeeDistributionSet(event: FeeDistributionSet): void {
   entity.treasuryFeeBasisPoints = event.params.treasuryFeeBasisPoints;
   entity.insuranceFeeBasisPoints = event.params.insuranceFeeBasisPoints;
   entity.operatorsFeeBasisPoints = event.params.operatorsFeeBasisPoints;
+
+  entity.save();
+}
+
+export function handleWithdrawal(event: Withdrawal): void {
+  let entity = new LidoWithdrawal(
+    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+  );
+
+  entity.sender = event.params.sender;
+  entity.tokenAmount = event.params.tokenAmount;
+  entity.sentFromBuffer = event.params.sentFromBuffer;
+  entity.pubkeyHash = event.params.pubkeyHash;
+  entity.etherAmount = event.params.etherAmount;
+
+  entity.save();
+}
+
+export function handleUnbuffered(event: Unbuffered): void {
+  let entity = new LidoUnbuffered(
+    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+  );
+
+  entity.amount = event.params.amount;
+
+  entity.save();
+}
+
+export function handleTransfer(event: Transfer): void {
+  let entity = new LidoTransfer(
+    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+  );
+
+  entity.from = event.params.from;
+  entity.to = event.params.to;
+  entity.value = event.params.value;
+
+  entity.save();
+}
+
+export function handleApproval(event: Approval): void {
+  let entity = new LidoApproval(
+    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+  );
+
+  entity.owner = event.params.owner;
+  entity.spender = event.params.spender;
+  entity.value = event.params.value;
 
   entity.save();
 }

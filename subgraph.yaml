@@ -17,6 +17,10 @@ dataSources:
         - LidoSubmission
         - LidoFee
         - LidoFeeDistribution
+        - LidoWithdrawal
+        - LidoUnbuffered
+        - LidoTransfer
+        - LidoApproval
       abis:
         - name: Lido
           file: ./abis/Lido.json
@@ -27,6 +31,14 @@ dataSources:
           handler: handleFeeDistributionSet
         - event: Submitted(indexed address,uint256,address)
           handler: handleSubmit
+        - event: Withdrawal(indexed address,uint256,uint256,indexed bytes32,uint256)
+          handler: handleWithdrawal
+        - event: Unbuffered(uint256)
+          handler: handleUnbuffered
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
       file: ./src/Lido.ts
   - kind: ethereum/contract
     name: LidoOracle
