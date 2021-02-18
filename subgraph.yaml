@@ -21,6 +21,8 @@ dataSources:
         - LidoUnbuffered
         - LidoTransfer
         - LidoApproval
+        - LidoStopped
+        - LidoResumed
       abis:
         - name: Lido
           file: ./abis/Lido.json
@@ -39,6 +41,10 @@ dataSources:
           handler: handleTransfer
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval
+        - event: Stopped()
+          handler: handleStopped
+        - event: Resumed()
+          handler: handleResumed
       file: ./src/Lido.ts
   - kind: ethereum/contract
     name: LidoOracle

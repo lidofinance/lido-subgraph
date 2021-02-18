@@ -48,6 +48,16 @@ type LidoApproval @entity {
   value: BigInt!
 }
 
+type LidoStopped @entity {
+  id: ID!
+  blocktime: BigInt!
+}
+
+type LidoResumed @entity {
+  id: ID!
+  blocktime: BigInt!
+}
+
 """
 LidoOracle
 """

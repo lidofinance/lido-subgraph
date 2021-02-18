@@ -6,6 +6,8 @@ import {
   Unbuffered,
   Transfer,
   Approval,
+  Stopped,
+  Resumed,
 } from "../generated/Lido/Lido";
 import {
   LidoSubmission,
@@ -15,6 +17,8 @@ import {
   LidoUnbuffered,
   LidoTransfer,
   LidoApproval,
+  LidoStopped,
+  LidoResumed,
 } from "../generated/schema";
 
 export function handleSubmit(event: Submitted): void {
@@ -95,6 +99,26 @@ export function handleApproval(event: Approval): void {
   entity.owner = event.params.owner;
   entity.spender = event.params.spender;
   entity.value = event.params.value;
+
+  entity.save();
+}
+
+export function handleStopped(event: Stopped): void {
+  let entity = new LidoStopped(
+    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+  );
+
+  entity.blocktime = event.block.timestamp;
+
+  entity.save();
+}
+
+export function handleResumed(event: Resumed): void {
+  let entity = new LidoResumed(
+    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
+  );
+
+  entity.blocktime = event.block.timestamp;
 
   entity.save();
 }
