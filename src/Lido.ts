@@ -51,6 +51,16 @@ export function handleTransfer(event: Transfer): void {
   entity.from = event.params.from;
   entity.to = event.params.to;
   entity.value = event.params.value;
+  /*
+  entity.shares = event.params.value/current_ratio
+  */
+  
+  /*
+  if (isFeeDistributionToTreasury(event)) {
+    totalRewards = (event.params.value / (getCurrentTreasuryFee))*(1 - getCurrentTotalFees)
+    totalRewards.save()
+  }
+  */
 
   entity.save();
 }
