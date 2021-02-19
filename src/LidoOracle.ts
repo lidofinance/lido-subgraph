@@ -20,6 +20,9 @@ export function handleCompleted(event: Completed): void {
   entity.beaconValidators = event.params.beaconValidators;
 
   entity.save();
+  // update this day's shares to steth ratio by calling an archive node
+  // ratio = getPooldEthByEther(1 ether, current_block)
+  
 }
 
 export function handleMemberAdded(event: MemberAdded): void {
