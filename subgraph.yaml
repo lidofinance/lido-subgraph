@@ -20,6 +20,7 @@ dataSources:
         - LidoApproval
         - LidoFee
         - LidoFeeDistribution
+        - LidoWithdrawalCredential
         - LidoSubmission
         - LidoUnbuffered
         - LidoWithdrawal
@@ -39,6 +40,8 @@ dataSources:
           handler: handleFeeSet
         - event: FeeDistributionSet(uint16,uint16,uint16)
           handler: handleFeeDistributionSet
+        - event: WithdrawalCredentialsSet(bytes32)
+          handler: handleWithdrawalCredentialsSet
         - event: Submitted(indexed address,uint256,address)
           handler: handleSubmit
         - event: Unbuffered(uint256)

@@ -37,6 +37,11 @@ type LidoFeeDistribution @entity {
   operatorsFeeBasisPoints: Int!
 }
 
+type LidoWithdrawalCredential @entity {
+  id: ID!
+  withdrawalCredentials: Bytes!
+}
+
 type LidoSubmission @entity {
   id: ID!
   sender: Bytes!

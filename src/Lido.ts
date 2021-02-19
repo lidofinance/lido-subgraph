@@ -5,6 +5,7 @@ import {
   Approval,
   FeeSet,
   FeeDistributionSet,
+  WithdrawalCredentialsSet,
   Submitted,
   Unbuffered,
   Withdrawal,
@@ -16,6 +17,7 @@ import {
   LidoApproval,
   LidoFee,
   LidoFeeDistribution,
+  LidoWithdrawalCredential,
   LidoSubmission,
   LidoUnbuffered,
   LidoWithdrawal,
@@ -83,6 +85,18 @@ export function handleFeeDistributionSet(event: FeeDistributionSet): void {
   entity.treasuryFeeBasisPoints = event.params.treasuryFeeBasisPoints;
   entity.insuranceFeeBasisPoints = event.params.insuranceFeeBasisPoints;
   entity.operatorsFeeBasisPoints = event.params.operatorsFeeBasisPoints;
+
+  entity.save();
+}
+
+export function handleWithdrawalCredentialsSet(
+  event: WithdrawalCredentialsSet
+): void {
+  let entity = new LidoWithdrawalCredential(
+    event.params.withdrawalCredentials.toHex()
+  );
+
+  entity.withdrawalCredentials = event.params.withdrawalCredentials;
 
   entity.save();
 }
