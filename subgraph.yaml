@@ -14,37 +14,37 @@ dataSources:
       apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
-        - LidoSubmission
-        - LidoFee
-        - LidoFeeDistribution
-        - LidoWithdrawal
-        - LidoUnbuffered
-        - LidoTransfer
-        - LidoApproval
         - LidoStopped
         - LidoResumed
+        - LidoTransfer
+        - LidoApproval
+        - LidoFee
+        - LidoFeeDistribution
+        - LidoSubmission
+        - LidoUnbuffered
+        - LidoWithdrawal
       abis:
         - name: Lido
           file: ./abis/Lido.json
       eventHandlers:
+        - event: Stopped()
+          handler: handleStopped
+        - event: Resumed()
+          handler: handleResumed
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
         - event: FeeSet(uint16)
           handler: handleFeeSet
         - event: FeeDistributionSet(uint16,uint16,uint16)
           handler: handleFeeDistributionSet
         - event: Submitted(indexed address,uint256,address)
           handler: handleSubmit
-        - event: Withdrawal(indexed address,uint256,uint256,indexed bytes32,uint256)
-          handler: handleWithdrawal
         - event: Unbuffered(uint256)
           handler: handleUnbuffered
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-        - event: Approval(indexed address,indexed address,uint256)
-          handler: handleApproval
-        - event: Stopped()
-          handler: handleStopped
-        - event: Resumed()
-          handler: handleResumed
+        - event: Withdrawal(indexed address,uint256,uint256,indexed bytes32,uint256)
+          handler: handleWithdrawal
       file: ./src/Lido.ts
   - kind: ethereum/contract
     name: LidoOracle

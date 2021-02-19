@@ -1,37 +1,14 @@
 """
 Lido
 """
-type LidoSubmission @entity {
+type LidoStopped @entity {
   id: ID!
-  sender: Bytes!
-  amount: BigInt!
-  referral: Bytes!
+  blocktime: BigInt!
 }
 
-type LidoFee @entity {
+type LidoResumed @entity {
   id: ID!
-  feeBasisPoints: Int!
-}
-
-type LidoFeeDistribution @entity {
-  id: ID!
-  treasuryFeeBasisPoints: Int!
-  insuranceFeeBasisPoints: Int!
-  operatorsFeeBasisPoints: Int!
-}
-
-type LidoWithdrawal @entity {
-  id: ID!
-  sender: Bytes!
-  tokenAmount: BigInt!
-  sentFromBuffer: BigInt!
-  pubkeyHash: Bytes!
-  etherAmount: BigInt!
-}
-
-type LidoUnbuffered @entity {
-  id: ID!
-  amount: BigInt!
+  blocktime: BigInt!
 }
 
 type LidoTransfer @entity {
@@ -48,14 +25,37 @@ type LidoApproval @entity {
   value: BigInt!
 }
 
-type LidoStopped @entity {
+type LidoFee @entity {
   id: ID!
-  blocktime: BigInt!
+  feeBasisPoints: Int!
 }
 
-type LidoResumed @entity {
+type LidoFeeDistribution @entity {
   id: ID!
-  blocktime: BigInt!
+  treasuryFeeBasisPoints: Int!
+  insuranceFeeBasisPoints: Int!
+  operatorsFeeBasisPoints: Int!
+}
+
+type LidoSubmission @entity {
+  id: ID!
+  sender: Bytes!
+  amount: BigInt!
+  referral: Bytes!
+}
+
+type LidoUnbuffered @entity {
+  id: ID!
+  amount: BigInt!
+}
+
+type LidoWithdrawal @entity {
+  id: ID!
+  sender: Bytes!
+  tokenAmount: BigInt!
+  sentFromBuffer: BigInt!
+  pubkeyHash: Bytes!
+  etherAmount: BigInt!
 }
 
 """
