@@ -60,6 +60,7 @@ export function handleTransfer(event: Transfer): void {
     totalRewards = (event.params.value / (getCurrentTreasuryFee))*(1 - getCurrentTotalFees)
     totalRewards.save()
   }
+  //then: rewards per report = (address' shares at the moment of report)*(totalRewards)/(totalShares at the moment of reports)
   */
 
   entity.save();
