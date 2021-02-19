@@ -97,3 +97,33 @@ type NodeOperator @entity {
   active: Boolean!
   totalStoppedValidators: BigInt
 }
+
+"""
+Voting
+"""
+type Voting @entity {
+  id: ID!
+  index: Int!
+  creator: Bytes!
+  metadata: String!
+  executed: Boolean!
+  votes: [Vote!]! @derivedFrom(field: "voting")
+}
+
+type Vote @entity {
+  id: ID!
+  voting: Voting!
+  voter: Bytes!
+  supports: Boolean!
+  stake: BigInt!
+}
+
+type ChangedSupportRequired @entity {
+  id: ID!
+  supportRequiredPct: BigInt!
+}
+
+type ChangedMinQuorum @entity {
+  id: ID!
+  minAcceptQuorumPct: BigInt!
+}
