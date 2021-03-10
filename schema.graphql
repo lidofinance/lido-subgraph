@@ -16,6 +16,9 @@ type LidoTransfer @entity {
   from: Bytes!
   to: Bytes!
   value: BigInt!
+  shares: BigDecimal!
+  block: BigInt!
+  blockTime: BigInt!
 }
 
 type LidoApproval @entity {
@@ -63,6 +66,25 @@ type LidoWithdrawal @entity {
   etherAmount: BigInt!
 }
 
+type TotalReward @entity {
+  id: ID!
+  totalRewards: BigDecimal
+  insuranceFee: BigDecimal
+  treasuryFee: BigDecimal
+  totalFee: BigDecimal
+  dust: BigInt
+  nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
+  block: BigInt!
+  blockTime: BigInt!
+}
+
+type NodeOperatorFees @entity {
+  id: ID!
+  totalReward: TotalReward!
+  address: String!
+  fee: BigInt!
+}
+
 """
 LidoOracle
 """
@@ -71,6 +93,8 @@ type OracleCompleted @entity {
   epochId: BigInt!
   beaconBalance: BigInt!
   beaconValidators: BigInt!
+  block: BigInt!
+  blockTime: BigInt!
 }
 
 type OracleMember @entity {
@@ -82,6 +106,15 @@ type OracleMember @entity {
 type OracleQuorumChange @entity {
   id: ID!
   quorum: BigInt!
+}
+
+type SharesToStethRatio @entity {
+  id: ID!
+  totalShares: BigInt!
+  pooledEth: BigInt!
+  ratio: BigDecimal!
+  block: BigInt!
+  blockTime: BigInt!
 }
 
 """

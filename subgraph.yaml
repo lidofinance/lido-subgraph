@@ -64,9 +64,12 @@ dataSources:
         - OracleCompleted
         - OracleMember
         - OracleQuorumChange
+        - SharesToStethRatio
       abis:
         - name: LidoOracle
           file: ./abis/LidoOracle.json
+        - name: Lido
+          file: ./abis/Lido.json
       eventHandlers:
         - event: Completed(uint256,uint128,uint128)
           handler: handleCompleted
