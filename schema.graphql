@@ -19,6 +19,7 @@ type LidoTransfer @entity {
   shares: BigDecimal!
   block: BigInt!
   blockTime: BigInt!
+  transactionHash: String!
 }
 
 type LidoApproval @entity {
