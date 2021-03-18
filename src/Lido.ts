@@ -92,7 +92,7 @@ export function handleTransfer(event: Transfer): void {
     event.params.to.toHexString() ==
       '0x3e40d73eb977dc6a537af587d48316fee66e9c8c'
 
-  // Graph's less or equal to
+  // Graph's less or equal to helper
   let isDust = event.params.value.le(BigInt.fromI32(10000))
 
   let totalRewardsEntity: TotalReward | null = TotalReward.load(
