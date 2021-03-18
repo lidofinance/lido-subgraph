@@ -23,29 +23,29 @@ export function guessOracleRunsTotal(currentblockTime: BigInt): i32 {
   return probableId
 }
 
-export function nextIncrementalId(entity: string, i: i32): string {
+export function nextIncrementalId(entityName: string, i: i32): string {
   // Try to load entity with this id
-  let x = store.get(entity, i.toString())
+  let entity = store.get(entityName, i.toString())
 
-  if (x) {
+  if (entity) {
     let nextItem = i + 1
     return nextItem.toString()
   } else if (i == 0) {
     return '0'
   } else {
-    return nextIncrementalId(entity, i - 1)
+    return nextIncrementalId(entityName, i - 1)
   }
 }
 
-export function lastIncrementalId(entity: string, i: i32): string {
+export function lastIncrementalId(entityName: string, i: i32): string {
   // Try to load entity with this id
-  let x = store.get(entity, i.toString())
+  let entity = store.get(entityName, i.toString())
 
-  if (x) {
+  if (entity) {
     return i.toString()
   } else if (i == 0) {
     return null
   } else {
-    return lastIncrementalId(entity, i - 1)
+    return lastIncrementalId(entityName, i - 1)
   }
 }
