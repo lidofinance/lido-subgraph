@@ -1,6 +1,6 @@
-const fetch = require('node-fetch')
+const fetcher = require('./helpers/fetcher')
 
-const referral = '0x0000000000000000000000000000000000000000'
+const referral = '0x1234'
 
 const query = `query {
 	lidoSubmissions(where: {referral:"${referral}"}) {
@@ -8,21 +8,14 @@ const query = `query {
   }
 }`
 
-fetch('http://localhost:8000/subgraphs/name/lido-subgraph', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  },
-  body: JSON.stringify({ query }),
-})
-  .then((r) => r.json())
-  .then((data) => {
-    const submissions = data.data.lidoSubmissions
+const getTotalAddressReferral = async () => {
+  const submissions = (await fetcher(query)).lidoSubmissions
 
-    const total = submissions.reduce(
-      (a, b) => (a.amount ? parseInt(a.amount) : a + parseInt(b.amount)),
-      0
-    )
-    console.log('This referrer ID referred a total of:', total)
-  })
+  const total = submissions.reduce(
+    (acc, item) => acc + parseInt(item.amount),
+    0
+  )
+  console.log('This referrer ID referred a total of:', total)
+}
+
+getTotalAddressReferral()

@@ -1,7 +1,5 @@
 {
   "dependencies": {
-    "big.js": "^6.0.3",
-    "date-fns": "^2.19.0",
     "node-fetch": "^2.6.1"
   }
 }

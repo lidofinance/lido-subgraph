@@ -1,7 +1,7 @@
 const fetcher = require('./helpers/fetcher')
 
 const userTransfersQuery = `query {
-	lidoTransfers (first: 1000) {
+	lidoTransfers (first: 1000, skip: 1000) {
 		from
     to
 	}
@@ -17,9 +17,9 @@ const finder = async () => {
 
   const sorted = grouped.sort((a, b) => b.times - a.times)
 
-  const withoutSingle = sorted.filter((x) => x.times > 1 && x.times < 10)
+  const withAdequateAmount = sorted.filter((x) => x.times > 1 && x.times < 5)
 
-  console.log(withoutSingle)
+  console.log(withAdequateAmount)
 }
 
 finder()
