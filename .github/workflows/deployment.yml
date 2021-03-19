@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: 14
       - run: npm install -g @graphprotocol/graph-cli
+      - run: npm install
       - run: graph codegen
       - run: graph build
       - run: graph deploy --access-token ${{ secrets.THEGRAPH_TOKEN }}
