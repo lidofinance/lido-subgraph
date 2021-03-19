@@ -1,0 +1,21 @@
+name: Deploy Subgraph
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Deploying to The Graph
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install Graph cli and deploy
+        uses: actions/setup-node@v1
+        with:
+          node-version: 8
+      - run: npm install -g @graphprotocol/graph-cli
+      - run: graph-cli codegen
+      - run: graph-cli build
+      - run: graph-cli deploy --access-token ${{ secrets.THEGRAPH_TOKEN }}
