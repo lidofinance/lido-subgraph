@@ -19,4 +19,4 @@ jobs:
       - run: npm install
       - run: graph codegen
       - run: graph build
-      - run: graph deploy --access-token ${{ secrets.THEGRAPH_TOKEN }}
+      - run: graph deploy --access-token ${{ secrets.THEGRAPH_TOKEN }} lidofinance/lido
