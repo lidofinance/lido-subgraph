@@ -25,3 +25,7 @@ Run `deploy-local` to deploy the Subgraph.
 ### Production
 
 Build the Docker image and push to Docker using `build_and_push.sh`.
+
+### The Graph
+
+Pushes to master branch will automatically get the Subgraph deployed to The Graph.
