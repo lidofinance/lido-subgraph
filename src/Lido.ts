@@ -217,6 +217,8 @@ export function handleSubmit(event: Submitted): void {
   entity.amount = event.params.amount
   entity.referral = event.params.referral
 
+  entity.blockTime = event.block.timestamp
+
   entity.save()
 }
 
