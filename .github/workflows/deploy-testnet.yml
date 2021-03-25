@@ -1,0 +1,22 @@
+name: Deploy Subgraph
+
+on:
+  push:
+    branches:
+      - goerli
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Deploying to The Graph
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Graph cli and deploy
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+      - run: npm install -g @graphprotocol/graph-cli
+      - run: npm install
+      - run: graph codegen
+      - run: graph build
+      - run: graph deploy --access-token ${{ secrets.THEGRAPH_TOKEN_TESTNET }} --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ lidofinance/lido
