@@ -51,6 +51,7 @@ type LidoSubmission @entity {
   sender: Bytes!
   amount: BigInt!
   referral: Bytes!
+  blockTime: BigInt!
 }
 
 type LidoUnbuffered @entity {
