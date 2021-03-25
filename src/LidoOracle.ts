@@ -39,7 +39,7 @@ export function handleCompleted(event: Completed): void {
   // Calculate and add this day's shares to steth ratio by calling an functions using an archive node
 
   let contract = Lido.bind(
-    Address.fromString('0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84')
+    Address.fromString('0x5feb011f04ec47ca42e75f5ac2bea4c50a646054')
   )
 
   let totalShares = contract.getTotalShares()

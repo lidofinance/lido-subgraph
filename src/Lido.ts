@@ -90,7 +90,7 @@ export function handleTransfer(event: Transfer): void {
   let isFeeDistributionToTreasury =
     fromZeros &&
     event.params.to.toHexString() ==
-      '0x3e40d73eb977dc6a537af587d48316fee66e9c8c'
+      '0x0a9879494d2f2ac749cf84bd043e295da5b83623'
 
   // Graph's less or equal to helper
   let isDust = event.params.value.le(BigInt.fromI32(10000))
@@ -105,7 +105,7 @@ export function handleTransfer(event: Transfer): void {
     // Handling the transfer event to treasury
 
     let contract = Lido.bind(
-      Address.fromString('0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84')
+      Address.fromString('0x5feb011f04ec47ca42e75f5ac2bea4c50a646054')
     )
 
     let totalFeesRaw = contract.getFee() // Returns staking rewards fee rate, output feeBasisPoints eg 1000
