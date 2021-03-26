@@ -1,13 +1,13 @@
 {
-  "name": "lido-subgraph",
+  "name": "lido-subgraph-testnet",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lido-subgraph",
-    "create-local": "graph create --node http://localhost:8020/ lido-subgraph",
-    "remove-local": "graph remove --node http://localhost:8020/ lido-subgraph",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 lido-subgraph"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido-testnet",
+    "create-local": "graph create --node http://localhost:8020/ lido-testnet",
+    "remove-local": "graph remove --node http://localhost:8020/ lido-testnet",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 lido-testnet"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.19.0",
