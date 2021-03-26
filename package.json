@@ -4,10 +4,10 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lido-subgraph",
-    "create-local": "graph create --node http://localhost:8020/ lido-subgraph",
-    "remove-local": "graph remove --node http://localhost:8020/ lido-subgraph",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 lido-subgraph"
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido",
+    "create-local": "graph create --node http://localhost:8020/ lido",
+    "remove-local": "graph remove --node http://localhost:8020/ lido",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 lido"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.19.0",
