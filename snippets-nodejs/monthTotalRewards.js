@@ -4,7 +4,8 @@ const Big = require('big.js')
 
 const sub = require('date-fns/sub')
 
-const toHumanDate = (date) => date.toLocaleDateString('en-GB')
+const toHumanDate = (date) =>
+  date.toLocaleDateString('en-GB', { timeZone: 'UTC' })
 
 const toHumanEthAmount = (value) =>
   Big(value).div(Big('1e18')).toFixed(7).toString()
