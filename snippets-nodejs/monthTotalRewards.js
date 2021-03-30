@@ -9,9 +9,14 @@ const toHumanDate = (date) => date.toLocaleDateString('en-GB')
 const toHumanEthAmount = (value) =>
   Big(value).div(Big('1e18')).toFixed(7).toString()
 
+const dayInMs = 1000 * 60 * 60 * 24
+
+const fullDays = Math.floor(new Date() / dayInMs) * dayInMs
+
+// 30 days ago range to last full day
 const monthStartEnd = {
-  from: sub(new Date(), { months: 1 }),
-  to: new Date(),
+  from: sub(new Date(fullDays), { days: 30 }),
+  to: sub(new Date(fullDays), { seconds: 1 }),
 }
 
 // Converting JS dates to unix time
