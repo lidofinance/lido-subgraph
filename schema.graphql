@@ -71,6 +71,7 @@ type LidoWithdrawal @entity {
 type TotalReward @entity {
   id: ID!
   totalRewards: BigDecimal
+  totalRewardsWithFees: BigDecimal
   insuranceFee: BigDecimal
   treasuryFee: BigDecimal
   totalFee: BigDecimal

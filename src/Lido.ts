@@ -133,6 +133,7 @@ export function handleTransfer(event: Transfer): void {
     let totalRewards = sumWithFees.times(percentWithoutFees)
 
     totalRewardsEntity.totalRewards = totalRewards
+    totalRewardsEntity.totalRewardsWithFees = sumWithFees
     totalRewardsEntity.insuranceFee = sumWithFees.times(insuranceFee)
     totalRewardsEntity.treasuryFee = sumWithFees.times(treasuryFee)
     totalRewardsEntity.totalFee = sumWithFees.times(totalFees)
