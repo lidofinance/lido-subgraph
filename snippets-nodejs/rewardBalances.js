@@ -28,7 +28,7 @@ const balanceFinder = async () => {
 
   for (let report of oracleReports.reverse()) {
     const balance = await contractFunc.call({}, report.block)
-    const humanBalance = Big(balance).div(Big(1e18)).toFixed(8)
+    const humanBalance = Big(balance).div(Big(1e18)).toFixed(20)
     const humanTime = new Date(report.blockTime * 1000).toLocaleDateString(
       'ru-RU'
     )
