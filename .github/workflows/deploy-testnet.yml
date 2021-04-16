@@ -25,7 +25,7 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-      - run: yarn add -g @graphprotocol/graph-cli
+      - run: yarn global add @graphprotocol/graph-cli
       - run: yarn install --immutable
       - run: graph codegen
       - run: graph build
