@@ -5,6 +5,16 @@ import {
   MemberRemoved,
   QuorumChanged,
   Completed,
+  ContractVersionSet,
+  PostTotalShares,
+  BeaconReported,
+  BeaconSpecSet,
+  ExpectedEpochIdUpdated,
+  BeaconReportReceiverSet,
+  AllowedBeaconBalanceRelativeDecreaseSet,
+  AllowedBeaconBalanceAnnualRelativeIncreaseSet,
+  RecoverToVault,
+  ScriptResult,
 } from '../generated/LidoOracle/LidoOracle'
 import {
   OracleCompleted,
@@ -12,6 +22,17 @@ import {
   OracleQuorumChange,
   SharesToStethRatio,
   TotalReward,
+  OracleVersion,
+  AllowedBeaconBalanceRelativeDecrease,
+  AllowedBeaconBalanceAnnualRelativeIncrease,
+  OracleExpectedEpoch,
+  OracleTotalShares,
+  BeaconReport,
+  BeaconSpec,
+  BeaconReportReceiver,
+  RecoverToVaultEntity,
+  ScriptResultEntity
+
 } from '../generated/schema'
 
 import { nextIncrementalId, guessOracleRunsTotal } from './utils'
@@ -87,6 +108,129 @@ export function handleQuorumChanged(event: QuorumChanged): void {
   let entity = new OracleQuorumChange(event.params.quorum.toHex())
 
   entity.quorum = event.params.quorum
+
+  entity.save()
+}
+
+export function handleContractVersionSet(event: ContractVersionSet): void {
+  let entity = new OracleVersion(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.epochId = event.block.number
+  entity.version = event.params.version
+
+  entity.save()
+}
+
+export function handlePostTotalShares(event: PostTotalShares): void {
+  let entity = new OracleTotalShares(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.postTotalPooledEther = event.params.postTotalPooledEther
+  entity.preTotalPooledEther = event.params.preTotalPooledEther
+  entity.timeElapsed = event.params.timeElapsed
+  entity.totalShares = event.params.totalShares
+
+  entity.save()
+}
+
+export function handleBeaconReported(event: BeaconReported): void {
+  let entity = new BeaconReport(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.epochId = event.params.epochId
+  entity.beaconBalance = event.params.beaconBalance
+  entity.beaconValidators = event.params.beaconValidators
+  entity.caller = event.params.caller
+
+  entity.save()
+}
+
+export function handleBeaconSpecSet(event: BeaconSpecSet): void {
+  let entity = new BeaconSpec(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.epochsPerFrame = event.params.epochsPerFrame
+  entity.slotsPerEpoch = event.params.slotsPerEpoch
+  entity.secondsPerSlot = event.params.secondsPerSlot
+  entity.genesisTime = event.params.genesisTime
+
+  entity.save()
+}
+
+export function handleExpectedEpochIdUpdated(
+  event: ExpectedEpochIdUpdated
+): void {
+  let entity = new OracleExpectedEpoch(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.epochId = event.params.epochId
+
+  entity.save()
+}
+
+export function handleBeaconReportReceiverSet(
+  event: BeaconReportReceiverSet
+): void {
+  let entity = new BeaconReportReceiver(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.callback = event.params.callback
+
+  entity.save()
+}
+
+export function handleAllowedBeaconBalanceRelativeDecreaseSet(
+  event: AllowedBeaconBalanceRelativeDecreaseSet
+): void {
+  let entity = new AllowedBeaconBalanceRelativeDecrease(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.value = event.params.value
+
+  entity.save()
+}
+
+export function handleAllowedBeaconBalanceAnnualRelativeIncreaseSet(
+  event: AllowedBeaconBalanceAnnualRelativeIncreaseSet
+): void {
+  let entity = new AllowedBeaconBalanceAnnualRelativeIncrease(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.value = event.params.value
+
+  entity.save()
+}
+
+export function handleRecoverToVault(event: RecoverToVault): void {
+  let entity = new RecoverToVaultEntity(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.vault = event.params.vault
+  entity.token = event.params.token
+  entity.amount = event.params.amount
+
+  entity.save()
+}
+
+export function handleScriptResult(event: ScriptResult): void {
+  let entity = new ScriptResultEntity(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.executor = event.params.executor
+  entity.script = event.params.script
+  entity.input = event.params.input
+  entity.returnData = event.params.returnData
 
   entity.save()
 }

@@ -65,6 +65,16 @@ dataSources:
         - OracleMember
         - OracleQuorumChange
         - SharesToStethRatio
+        - OracleVersion
+        - AllowedBeaconBalanceRelativeDecrease
+        - AllowedBeaconBalanceAnnualRelativeIncrease
+        - OracleExpectedEpoch
+        - OracleTotalShares
+        - BeaconReport
+        - BeaconSpec
+        - BeaconReportReceiver
+        - RecoverToVaultEntity
+        - ScriptResultEntity
       abis:
         - name: LidoOracle
           file: ./abis/LidoOracle.json
@@ -79,6 +89,26 @@ dataSources:
           handler: handleMemberRemoved
         - event: QuorumChanged(uint256)
           handler: handleQuorumChanged
+        - event: ContractVersionSet(uint256)
+          handler: handleContractVersionSet
+        - event: PostTotalShares(uint256,uint256,uint256,uint256)
+          handler: handlePostTotalShares
+        - event: BeaconReported(uint256,uint128,uint128,address)
+          handler: handleBeaconReported
+        - event: BeaconSpecSet(uint64,uint64,uint64,uint64)
+          handler: handleBeaconSpecSet
+        - event: ExpectedEpochIdUpdated(uint256)
+          handler: handleExpectedEpochIdUpdated
+        - event: BeaconReportReceiverSet(address)
+          handler: handleBeaconReportReceiverSet
+        - event: AllowedBeaconBalanceRelativeDecreaseSet(uint256)
+          handler: handleAllowedBeaconBalanceRelativeDecreaseSet
+        - event: AllowedBeaconBalanceAnnualRelativeIncreaseSet(uint256)
+          handler: handleAllowedBeaconBalanceAnnualRelativeIncreaseSet
+        - event: RecoverToVault(indexed address,indexed address,uint256)
+          handler: handleRecoverToVault
+        - event: ScriptResult(indexed address,bytes,bytes,bytes)
+          handler: handleScriptResult
       file: ./src/LidoOracle.ts
   - kind: ethereum/contract
     name: NodeOperatorsRegistry
