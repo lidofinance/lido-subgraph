@@ -120,6 +120,71 @@ type SharesToStethRatio @entity {
   blockTime: BigInt!
 }
 
+type OracleVersion @entity {
+  id: ID!
+  epochId: BigInt!
+  version: BigInt!
+}
+
+type AllowedBeaconBalanceRelativeDecrease @entity {
+  id: ID!
+  value: BigInt!
+}
+
+type AllowedBeaconBalanceAnnualRelativeIncrease @entity {
+  id: ID!
+  value: BigInt!
+}
+
+type OracleExpectedEpoch @entity {
+  id: ID!
+  epochId: BigInt!
+}
+
+type OracleTotalShares @entity {
+  id: ID!
+  postTotalPooledEther: BigInt!
+  preTotalPooledEther: BigInt!
+  timeElapsed: BigInt!
+  totalShares: BigInt!
+}
+
+type BeaconReport @entity {
+  id: ID!
+  epochId: BigInt!
+  beaconBalance: BigInt!
+  beaconValidators: BigInt!
+  caller: Bytes!
+}
+
+type BeaconSpec @entity {
+  id: ID!
+  epochsPerFrame: BigInt!
+  slotsPerEpoch: BigInt!
+  secondsPerSlot: BigInt!
+  genesisTime: BigInt!
+}
+
+type BeaconReportReceiver @entity {
+  id: ID!
+  callback: Bytes!
+}
+
+type RecoverToVaultEntity @entity {
+  id: ID!
+  vault: Bytes!
+  token: Bytes!
+  amount: BigInt!
+}
+
+type ScriptResultEntity @entity {
+  id: ID!
+  executor: Bytes!
+  script: Bytes!
+  input: Bytes!
+  returnData: Bytes!
+}
+
 """
 NodeOperatorsRegistry
 """
