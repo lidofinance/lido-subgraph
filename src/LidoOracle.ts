@@ -13,8 +13,6 @@ import {
   BeaconReportReceiverSet,
   AllowedBeaconBalanceRelativeDecreaseSet,
   AllowedBeaconBalanceAnnualRelativeIncreaseSet,
-  RecoverToVault,
-  ScriptResult,
 } from '../generated/LidoOracle/LidoOracle'
 import {
   OracleCompleted,
@@ -30,9 +28,6 @@ import {
   BeaconReport,
   BeaconSpec,
   BeaconReportReceiver,
-  RecoverToVaultEntity,
-  ScriptResultEntity
-
 } from '../generated/schema'
 
 import { nextIncrementalId, guessOracleRunsTotal } from './utils'
@@ -206,31 +201,6 @@ export function handleAllowedBeaconBalanceAnnualRelativeIncreaseSet(
   )
 
   entity.value = event.params.value
-
-  entity.save()
-}
-
-export function handleRecoverToVault(event: RecoverToVault): void {
-  let entity = new RecoverToVaultEntity(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.vault = event.params.vault
-  entity.token = event.params.token
-  entity.amount = event.params.amount
-
-  entity.save()
-}
-
-export function handleScriptResult(event: ScriptResult): void {
-  let entity = new ScriptResultEntity(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.executor = event.params.executor
-  entity.script = event.params.script
-  entity.input = event.params.input
-  entity.returnData = event.params.returnData
 
   entity.save()
 }
