@@ -122,8 +122,8 @@ type SharesToStethRatio @entity {
 
 type OracleVersion @entity {
   id: ID!
-  epochId: BigInt!
   version: BigInt!
+  block: BigInt!
 }
 
 type AllowedBeaconBalanceRelativeDecrease @entity {
