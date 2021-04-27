@@ -170,21 +170,6 @@ type BeaconReportReceiver @entity {
   callback: Bytes!
 }
 
-type RecoverToVaultEntity @entity {
-  id: ID!
-  vault: Bytes!
-  token: Bytes!
-  amount: BigInt!
-}
-
-type ScriptResultEntity @entity {
-  id: ID!
-  executor: Bytes!
-  script: Bytes!
-  input: Bytes!
-  returnData: Bytes!
-}
-
 """
 NodeOperatorsRegistry
 """
