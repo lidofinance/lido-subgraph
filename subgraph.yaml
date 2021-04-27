@@ -73,8 +73,6 @@ dataSources:
         - BeaconReport
         - BeaconSpec
         - BeaconReportReceiver
-        - RecoverToVaultEntity
-        - ScriptResultEntity
       abis:
         - name: LidoOracle
           file: ./abis/LidoOracle.json
@@ -105,10 +103,6 @@ dataSources:
           handler: handleAllowedBeaconBalanceRelativeDecreaseSet
         - event: AllowedBeaconBalanceAnnualRelativeIncreaseSet(uint256)
           handler: handleAllowedBeaconBalanceAnnualRelativeIncreaseSet
-        - event: RecoverToVault(indexed address,indexed address,uint256)
-          handler: handleRecoverToVault
-        - event: ScriptResult(indexed address,bytes,bytes,bytes)
-          handler: handleScriptResult
       file: ./src/LidoOracle.ts
   - kind: ethereum/contract
     name: NodeOperatorsRegistry
