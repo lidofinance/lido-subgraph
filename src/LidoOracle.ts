@@ -112,8 +112,8 @@ export function handleContractVersionSet(event: ContractVersionSet): void {
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
 
-  entity.epochId = event.block.number
   entity.version = event.params.version
+  entity.block = event.block.number
 
   entity.save()
 }
