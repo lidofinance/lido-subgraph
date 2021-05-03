@@ -16,8 +16,7 @@ const holdersFinder = async () => {
   let skip = 0
   let gotItems = 0
 
-  // Skip parameter limit is 5000
-  while ((gotItems === 0 || gotItems % 1000 === 0) && skip < 5000) {
+  while (gotItems === 0 || gotItems % 1000 === 0) {
     const items = (await fetcher(genQuery(skip))).lidoTransfers
 
     skip += 1000
