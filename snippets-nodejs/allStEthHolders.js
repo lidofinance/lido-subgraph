@@ -32,7 +32,10 @@ const holdersFinder = async () => {
 
   console.log('Found', unique.size, 'unique addresses of stETH holders')
 
-  await fs.promises.writeFile('unique.json', JSON.stringify(Array.from(unique)))
+  await fs.promises.writeFile(
+    'withContracts.json',
+    JSON.stringify(Array.from(unique))
+  )
 }
 
 holdersFinder()
