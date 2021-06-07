@@ -10,7 +10,7 @@
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 lido"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.19.0",
+    "@graphprotocol/graph-cli": "0.20.0",
     "@graphprotocol/graph-ts": "0.19.0",
     "strip-ansi": "^6.0.0"
   }
