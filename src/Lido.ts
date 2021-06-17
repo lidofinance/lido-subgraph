@@ -62,7 +62,7 @@ export function handleTransfer(event: Transfer): void {
   entity.value = event.params.value
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.transaction.hash.toHexString()
+  entity.transactionHash = event.transaction.hash
 
   // Try to load the ratio from most recent oracle report
   let ratio = SharesToStethRatio.load(
@@ -156,7 +156,7 @@ export function handleTransfer(event: Transfer): void {
     // Reference to TotalReward entity
     nodeOperatorFees.totalReward = event.transaction.hash.toHex()
 
-    nodeOperatorFees.address = event.params.to.toHex()
+    nodeOperatorFees.address = event.params.to
     nodeOperatorFees.fee = event.params.value
 
     nodeOperatorFees.save()

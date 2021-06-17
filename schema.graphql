@@ -19,7 +19,7 @@ type LidoTransfer @entity {
   shares: BigDecimal!
   block: BigInt!
   blockTime: BigInt!
-  transactionHash: String!
+  transactionHash: Bytes!
 }
 
 type LidoApproval @entity {
@@ -84,7 +84,7 @@ type TotalReward @entity {
 type NodeOperatorFees @entity {
   id: ID!
   totalReward: TotalReward!
-  address: String!
+  address: Bytes!
   fee: BigInt!
 }
 
