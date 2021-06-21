@@ -20,7 +20,8 @@ export function guessOracleRunsTotal(currentblockTime: BigInt): i32 {
     return 0
   }
 
-  return probableId
+  // Our estimation is not 100% - needs a buffer
+  return probableId + 10
 }
 
 export function nextIncrementalId(entityName: string, i: i32): string {
