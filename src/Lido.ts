@@ -99,8 +99,9 @@ export function handleTransfer(event: Transfer): void {
   let rewardsEntityExists = totalRewardsEntity !== null
 
   if (rewardsEntityExists && isFeeDistributionToTreasury && !isDust) {
-    // Handling the transfer event to treasury
+    // Handling the Insurance Fee transfer event to treasury
 
+    totalRewardsEntity.insuranceFee = event.params.value
 
     totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
       event.params.value
