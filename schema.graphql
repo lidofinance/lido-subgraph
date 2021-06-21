@@ -70,11 +70,11 @@ type LidoWithdrawal @entity {
 
 type TotalReward @entity {
   id: ID!
-  totalRewards: BigDecimal
-  totalRewardsWithFees: BigDecimal
-  insuranceFee: BigDecimal
-  treasuryFee: BigDecimal
-  totalFee: BigDecimal
+  totalRewards: BigInt
+  totalRewardsWithFees: BigInt
+  insuranceFee: BigInt
+  treasuryFee: BigInt
+  totalFee: BigInt
   dust: BigInt
   nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
   block: BigInt!
@@ -98,6 +98,7 @@ type OracleCompleted @entity {
   beaconValidators: BigInt!
   block: BigInt!
   blockTime: BigInt!
+  transactionHash: Bytes!
 }
 
 type OracleMember @entity {

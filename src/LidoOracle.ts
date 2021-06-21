@@ -1,4 +1,4 @@
-import { Address } from '@graphprotocol/graph-ts'
+import { Address, BigInt } from '@graphprotocol/graph-ts'
 import { Lido } from '../generated/Lido/Lido'
 import {
   MemberAdded,
@@ -30,38 +30,76 @@ import {
   BeaconReportReceiver,
 } from '../generated/schema'
 
-import { nextIncrementalId, guessOracleRunsTotal } from './utils'
+import {
+  nextIncrementalId,
+  lastIncrementalId,
+  guessOracleRunsTotal,
+} from './utils'
 
 export function handleCompleted(event: Completed): void {
-  let entity = new OracleCompleted(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  let previousCompleted = OracleCompleted.load(
+    lastIncrementalId(
+      'OracleCompleted',
+      guessOracleRunsTotal(event.block.timestamp)
+    )
+  )
+  let newCompleted = new OracleCompleted(
+    nextIncrementalId(
+      'OracleCompleted',
+      guessOracleRunsTotal(event.block.timestamp)
+    )
   )
 
-  entity.epochId = event.params.epochId
-  entity.beaconBalance = event.params.beaconBalance
-  entity.beaconValidators = event.params.beaconValidators
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
+  let contract = Lido.bind(
+    Address.fromString('0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84')
+  )
 
-  entity.save()
+  newCompleted.epochId = event.params.epochId
+  newCompleted.beaconBalance = event.params.beaconBalance
+  newCompleted.beaconValidators = event.params.beaconValidators
+  newCompleted.block = event.block.number
+  newCompleted.blockTime = event.block.timestamp
+  newCompleted.transactionHash = event.transaction.hash
+
+  newCompleted.save()
 
   // Create an empty TotalReward entity that will be filled on Transfer events
   // We know that in this transaction there will be Transfer events which we can identify by existence of TotalReward entity with transaction hash as its id
   let totalRewardsEntity = new TotalReward(event.transaction.hash.toHex())
   totalRewardsEntity.block = event.block.number
   totalRewardsEntity.blockTime = event.block.timestamp
+
+  let oldBeaconValidators = previousCompleted
+    ? previousCompleted.beaconValidators
+    : BigInt.fromI32(0)
+
+  let oldBeaconBalance = previousCompleted
+    ? previousCompleted.beaconBalance
+    : BigInt.fromI32(0)
+
+  let newBeaconValidators = event.params.beaconValidators
+  let newBeaconBalance = event.params.beaconBalance
+
+  let wei = BigInt.fromString('1000000000000000000')
+  let depositSize = BigInt.fromI32(32)
+  let depositAmount = depositSize.times(wei)
+
+  let appearedValidators = newBeaconValidators.minus(oldBeaconValidators)
+  let appearedValidatorsDeposits = appearedValidators.times(depositAmount)
+  let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
+  let newTotalRewards = newBeaconBalance.minus(rewardBase)
+
+  totalRewardsEntity.totalRewardsWithFees = newTotalRewards
+  // Setting totalRewards to totalRewardsWithFees so we can subtract fees from it
+  totalRewardsEntity.totalRewards = newTotalRewards
+  // Setting initial 0 value so we can add fees to it
+  totalRewardsEntity.totalFee = BigInt.fromI32(0)
+
   totalRewardsEntity.save()
 
-  // Calculate and add this day's shares to steth ratio by calling an functions using an archive node
-
-  let contract = Lido.bind(
-    Address.fromString('0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84')
-  )
-
-  let totalShares = contract.getTotalShares()
-  let pooledEth = contract.getPooledEthByShares(totalShares)
-
   // Ratio of ether to shares
+  let pooledEth = contract.getTotalPooledEther()
+  let totalShares = contract.getTotalShares()
   let ratio = pooledEth.toBigDecimal().div(totalShares.toBigDecimal())
 
   let sharesToStethRatio = new SharesToStethRatio(

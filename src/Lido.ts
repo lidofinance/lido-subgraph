@@ -1,7 +1,5 @@
-import { Address } from '@graphprotocol/graph-ts'
 import { BigDecimal } from '@graphprotocol/graph-ts'
 import { BigInt } from '@graphprotocol/graph-ts'
-import { Lido } from '../generated/Lido/Lido'
 import {
   Stopped,
   Resumed,
@@ -76,10 +74,9 @@ export function handleTransfer(event: Transfer): void {
   // At deploy ratio was 1 to 1
   let sharesToStethRatio = ratio ? ratio.ratio : BigDecimal.fromString('1')
 
-  // Calculate shares amount for this transfer using sharesToSteth ratio
   let shares = event.params.value.toBigDecimal().div(sharesToStethRatio)
-
   entity.shares = shares
+
   entity.save()
 
   let fromZeros =
@@ -104,47 +101,27 @@ export function handleTransfer(event: Transfer): void {
   if (rewardsEntityExists && isFeeDistributionToTreasury && !isDust) {
     // Handling the transfer event to treasury
 
-    let contract = Lido.bind(
-      Address.fromString('0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84')
+
+    totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
+      event.params.value
     )
-
-    let totalFeesRaw = contract.getFee() // Returns staking rewards fee rate, output feeBasisPoints eg 1000
-    let feeDistribution = contract.getFeeDistribution() // Returns fee distribution proportion, output: treasuryFeeBasisPoints eg 0, insuranceFeeBasisPoints eg 5000, operatorsFeeBasisPoints eg 5000
-
-    // 1 basis point is equal to 0.01% // eg totalFeesPercent = 1000 x 0.01 = 10%
-
-    // Transform things from basis points to decimal fractions like 0.1 and 0.05
-    let totalFeesUntyped = totalFeesRaw * 0.0001
-    let insuranceFeeUntyped = feeDistribution.value1 * 0.0001 * totalFeesUntyped
-    let treasuryFeeUntyped = feeDistribution.value0 * 0.0001 * totalFeesUntyped
-
-    // Proper types for our calculations
-    let insuranceFee = BigDecimal.fromString(insuranceFeeUntyped.toString())
-    let treasuryFee = BigDecimal.fromString(treasuryFeeUntyped.toString())
-    let totalFees = BigDecimal.fromString(totalFeesUntyped.toString())
-
-    let value = event.params.value.toBigDecimal()
-
-    // Knowing distribution to treasury amount and it's percentage, we can calculate total sum
-    let sumWithFees = value.div(insuranceFee)
-
-    // Total rewards without fees
-    let percentWithoutFees = BigDecimal.fromString('1').minus(totalFees)
-    let totalRewards = sumWithFees.times(percentWithoutFees)
-
-    totalRewardsEntity.totalRewards = totalRewards
-    totalRewardsEntity.totalRewardsWithFees = sumWithFees
-    totalRewardsEntity.insuranceFee = sumWithFees.times(insuranceFee)
-    totalRewardsEntity.treasuryFee = sumWithFees.times(treasuryFee)
-    totalRewardsEntity.totalFee = sumWithFees.times(totalFees)
+    totalRewardsEntity.totalFee = totalRewardsEntity.totalFee.plus(
+      event.params.value
+    )
 
     totalRewardsEntity.save()
   } else if (rewardsEntityExists && isFeeDistributionToTreasury && isDust) {
     // Handling dust transfer event
 
-    let totalRewardsEntity = TotalReward.load(event.transaction.hash.toHex())
-
     totalRewardsEntity.dust = event.params.value
+
+    totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
+      event.params.value
+    )
+    totalRewardsEntity.totalFee = totalRewardsEntity.totalFee.plus(
+      event.params.value
+    )
+
     totalRewardsEntity.save()
   } else if (rewardsEntityExists && fromZeros) {
     // Handling node operator fee transfer to node operator
@@ -159,6 +136,14 @@ export function handleTransfer(event: Transfer): void {
     nodeOperatorFees.address = event.params.to
     nodeOperatorFees.fee = event.params.value
 
+    totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
+      event.params.value
+    )
+    totalRewardsEntity.totalFee = totalRewardsEntity.totalFee.plus(
+      event.params.value
+    )
+
+    totalRewardsEntity.save()
     nodeOperatorFees.save()
   }
 }
