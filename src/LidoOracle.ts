@@ -100,7 +100,7 @@ export function handleCompleted(event: Completed): void {
   // Ratio of ether to shares
   let pooledEth = contract.getTotalPooledEther()
   let totalShares = contract.getTotalShares()
-  let ratio = pooledEth.toBigDecimal().div(totalShares.toBigDecimal())
+  let ratio = pooledEth.div(totalShares)
 
   let sharesToStethRatio = new SharesToStethRatio(
     nextIncrementalId(
@@ -108,8 +108,8 @@ export function handleCompleted(event: Completed): void {
       guessOracleRunsTotal(event.block.timestamp)
     )
   )
-  sharesToStethRatio.totalShares = totalShares
   sharesToStethRatio.pooledEth = pooledEth
+  sharesToStethRatio.totalShares = totalShares
   sharesToStethRatio.ratio = ratio
   sharesToStethRatio.block = event.block.number
   sharesToStethRatio.blockTime = event.block.timestamp

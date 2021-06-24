@@ -16,7 +16,7 @@ type LidoTransfer @entity {
   from: Bytes!
   to: Bytes!
   value: BigInt!
-  shares: BigDecimal!
+  shares: BigInt!
   block: BigInt!
   blockTime: BigInt!
   transactionHash: Bytes!
@@ -114,9 +114,9 @@ type OracleQuorumChange @entity {
 
 type SharesToStethRatio @entity {
   id: ID!
-  totalShares: BigInt!
   pooledEth: BigInt!
-  ratio: BigDecimal!
+  totalShares: BigInt!
+  ratio: BigInt!
   block: BigInt!
   blockTime: BigInt!
 }

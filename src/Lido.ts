@@ -1,4 +1,3 @@
-import { BigDecimal } from '@graphprotocol/graph-ts'
 import { BigInt } from '@graphprotocol/graph-ts'
 import {
   Stopped,
@@ -70,13 +69,12 @@ export function handleTransfer(event: Transfer): void {
     )
   )
 
-  // Check if there has actually been an oracle report already and default to 1 if not
-  // At deploy ratio was 1 to 1
-  let sharesToStethRatio = ratio ? ratio.ratio : BigDecimal.fromString('1')
+  // At deploy ratio was 1 to 1 if no Oracle report is found
+  let shares = ratio
+    ? event.params.value.times(ratio.totalShares).div(ratio.pooledEth)
+    : BigInt.fromString('1')
 
-  let shares = event.params.value.toBigDecimal().div(sharesToStethRatio)
   entity.shares = shares
-
   entity.save()
 
   let fromZeros =
