@@ -26,13 +26,18 @@ query {
 const balanceFinder = async () => {
   const oracleReports = (await fetcher(query)).oracleCompleteds
 
-  for (let report of oracleReports.reverse()) {
+  let last = 0
+
+  for (let report of oracleReports) {
     const balance = await contractFunc.call({}, report.block)
-    const humanBalance = Big(balance).div(Big(1e18)).toFixed(20)
+    const humanBalance = Big(balance).div('1e18')
+    const humanDifference = Big(balance).minus(last).div('1e18')
     const humanTime = new Date(report.blockTime * 1000).toLocaleDateString(
       'ru-RU'
     )
-    console.log(humanTime, humanBalance)
+    console.log(humanTime, humanBalance.toString(), humanDifference.toString())
+
+    last = balance
   }
 }
 

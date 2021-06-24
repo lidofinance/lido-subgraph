@@ -16,6 +16,7 @@ const holdersFinder = async () => {
   let skip = 0
   let gotItems = 0
 
+  // Make sure we are using self-hosted Graph nodes with no limits or this will fail
   while (gotItems === 0 || gotItems % 1000 === 0) {
     const items = (await fetcher(genQuery(skip))).lidoTransfers
 
@@ -30,12 +31,13 @@ const holdersFinder = async () => {
     console.log('Fetched', gotItems)
   }
 
-  console.log('Found', unique.size, 'unique addresses of stETH holders')
-
-  await fs.promises.writeFile(
-    'withContracts.json',
-    JSON.stringify(Array.from(unique))
+  const filtered = Array.from(unique).filter(
+    (x) => x !== '0x0000000000000000000000000000000000000000'
   )
+
+  console.log('Found', filtered.length, 'unique addresses of stETH holders')
+
+  await fs.promises.writeFile('withContracts.json', JSON.stringify(filtered))
 }
 
 holdersFinder()
