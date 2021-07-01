@@ -11,7 +11,13 @@ const fetcher = async (query) => {
     },
     body: JSON.stringify({ query }),
   })
+
+  if (req.status !== 200) {
+    throw new Error()
+  }
+
   const res = await req.json()
+
   return res.data
 }
 
