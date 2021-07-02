@@ -72,7 +72,7 @@ export function handleTransfer(event: Transfer): void {
   // At deploy ratio was 1 to 1 if no Oracle report is found
   let shares = ratio
     ? event.params.value.times(ratio.totalShares).div(ratio.pooledEth)
-    : BigInt.fromString('1')
+    : event.params.value
 
   entity.shares = shares
   entity.save()
