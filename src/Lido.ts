@@ -34,7 +34,7 @@ export function handleStopped(event: Stopped): void {
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
 
-  entity.blocktime = event.block.timestamp
+  entity.blockTime = event.block.timestamp
 
   entity.save()
 }
@@ -44,7 +44,7 @@ export function handleResumed(event: Resumed): void {
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
 
-  entity.blocktime = event.block.timestamp
+  entity.blockTime = event.block.timestamp
 
   entity.save()
 }

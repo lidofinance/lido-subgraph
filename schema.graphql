@@ -3,12 +3,12 @@ Lido
 """
 type LidoStopped @entity {
   id: ID!
-  blocktime: BigInt!
+  blockTime: BigInt!
 }
 
 type LidoResumed @entity {
   id: ID!
-  blocktime: BigInt!
+  blockTime: BigInt!
 }
 
 type LidoTransfer @entity {
