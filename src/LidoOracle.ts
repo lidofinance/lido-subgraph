@@ -151,7 +151,9 @@ export function handleContractVersionSet(event: ContractVersionSet): void {
   )
 
   entity.version = event.params.version
+
   entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
 
   entity.save()
 }

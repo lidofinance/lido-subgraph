@@ -3,11 +3,13 @@ Lido
 """
 type LidoStopped @entity {
   id: ID!
+  block: BigInt!
   blockTime: BigInt!
 }
 
 type LidoResumed @entity {
   id: ID!
+  block: BigInt!
   blockTime: BigInt!
 }
 
@@ -44,6 +46,8 @@ type LidoFeeDistribution @entity {
 type LidoWithdrawalCredential @entity {
   id: ID!
   withdrawalCredentials: Bytes!
+  block: BigInt!
+  blockTime: BigInt!
 }
 
 type LidoSubmission @entity {
@@ -51,6 +55,7 @@ type LidoSubmission @entity {
   sender: Bytes!
   amount: BigInt!
   referral: Bytes!
+  block: BigInt!
   blockTime: BigInt!
 }
 
@@ -125,6 +130,7 @@ type OracleVersion @entity {
   id: ID!
   version: BigInt!
   block: BigInt!
+  blockTime: BigInt!
 }
 
 type AllowedBeaconBalanceRelativeDecrease @entity {

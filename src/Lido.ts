@@ -34,6 +34,7 @@ export function handleStopped(event: Stopped): void {
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
 
+  entity.block = event.block.number
   entity.blockTime = event.block.timestamp
 
   entity.save()
@@ -44,6 +45,7 @@ export function handleResumed(event: Resumed): void {
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
 
+  entity.block = event.block.number
   entity.blockTime = event.block.timestamp
 
   entity.save()
@@ -190,6 +192,9 @@ export function handleWithdrawalCredentialsSet(
 
   entity.withdrawalCredentials = event.params.withdrawalCredentials
 
+  entity.block = event.block.number
+  entity.blockTime = event.block.number
+
   entity.save()
 }
 
@@ -202,6 +207,7 @@ export function handleSubmit(event: Submitted): void {
   entity.amount = event.params.amount
   entity.referral = event.params.referral
 
+  entity.block = event.block.number
   entity.blockTime = event.block.timestamp
 
   entity.save()
