@@ -1,4 +1,5 @@
 import { BigInt } from '@graphprotocol/graph-ts'
+import { store } from '@graphprotocol/graph-ts'
 import {
   Stopped,
   Resumed,
@@ -28,6 +29,8 @@ import {
 } from '../generated/schema'
 
 import { lastIncrementalId, guessOracleRunsTotal } from './utils'
+
+import { wcKeyCrops } from './wcKeyCrops'
 
 export function handleStopped(event: Stopped): void {
   let entity = new LidoStopped(
@@ -196,6 +199,24 @@ export function handleWithdrawalCredentialsSet(
   entity.blockTime = event.block.number
 
   entity.save()
+
+  // Cropping unused keys on withdrawal credentials change
+  if (
+    event.params.withdrawalCredentials.toHexString() ==
+    '0x010000000000000000000000b9d7934878b5fb9610b3fe8a5e441e8fad7e293f'
+  ) {
+    let keys = wcKeyCrops.get(
+      '0x010000000000000000000000b9d7934878b5fb9610b3fe8a5e441e8fad7e293f'
+    )
+
+    let length = keys.length
+
+    // There is no for...of loop in AS
+    for (let i = 0; i < length; i++) {
+      let key = keys[i]
+      store.remove('NodeOperatorSigningKey', key)
+    }
+  }
 }
 
 export function handleSubmit(event: Submitted): void {

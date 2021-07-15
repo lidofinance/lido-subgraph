@@ -29,3 +29,7 @@ Build the Docker image and push to Docker using `build_and_push.sh`.
 ### The Graph
 
 Pushes to master branch will automatically get the Subgraph deployed to The Graph.
+
+## Notes
+
+Please note that it's now advised not to rely on this Subgraph's node operator keys for duplicate key checks. We've hit a technical limitation on withdrawal credentials changes when unused keys are cropped. We can't guarantee cropped keys will be deleted from this Subgraph correctly in the future.
