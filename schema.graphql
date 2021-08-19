@@ -225,3 +225,59 @@ type ChangedMinQuorum @entity {
   id: ID!
   minAcceptQuorumPct: BigInt!
 }
+
+"""
+Easytrack
+"""
+type Motion @entity {
+  id: ID!
+  creator: Bytes!
+  evmScriptFactory: Bytes!
+  duration: BigInt
+  startDate: BigInt!
+  snapshotBlock: BigInt!
+  objectionsAmount: BigInt!
+  objectionsAmountPct: BigInt!
+  objectionsThreshold: BigInt!
+  evmScriptHash: Bytes!
+  evmScriptCalldata: Bytes!
+  status: String!
+  enacted_at: BigInt
+  canceled_at: BigInt
+  rejected_at: BigInt
+}
+
+type EasyTrackConfig @entity {
+  id: ID!
+  implementation: Bytes!
+  admin: Bytes!
+  evmScriptExecutor: Bytes!
+  motionDuration: BigInt!
+  motionsCountLimit: BigInt!
+  objectionsThreshold: BigInt!
+  isPaused: Boolean!
+}
+
+type Role @entity {
+  id: ID!
+  role: Bytes!
+  address: Bytes!
+  creator: Bytes!
+  isActive: Boolean!
+}
+
+type EVMScriptFactory @entity{
+  id: ID!
+  address: Bytes!
+  permissions: Bytes!
+  isActive: Boolean!
+}
+
+type Objection @entity{
+  id: ID!
+  motionId: BigInt!
+  objector: Bytes!
+  weight: BigInt!
+  block: BigInt!
+  blockTime: BigInt!
+}
