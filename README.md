@@ -8,6 +8,7 @@ Subgraph to index Lido contracts.
 - Lido Oracle
 - Node Operator Registry
 - Voting
+- Easytrack
 
 ## Developing
 
