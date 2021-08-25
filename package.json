@@ -4,6 +4,8 @@
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:verbose": "NODE_OPTIONS=--experimental-vm-modules jest --verbose",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido",
     "create-local": "env-cmd --use-shell graph create --node '$GRAPH_NODE' lido",
     "remove-local": "env-cmd --use-shell graph remove --node '$GRAPH_NODE' lido",
@@ -12,6 +14,15 @@
   "dependencies": {
     "@graphprotocol/graph-cli": "0.21.1",
     "@graphprotocol/graph-ts": "0.20.1"
+  },
+  "devDependencies": {
+    "@jest/types": "^27.0.6",
+    "dotenv": "^10.0.0",
     "env-cmd": "^10.1.0",
+    "ethers": "^5.4.5",
+    "graphql": "^15.5.1",
+    "graphql-request": "^3.5.0",
+    "jest": "^27.0.6",
+    "jest-esm-transformer": "^1.0.0"
   }
 }
