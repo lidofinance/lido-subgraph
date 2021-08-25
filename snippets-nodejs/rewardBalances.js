@@ -4,7 +4,7 @@ const fs = require('fs')
 const Big = require('big.js')
 
 const LIDO_ADDRESS = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
-const ABI = JSON.parse(fs.readFileSync('./../abis/Lido.json')).abi
+const ABI = JSON.parse(fs.readFileSync('./../abis/Lido.json'))
 
 // Make sure to use an archive node!
 const rpc = process.env.WEB3_PROVIDER_URI
