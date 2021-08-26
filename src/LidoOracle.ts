@@ -28,6 +28,7 @@ import {
   BeaconReport,
   BeaconSpec,
   BeaconReportReceiver,
+  Totals,
 } from '../generated/schema'
 
 import {
@@ -99,22 +100,76 @@ export function handleCompleted(event: Completed): void {
   // Setting initial 0 value so we can add fees to it
   totalRewardsEntity.totalFee = BigInt.fromI32(0)
 
+  // Will save later, still need to add shares data
+
+  // Totals and rewards data logic
+  let totals = Totals.load('')
+
+  // Keeping data before increase
+  let totalPooledEtherBefore = totals.totalPooledEther
+  let totalSharesBefore = totals.totalShares
+
+  let feeBasis = BigInt.fromI32(contract.getFee()) // 1000
+
+  // Increasing totals
+  let totalPooledEtherAfter = totals.totalPooledEther.plus(newTotalRewards)
+
+  let calculationUnit = BigInt.fromI32(10000)
+
+  // Overall shares for all rewards cut
+  let shares2mint = newTotalRewards
+    .times(feeBasis)
+    .times(totals.totalShares)
+    .div(
+      totalPooledEtherAfter
+        .times(calculationUnit)
+        .minus(feeBasis.times(newTotalRewards))
+    )
+
+  let totalSharesAfter = totals.totalShares.plus(shares2mint)
+
+  totals.totalPooledEther = totalPooledEtherAfter
+  totals.totalShares = totalSharesAfter
+  totals.save()
+
+  // Further shares calculations
+  let feeDistribution = contract.getFeeDistribution()
+  let insuranceFeeBasisPoints = BigInt.fromI32(feeDistribution.value1) // 5000
+  let operatorsFeeBasisPoints = BigInt.fromI32(feeDistribution.value2) // 5000
+
+  let sharesToInsuranceFund = shares2mint
+    .times(insuranceFeeBasisPoints)
+    .div(calculationUnit)
+
+  let sharesToOperators = shares2mint
+    .times(operatorsFeeBasisPoints)
+    .div(calculationUnit)
+
+  let sharesToTreasury = shares2mint
+    .minus(sharesToInsuranceFund)
+    .minus(sharesToOperators)
+
+  totalRewardsEntity.sharesToInsuranceFund = sharesToInsuranceFund
+  totalRewardsEntity.sharesToOperators = sharesToOperators
+  totalRewardsEntity.sharesToTreasury = sharesToTreasury
   totalRewardsEntity.save()
 
-  // Ratio of ether to shares
-  let pooledEth = contract.getTotalPooledEther()
-  let totalShares = contract.getTotalShares()
-
+  // Creating and saving data for rewards calculations
   let sharesToStethRatio = new SharesToStethRatio(
     nextIncrementalId(
       'SharesToStethRatio',
       guessOracleRunsTotal(event.block.timestamp)
     )
   )
-  sharesToStethRatio.pooledEth = pooledEth
-  sharesToStethRatio.totalShares = totalShares
+
+  sharesToStethRatio.totalPooledEtherBefore = totalPooledEtherBefore
+  sharesToStethRatio.totalPooledEtherAfter = totalPooledEtherAfter
+  sharesToStethRatio.totalSharesBefore = totalSharesBefore
+  sharesToStethRatio.totalSharesAfter = totalSharesAfter
+
   sharesToStethRatio.block = event.block.number
   sharesToStethRatio.blockTime = event.block.timestamp
+
   sharesToStethRatio.save()
 }
 

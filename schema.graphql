@@ -21,7 +21,7 @@ type LidoTransfer @entity {
   from: Bytes!
   to: Bytes!
   value: BigInt!
-  shares: BigInt!
+  shares: BigInt
 
   block: BigInt!
   blockTime: BigInt!
@@ -65,6 +65,7 @@ type LidoSubmission @entity {
   sender: Bytes!
   amount: BigInt!
   referral: Bytes!
+  shares: BigInt!
 
   block: BigInt!
   blockTime: BigInt!
@@ -98,6 +99,9 @@ type TotalReward @entity {
   treasuryFee: BigInt
   dust: BigInt
 
+  sharesToInsuranceFund: BigInt
+  sharesToOperators: BigInt
+  sharesToTreasury: BigInt
 
   block: BigInt!
   blockTime: BigInt!
@@ -111,6 +115,12 @@ type NodeOperatorFees @entity {
   fee: BigInt!
 }
 
+type Totals @entity {
+  id: ID!
+
+  totalPooledEther: BigInt!
+  totalShares: BigInt!
+}
 
 """
 LidoOracle
@@ -142,9 +152,11 @@ type OracleQuorumChange @entity {
 
 type SharesToStethRatio @entity {
   id: ID!
-  pooledEth: BigInt!
-  totalShares: BigInt!
 
+  totalPooledEtherBefore: BigInt!
+  totalPooledEtherAfter: BigInt!
+  totalSharesBefore: BigInt!
+  totalSharesAfter: BigInt!
 
   block: BigInt!
   blockTime: BigInt!

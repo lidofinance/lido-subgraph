@@ -23,12 +23,10 @@ import {
   LidoSubmission,
   LidoUnbuffered,
   LidoWithdrawal,
-  SharesToStethRatio,
   TotalReward,
   NodeOperatorFees,
+  Totals,
 } from '../generated/schema'
-
-import { lastIncrementalId, guessOracleRunsTotal } from './utils'
 
 import { wcKeyCrops } from './wcKeyCrops'
 
@@ -66,27 +64,30 @@ export function handleTransfer(event: Transfer): void {
   entity.blockTime = event.block.timestamp
   entity.transactionHash = event.transaction.hash
 
-  // Try to load the ratio from most recent oracle report
-  let ratio = SharesToStethRatio.load(
-    lastIncrementalId(
-      'SharesToStethRatio',
-      guessOracleRunsTotal(event.block.timestamp)
-    )
-  )
-
-  // At deploy ratio was 1 to 1 if no Oracle report is found
-  let shares = ratio
-    ? event.params.value.times(ratio.totalShares).div(ratio.pooledEth)
-    : event.params.value
-
-  entity.shares = shares
-  entity.save()
-
   let fromZeros =
     event.params.from.toHexString() ==
     '0x0000000000000000000000000000000000000000'
 
-  // TODO: Make treasury address dynamic by calling Lido.getTreasury()
+  let totalRewardsEntity: TotalReward | null = TotalReward.load(
+    event.transaction.hash.toHex()
+  )
+
+  let rewardsEntityExists = totalRewardsEntity !== null
+
+  // Entity is already created at this point
+  let totals = Totals.load('')
+
+  // At deploy ratio was 1 to 1 if no Oracle report is found
+  let shares = event.params.value
+    .times(totals.totalShares)
+    .div(totals.totalPooledEther)
+
+  if (!fromZeros || rewardsEntityExists) {
+    entity.shares = shares
+  }
+
+  entity.save()
+
   let isFeeDistributionToTreasury =
     fromZeros &&
     (event.params.to.toHexString() ==
@@ -96,12 +97,6 @@ export function handleTransfer(event: Transfer): void {
 
   // graph-ts less or equal to
   let isDust = event.params.value.le(BigInt.fromI32(50000))
-
-  let totalRewardsEntity: TotalReward | null = TotalReward.load(
-    event.transaction.hash.toHex()
-  )
-
-  let rewardsEntityExists = totalRewardsEntity !== null
 
   if (rewardsEntityExists && isFeeDistributionToTreasury && !isDust) {
     // Handling the Insurance Fee transfer event to treasury
@@ -226,14 +221,36 @@ export function handleSubmit(event: Submitted): void {
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
 
+  // Loading totals
+  let totals = Totals.load('')
+
+  let firstSubmission = !totals
+
+  if (firstSubmission) {
+    totals = new Totals('')
+    totals.totalPooledEther = BigInt.fromI32(0)
+    totals.totalShares = BigInt.fromI32(0)
+  }
+
   entity.sender = event.params.sender
   entity.amount = event.params.amount
   entity.referral = event.params.referral
+
+  // At deployment ratio is 1:1
+  let shares = !firstSubmission
+    ? event.params.amount.times(totals.totalShares).div(totals.totalPooledEther)
+    : event.params.amount
+  entity.shares = shares
 
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
 
   entity.save()
+
+  // Increasing Totals
+  totals.totalPooledEther = totals.totalPooledEther.plus(event.params.amount)
+  totals.totalShares = totals.totalShares.plus(shares)
+  totals.save()
 }
 
 export function handleUnbuffered(event: Unbuffered): void {
