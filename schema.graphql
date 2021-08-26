@@ -121,7 +121,6 @@ type SharesToStethRatio @entity {
   id: ID!
   pooledEth: BigInt!
   totalShares: BigInt!
-  ratio: BigInt!
   block: BigInt!
   blockTime: BigInt!
 }

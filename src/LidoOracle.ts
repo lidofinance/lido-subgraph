@@ -100,7 +100,6 @@ export function handleCompleted(event: Completed): void {
   // Ratio of ether to shares
   let pooledEth = contract.getTotalPooledEther()
   let totalShares = contract.getTotalShares()
-  let ratio = pooledEth.div(totalShares)
 
   let sharesToStethRatio = new SharesToStethRatio(
     nextIncrementalId(
@@ -110,7 +109,6 @@ export function handleCompleted(event: Completed): void {
   )
   sharesToStethRatio.pooledEth = pooledEth
   sharesToStethRatio.totalShares = totalShares
-  sharesToStethRatio.ratio = ratio
   sharesToStethRatio.block = event.block.number
   sharesToStethRatio.blockTime = event.block.timestamp
   sharesToStethRatio.save()
