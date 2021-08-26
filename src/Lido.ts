@@ -89,8 +89,10 @@ export function handleTransfer(event: Transfer): void {
   // TODO: Make treasury address dynamic by calling Lido.getTreasury()
   let isFeeDistributionToTreasury =
     fromZeros &&
-    event.params.to.toHexString() ==
-      '0x3e40d73eb977dc6a537af587d48316fee66e9c8c'
+    (event.params.to.toHexString() ==
+      '0x3e40d73eb977dc6a537af587d48316fee66e9c8c' || // Mainnet
+      event.params.to.toHexString() ==
+        '0x0a9879494d2f2ac749cf84bd043e295da5b83623') // Goerli
 
   // graph-ts less or equal to
   let isDust = event.params.value.le(BigInt.fromI32(50000))
