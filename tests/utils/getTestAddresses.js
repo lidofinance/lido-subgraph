@@ -23,6 +23,9 @@ export const getTestAddresses = async (amount) => {
     return acc
   }, new Set())
 
+  // Mint address is not relevant for us
+  uniqueAddresses.delete('0x0000000000000000000000000000000000000000')
+
   const shuffled = [...uniqueAddresses].sort(() => 0.5 - Math.random())
 
   return shuffled.slice(0, amount)
