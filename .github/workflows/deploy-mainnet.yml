@@ -27,6 +27,6 @@ jobs:
           yarn global add @graphprotocol/graph-cli
           echo "$(yarn global bin)" >> $GITHUB_PATH
       - run: yarn install --immutable
-      - run: graph codegen
-      - run: graph build
+      - run: graph codegen subgraph.mainnet.yaml
+      - run: graph build subgraph.mainnet.yaml
       - run: graph deploy --product hosted-service --access-token ${{ secrets.THEGRAPH_TOKEN }} --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ lidofinance/lido subgraph.mainnet.yaml

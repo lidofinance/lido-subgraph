@@ -2,8 +2,8 @@
   "name": "lido-subgraph",
   "license": "UNLICENSED",
   "scripts": {
-    "codegen": "graph codegen",
-    "build": "graph build",
+    "codegen": "graph codegen subgraph.mainnet.yaml",
+    "build": "graph build subgraph.mainnet.yaml",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "deploy-mainnet": "graph deploy --product hosted-service --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido subgraph.mainnet.yaml",
     "deploy-testnet": "graph deploy --product hosted-service --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido-testnet subgraph.testnet.yaml",
