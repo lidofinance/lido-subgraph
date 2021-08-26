@@ -2,15 +2,15 @@ import { lidoFuncCall, subgraphFetch, gql } from './utils'
 
 const query = gql`
   {
-    totalShares(id: 0) {
-      total
+    totals(id: "") {
+      totalShares
     }
   }
 `
 
 test('totalShares', async () => {
   const realTotalShares = (await lidoFuncCall('getTotalShares')).toString()
-  const subgraphTotalShares = (await subgraphFetch(query)).totalShares.total
+  const subgraphTotalShares = (await subgraphFetch(query)).totals.totalShares
 
   expect(subgraphTotalShares).toEqual(realTotalShares)
 })
