@@ -2,6 +2,24 @@
 
 Subgraph to index Lido contracts.
 
+## Live Deployments
+
+### The Graph Hosted
+
+#### Mainnet
+
+Explorer page with playground:
+https://thegraph.com/legacy-explorer/subgraph/lidofinance/lido
+GraphQL API url:
+https://api.thegraph.com/subgraphs/name/lidofinance/lido
+
+#### Testnet (Goerli)
+
+Explorer page with playground:
+https://thegraph.com/legacy-explorer/subgraph/lidofinance/lido-testnet
+GraphQL API url:
+https://api.thegraph.com/subgraphs/name/lidofinance/lido-testnet
+
 ## Contracts
 
 - Lido
@@ -25,16 +43,12 @@ yarn test
 
 ### Locally
 
-Make sure Graph node is running on localhost.
+First, set an `.env` file. You can check an example in `.env.local.example`.
 
-Run `create-local` if Subgraph does not exist yet.
+Run `create-local` first if Subgraph does not exist yet.
 Run `deploy-local` to deploy the Subgraph.
 
-### Production
-
-Build the Docker image and push to Docker using `build_and_push.sh`.
-
-### The Graph
+### The Graph Hosted
 
 Pushes to master branch will automatically get the Subgraph deployed to The Graph.
 
