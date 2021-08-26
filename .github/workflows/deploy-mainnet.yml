@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'src/**'
+      - 'abis/**'
+      - 'package.json'
+      - '*.lock'
+      - 'schema.graphql'
+      - 'subgraph.yaml'
 
 jobs:
   build:
