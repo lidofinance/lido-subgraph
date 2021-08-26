@@ -7,44 +7,72 @@ Big.PE = 210000000
 
 const address = process.env.ADDRESS
 
-const toQuery = `
+const submissionsQuery = `
 query {
-	  lidoTransfers (first: 500, where: {to: "${address}"}) {
-		shares
-		to
-		block
-	  }
+  lidoSubmissions(first: 1000, where: {sender: "${address}"}) {
+  amount
+  shares
+  block
+  }
+
 }
 `
 
-const fromQuery = `
+const transfersInboundQuery = `
 query {
-	  lidoTransfers (first: 500, where: {from: "${address}"}) {
-		shares
-		to
-		block
-	  }
+    lidoTransfers (first: 1000, where: {to: "${address}"}) {
+    shares
+    to
+    block
+    }
+}
+`
+
+const transfersOutboundQuery = `
+query {
+    lidoTransfers (first: 1000, where: {from: "${address}"}) {
+    shares
+    to
+    block
+    }
 }
 `
 
 const calculateShares = async () => {
-  const to = (await fetcher(toQuery)).lidoTransfers
-  const from = (await fetcher(fromQuery)).lidoTransfers
+  const submissions = (await fetcher(submissionsQuery)).lidoSubmissions
+  const transfersInbound = (await fetcher(transfersInboundQuery)).lidoTransfers
+  const transfersOutbound = (await fetcher(transfersOutboundQuery))
+    .lidoTransfers
 
   const together = [
-    ...to.map((x) => ({ ...x, direction: 'to' })),
-    ...from.map((x) => ({ ...x, direction: 'from' })),
+    ...submissions.map((x) => ({ ...x, type: 'submission' })),
+    ...transfersInbound.map((x) => ({
+      ...x,
+      type: 'transfer',
+      direction: 'inbound',
+    })),
+    ...transfersOutbound.map((x) => ({
+      ...x,
+      type: 'transfer',
+      direction: 'outbound',
+    })),
   ].sort((a, b) => a.block - b.block)
 
   let shares = Big(0)
 
   for (item of together) {
-    const isTo = item.direction === 'to'
+    const isStaking = item.type === 'submission'
+    const isOut = !isStaking && item.direction === 'outbound'
 
-    shares = isTo ? shares.plus(item.shares) : shares.minus(item.shares)
+    shares = isOut ? shares.sub(item.shares) : shares.add(item.shares)
 
-    console.log(isTo ? 'To account' : 'From account', item.shares, item.block)
-    console.log(shares.toString())
+    console.log(
+      isStaking ? 'Staking' : isOut ? 'Transfer Outbound' : 'Transfer Inbound',
+      item.shares,
+      '->',
+      shares.toString(),
+      item.block
+    )
   }
 
   console.log('Final', shares.toString())
