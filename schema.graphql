@@ -3,22 +3,26 @@ Lido
 """
 type LidoStopped @entity {
   id: ID!
+
   block: BigInt!
   blockTime: BigInt!
 }
 
 type LidoResumed @entity {
   id: ID!
+
   block: BigInt!
   blockTime: BigInt!
 }
 
 type LidoTransfer @entity {
   id: ID!
+
   from: Bytes!
   to: Bytes!
   value: BigInt!
   shares: BigInt!
+
   block: BigInt!
   blockTime: BigInt!
   transactionHash: Bytes!
@@ -26,6 +30,7 @@ type LidoTransfer @entity {
 
 type LidoApproval @entity {
   id: ID!
+
   owner: Bytes!
   spender: Bytes!
   value: BigInt!
@@ -33,11 +38,13 @@ type LidoApproval @entity {
 
 type LidoFee @entity {
   id: ID!
+
   feeBasisPoints: Int!
 }
 
 type LidoFeeDistribution @entity {
   id: ID!
+
   treasuryFeeBasisPoints: Int!
   insuranceFeeBasisPoints: Int!
   operatorsFeeBasisPoints: Int!
@@ -45,27 +52,33 @@ type LidoFeeDistribution @entity {
 
 type LidoWithdrawalCredential @entity {
   id: ID!
+
   withdrawalCredentials: Bytes!
+
   block: BigInt!
   blockTime: BigInt!
 }
 
 type LidoSubmission @entity {
   id: ID!
+
   sender: Bytes!
   amount: BigInt!
   referral: Bytes!
+
   block: BigInt!
   blockTime: BigInt!
 }
 
 type LidoUnbuffered @entity {
   id: ID!
+
   amount: BigInt!
 }
 
 type LidoWithdrawal @entity {
   id: ID!
+
   sender: Bytes!
   tokenAmount: BigInt!
   sentFromBuffer: BigInt!
@@ -75,32 +88,40 @@ type LidoWithdrawal @entity {
 
 type TotalReward @entity {
   id: ID!
+
   totalRewards: BigInt
   totalRewardsWithFees: BigInt
+
+  totalFee: BigInt
+  nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
   insuranceFee: BigInt
   treasuryFee: BigInt
-  totalFee: BigInt
   dust: BigInt
-  nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
+
+
   block: BigInt!
   blockTime: BigInt!
 }
 
 type NodeOperatorFees @entity {
   id: ID!
+
   totalReward: TotalReward!
   address: Bytes!
   fee: BigInt!
 }
+
 
 """
 LidoOracle
 """
 type OracleCompleted @entity {
   id: ID!
+
   epochId: BigInt!
   beaconBalance: BigInt!
   beaconValidators: BigInt!
+
   block: BigInt!
   blockTime: BigInt!
   transactionHash: Bytes!
@@ -108,12 +129,14 @@ type OracleCompleted @entity {
 
 type OracleMember @entity {
   id: ID!
+
   member: Bytes!
   removed: Boolean!
 }
 
 type OracleQuorumChange @entity {
   id: ID!
+
   quorum: BigInt!
 }
 
@@ -121,34 +144,42 @@ type SharesToStethRatio @entity {
   id: ID!
   pooledEth: BigInt!
   totalShares: BigInt!
+
+
   block: BigInt!
   blockTime: BigInt!
 }
 
 type OracleVersion @entity {
   id: ID!
+
   version: BigInt!
+
   block: BigInt!
   blockTime: BigInt!
 }
 
 type AllowedBeaconBalanceRelativeDecrease @entity {
   id: ID!
+
   value: BigInt!
 }
 
 type AllowedBeaconBalanceAnnualRelativeIncrease @entity {
   id: ID!
+
   value: BigInt!
 }
 
 type OracleExpectedEpoch @entity {
   id: ID!
+
   epochId: BigInt!
 }
 
 type OracleTotalShares @entity {
   id: ID!
+
   postTotalPooledEther: BigInt!
   preTotalPooledEther: BigInt!
   timeElapsed: BigInt!
@@ -157,6 +188,7 @@ type OracleTotalShares @entity {
 
 type BeaconReport @entity {
   id: ID!
+
   epochId: BigInt!
   beaconBalance: BigInt!
   beaconValidators: BigInt!
@@ -165,6 +197,7 @@ type BeaconReport @entity {
 
 type BeaconSpec @entity {
   id: ID!
+
   epochsPerFrame: BigInt!
   slotsPerEpoch: BigInt!
   secondsPerSlot: BigInt!
@@ -173,6 +206,7 @@ type BeaconSpec @entity {
 
 type BeaconReportReceiver @entity {
   id: ID!
+
   callback: Bytes!
 }
 
@@ -181,6 +215,7 @@ NodeOperatorsRegistry
 """
 type NodeOperatorSigningKey @entity {
   id: ID!
+
   operatorId: BigInt!
   pubkey: Bytes!
   removed: Boolean!
@@ -188,6 +223,7 @@ type NodeOperatorSigningKey @entity {
 
 type NodeOperator @entity {
   id: ID!
+
   name: String!
   rewardAddress: Bytes!
   stakingLimit: BigInt!
@@ -200,15 +236,18 @@ Voting
 """
 type Voting @entity {
   id: ID!
+
   index: Int!
   creator: Bytes!
   metadata: String!
   executed: Boolean!
+
   votes: [Vote!]! @derivedFrom(field: "voting")
 }
 
 type Vote @entity {
   id: ID!
+
   voting: Voting!
   voter: Bytes!
   supports: Boolean!
@@ -217,11 +256,13 @@ type Vote @entity {
 
 type ChangedSupportRequired @entity {
   id: ID!
+
   supportRequiredPct: BigInt!
 }
 
 type ChangedMinQuorum @entity {
   id: ID!
+
   minAcceptQuorumPct: BigInt!
 }
 
@@ -230,6 +271,7 @@ Easytrack
 """
 type Motion @entity {
   id: ID!
+
   creator: Bytes!
   evmScriptFactory: Bytes!
   duration: BigInt
@@ -248,6 +290,7 @@ type Motion @entity {
 
 type EasyTrackConfig @entity {
   id: ID!
+
   implementation: Bytes!
   admin: Bytes!
   evmScriptExecutor: Bytes!
@@ -259,24 +302,28 @@ type EasyTrackConfig @entity {
 
 type Role @entity {
   id: ID!
+
   role: Bytes!
   address: Bytes!
   creator: Bytes!
   isActive: Boolean!
 }
 
-type EVMScriptFactory @entity{
+type EVMScriptFactory @entity {
   id: ID!
+
   address: Bytes!
   permissions: Bytes!
   isActive: Boolean!
 }
 
-type Objection @entity{
+type Objection @entity {
   id: ID!
+
   motionId: BigInt!
   objector: Bytes!
   weight: BigInt!
+
   block: BigInt!
   blockTime: BigInt!
 }
