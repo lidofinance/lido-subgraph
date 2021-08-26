@@ -10,6 +10,7 @@ Subgraph to index Lido contracts.
 
 Explorer page with playground:
 https://thegraph.com/legacy-explorer/subgraph/lidofinance/lido
+
 GraphQL API url:
 https://api.thegraph.com/subgraphs/name/lidofinance/lido
 
@@ -17,6 +18,7 @@ https://api.thegraph.com/subgraphs/name/lidofinance/lido
 
 Explorer page with playground:
 https://thegraph.com/legacy-explorer/subgraph/lidofinance/lido-testnet
+
 GraphQL API url:
 https://api.thegraph.com/subgraphs/name/lidofinance/lido-testnet
 
