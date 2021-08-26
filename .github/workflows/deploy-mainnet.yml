@@ -1,16 +1,7 @@
 name: Deploy Subgraph
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'src/**'
-      - 'abis/**'
-      - 'package.json'
-      - '*.lock'
-      - 'schema.graphql'
-      - 'subgraph.yaml'
+  workflow_dispatch:
 
 jobs:
   build:
