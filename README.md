@@ -13,6 +13,14 @@ Subgraph to index Lido contracts.
 
 Install dependencies with `yarn` and run `yarn codegen`. Repeat `yarn codegen` after any schema changes or changes affecting generated files.
 
+## Testing
+
+You can test any synced Lido deployment, simply fill an `.env` file and run:
+
+```
+yarn test
+```
+
 ## Deploying
 
 ### Locally
