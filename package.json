@@ -5,7 +5,6 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
-    "test:verbose": "NODE_OPTIONS=--experimental-vm-modules jest --verbose",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido",
     "create-local": "env-cmd --use-shell graph create --node '$GRAPH_NODE' lido",
     "remove-local": "env-cmd --use-shell graph remove --node '$GRAPH_NODE' lido",
