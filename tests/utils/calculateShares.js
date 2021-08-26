@@ -14,7 +14,7 @@ export const calculateShares = async (address) => {
 
   const transfersInboundQuery = gql`
 	query {
-		  lidoTransfers (first: 1000, where: {to: "${address}", from_not: "0x0000000000000000000000000000000000000000"}) {
+		  lidoTransfers (first: 1000, where: {to: "${address}"}) {
 			shares
 			to
 			block
@@ -58,7 +58,9 @@ export const calculateShares = async (address) => {
     const isStaking = item.type === 'submission'
     const isOut = !isStaking && item.direction === 'outbound'
 
-    shares = isOut ? shares.sub(item.shares) : shares.add(item.shares)
+    const txShares = item.shares || BigNumber.from(0)
+
+    shares = isOut ? shares.sub(txShares) : shares.add(txShares)
   }
 
   return shares
