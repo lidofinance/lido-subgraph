@@ -1,0 +1,172 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Lido
+    network: mainnet
+    source:
+      address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
+      abi: Lido
+      startBlock: 11473216
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - LidoStopped
+        - LidoResumed
+        - LidoTransfer
+        - LidoApproval
+        - LidoFee
+        - LidoFeeDistribution
+        - LidoWithdrawalCredential
+        - LidoSubmission
+        - LidoUnbuffered
+        - LidoWithdrawal
+      abis:
+        - name: Lido
+          file: ./abis/Lido.json
+      eventHandlers:
+        - event: Stopped()
+          handler: handleStopped
+        - event: Resumed()
+          handler: handleResumed
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: FeeSet(uint16)
+          handler: handleFeeSet
+        - event: FeeDistributionSet(uint16,uint16,uint16)
+          handler: handleFeeDistributionSet
+        - event: WithdrawalCredentialsSet(bytes32)
+          handler: handleWithdrawalCredentialsSet
+        - event: Submitted(indexed address,uint256,address)
+          handler: handleSubmit
+        - event: Unbuffered(uint256)
+          handler: handleUnbuffered
+        - event: Withdrawal(indexed address,uint256,uint256,indexed bytes32,uint256)
+          handler: handleWithdrawal
+      file: ./src/Lido.ts
+  - kind: ethereum/contract
+    name: LidoOracle
+    network: mainnet
+    source:
+      address: '0x442af784A788A5bd6F42A01Ebe9F287a871243fb'
+      abi: LidoOracle
+      startBlock: 11473216
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - OracleCompleted
+        - OracleMember
+        - OracleQuorumChange
+        - SharesToStethRatio
+        - OracleVersion
+        - AllowedBeaconBalanceRelativeDecrease
+        - AllowedBeaconBalanceAnnualRelativeIncrease
+        - OracleExpectedEpoch
+        - OracleTotalShares
+        - BeaconReport
+        - BeaconSpec
+        - BeaconReportReceiver
+      abis:
+        - name: LidoOracle
+          file: ./abis/LidoOracle.json
+        - name: Lido
+          file: ./abis/Lido.json
+      eventHandlers:
+        - event: Completed(uint256,uint128,uint128)
+          handler: handleCompleted
+        - event: MemberAdded(address)
+          handler: handleMemberAdded
+        - event: MemberRemoved(address)
+          handler: handleMemberRemoved
+        - event: QuorumChanged(uint256)
+          handler: handleQuorumChanged
+        - event: ContractVersionSet(uint256)
+          handler: handleContractVersionSet
+        - event: PostTotalShares(uint256,uint256,uint256,uint256)
+          handler: handlePostTotalShares
+        - event: BeaconReported(uint256,uint128,uint128,address)
+          handler: handleBeaconReported
+        - event: BeaconSpecSet(uint64,uint64,uint64,uint64)
+          handler: handleBeaconSpecSet
+        - event: ExpectedEpochIdUpdated(uint256)
+          handler: handleExpectedEpochIdUpdated
+        - event: BeaconReportReceiverSet(address)
+          handler: handleBeaconReportReceiverSet
+        - event: AllowedBeaconBalanceRelativeDecreaseSet(uint256)
+          handler: handleAllowedBeaconBalanceRelativeDecreaseSet
+        - event: AllowedBeaconBalanceAnnualRelativeIncreaseSet(uint256)
+          handler: handleAllowedBeaconBalanceAnnualRelativeIncreaseSet
+      file: ./src/LidoOracle.ts
+  - kind: ethereum/contract
+    name: NodeOperatorsRegistry
+    network: mainnet
+    source:
+      address: '0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5'
+      abi: NodeOperatorsRegistry
+      startBlock: 11473216
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - NodeOperatorSigningKey
+        - NodeOperator
+      abis:
+        - name: NodeOperatorsRegistry
+          file: ./abis/NodeOperatorsRegistry.json
+      eventHandlers:
+        - event: NodeOperatorAdded(uint256,string,address,uint64)
+          handler: handleNodeOperatorAdded
+        - event: NodeOperatorActiveSet(indexed uint256,bool)
+          handler: handleNodeOperatorActiveSet
+        - event: NodeOperatorNameSet(indexed uint256,string)
+          handler: handleNodeOperatorNameSet
+        - event: NodeOperatorRewardAddressSet(indexed uint256,address)
+          handler: handleNodeOperatorRewardAddressSet
+        - event: NodeOperatorStakingLimitSet(indexed uint256,uint64)
+          handler: handleNodeOperatorStakingLimitSet
+        - event: NodeOperatorTotalStoppedValidatorsReported(indexed uint256,uint64)
+          handler: handleNodeOperatorTotalStoppedValidatorsReported
+        - event: SigningKeyAdded(indexed uint256,bytes)
+          handler: handleSigningKeyAdded
+        - event: SigningKeyRemoved(indexed uint256,bytes)
+          handler: handleSigningKeyRemoved
+      file: ./src/NodeOperatorsRegistry.ts
+  - kind: ethereum/contract
+    name: Voting
+    network: mainnet
+    source:
+      address: '0x2e59A20f205bB85a89C53f1936454680651E618e'
+      abi: Voting
+      startBlock: 11473216
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - Voting
+        - Vote
+        - ChangedSupportRequired
+        - ChangedMinQuorum
+      abis:
+        - name: Voting
+          file: ./abis/Voting.json
+      eventHandlers:
+        - event: StartVote(indexed uint256,indexed address,string)
+          handler: handleStartVote
+        - event: CastVote(indexed uint256,indexed address,bool,uint256)
+          handler: handleCastVote
+        - event: ExecuteVote(indexed uint256)
+          handler: handleExecuteVote
+        - event: ChangeSupportRequired(uint64)
+          handler: handleChangeSupportRequired
+        - event: ChangeMinQuorum(uint64)
+          handler: handleChangeMinQuorum
+      file: ./src/Voting.ts

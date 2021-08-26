@@ -29,4 +29,4 @@ jobs:
       - run: yarn install --immutable
       - run: graph codegen
       - run: graph build
-      - run: graph deploy --access-token ${{ secrets.THEGRAPH_TOKEN_TESTNET }} --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ lidofinance/lido-testnet
+      - run: graph deploy --product hosted-service --access-token ${{ secrets.THEGRAPH_TOKEN_TESTNET }} --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ lidofinance/lido-testnet subgraph.testnet.yaml

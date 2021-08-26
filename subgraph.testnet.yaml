@@ -6,7 +6,7 @@ dataSources:
     name: Lido
     network: mainnet
     source:
-      address: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"
+      address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
       abi: Lido
       startBlock: 11473216
     mapping:
@@ -53,7 +53,7 @@ dataSources:
     name: LidoOracle
     network: mainnet
     source:
-      address: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb"
+      address: '0x442af784A788A5bd6F42A01Ebe9F287a871243fb'
       abi: LidoOracle
       startBlock: 11473216
     mapping:
@@ -108,7 +108,7 @@ dataSources:
     name: NodeOperatorsRegistry
     network: mainnet
     source:
-      address: "0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5"
+      address: '0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5'
       abi: NodeOperatorsRegistry
       startBlock: 11473216
     mapping:
@@ -143,7 +143,7 @@ dataSources:
     name: Voting
     network: mainnet
     source:
-      address: "0x2e59A20f205bB85a89C53f1936454680651E618e"
+      address: '0x2e59A20f205bB85a89C53f1936454680651E618e'
       abi: Voting
       startBlock: 11473216
     mapping:
@@ -174,7 +174,7 @@ dataSources:
     name: Easytrack
     network: goerli
     source:
-      address: "0xe413799Ee2978489a6299031924b5DBD858f3a52"
+      address: '0xe413799Ee2978489a6299031924b5DBD858f3a52'
       abi: Easytrack
       startBlock: 5353000
     mapping:
@@ -230,4 +230,3 @@ dataSources:
         - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
           handler: handleRoleRevoked
       file: ./src/Easytrack.ts
-      
