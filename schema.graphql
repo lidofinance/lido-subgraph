@@ -104,6 +104,11 @@ type TotalReward @entity {
   sharesToTreasury: BigInt!
   nodeOperatorsShares: [NodeOperatorsShares!] @derivedFrom(field: "totalReward")
 
+  totalPooledEtherBefore: BigInt!
+  totalPooledEtherAfter: BigInt!
+  totalSharesBefore: BigInt!
+  totalSharesAfter: BigInt!
+
   block: BigInt!
   blockTime: BigInt!
 }
@@ -157,18 +162,6 @@ type OracleQuorumChange @entity {
   id: ID!
 
   quorum: BigInt!
-}
-
-type SharesToStethRatio @entity {
-  id: ID!
-
-  totalPooledEtherBefore: BigInt!
-  totalPooledEtherAfter: BigInt!
-  totalSharesBefore: BigInt!
-  totalSharesAfter: BigInt!
-
-  block: BigInt!
-  blockTime: BigInt!
 }
 
 type OracleVersion @entity {

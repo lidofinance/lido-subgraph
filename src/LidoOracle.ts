@@ -19,7 +19,6 @@ import {
   OracleCompleted,
   OracleMember,
   OracleQuorumChange,
-  SharesToStethRatio,
   TotalReward,
   OracleVersion,
   AllowedBeaconBalanceRelativeDecrease,
@@ -73,6 +72,7 @@ export function handleCompleted(event: Completed): void {
   // Create an empty TotalReward entity that will be filled on Transfer events
   // We know that in this transaction there will be Transfer events which we can identify by existence of TotalReward entity with transaction hash as its id
   let totalRewardsEntity = new TotalReward(event.transaction.hash.toHex())
+
   totalRewardsEntity.block = event.block.number
   totalRewardsEntity.blockTime = event.block.timestamp
 
@@ -155,6 +155,11 @@ export function handleCompleted(event: Completed): void {
   totalRewardsEntity.sharesToOperators = sharesToOperators
   totalRewardsEntity.sharesToTreasury = sharesToTreasury
 
+  totalRewardsEntity.totalPooledEtherBefore = totalPooledEtherBefore
+  totalRewardsEntity.totalPooledEtherAfter = totalPooledEtherAfter
+  totalRewardsEntity.totalSharesBefore = totalSharesBefore
+  totalRewardsEntity.totalSharesAfter = totalSharesAfter
+
   totalRewardsEntity.save()
 
   let registry = NodeOperatorsRegistry.bind(
@@ -183,24 +188,6 @@ export function handleCompleted(event: Completed): void {
 
     nodeOperatorsShares.save()
   }
-
-  // Creating and saving data for rewards calculations
-  let sharesToStethRatio = new SharesToStethRatio(
-    nextIncrementalId(
-      'SharesToStethRatio',
-      guessOracleRunsTotal(event.block.timestamp)
-    )
-  )
-
-  sharesToStethRatio.totalPooledEtherBefore = totalPooledEtherBefore
-  sharesToStethRatio.totalPooledEtherAfter = totalPooledEtherAfter
-  sharesToStethRatio.totalSharesBefore = totalSharesBefore
-  sharesToStethRatio.totalSharesAfter = totalSharesAfter
-
-  sharesToStethRatio.block = event.block.number
-  sharesToStethRatio.blockTime = event.block.timestamp
-
-  sharesToStethRatio.save()
 }
 
 export function handleMemberAdded(event: MemberAdded): void {
