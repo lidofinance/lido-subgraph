@@ -3,7 +3,7 @@ import { subgraphFetch, gql, BigNumber } from '.'
 export const calculateShares = async (address) => {
   const submissionsQuery = gql`
 	query {
-	  lidoSubmissions(first: 1000, where: {sender: "${address}"}) {
+	  lidoSubmissions(first: 100000, where: {sender: "${address}"}) {
 		amount
 		shares
 		block
@@ -14,7 +14,7 @@ export const calculateShares = async (address) => {
 
   const transfersInboundQuery = gql`
 	query {
-		  lidoTransfers (first: 1000, where: {to: "${address}"}) {
+		  lidoTransfers (first: 100000, where: {to: "${address}"}) {
 			shares
 			to
 			block
@@ -24,7 +24,7 @@ export const calculateShares = async (address) => {
 
   const transfersOutboundQuery = gql`
 	query {
-		  lidoTransfers (first: 1000, where: {from: "${address}"}) {
+		  lidoTransfers (first: 100000, where: {from: "${address}"}) {
 			shares
 			to
 			block

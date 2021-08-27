@@ -1,17 +1,13 @@
 import { subgraphFetch, gql } from '.'
 
-// We can skip only 0 - 5000 entities on hosted subgraph
-const max = 5000
-const skip = Math.floor(Math.random() * Math.floor(max))
-
 // We can fetch only 1000 entities in one request
 const transfersQuery = gql`
-query {
-	  lidoTransfers (first: 1000, skip: ${skip}) {
-		from
-		to
-	  }
-	}
+  query {
+    lidoTransfers(first: 100000) {
+      from
+      to
+    }
+  }
 `
 
 export const getTestAddresses = async (amount) => {
