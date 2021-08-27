@@ -23,8 +23,10 @@ export const getTestAddresses = async (amount) => {
     return acc
   }, new Set())
 
-  // Mint address is not relevant for us
+  // Mint address
   uniqueAddresses.delete('0x0000000000000000000000000000000000000000')
+  // Lido Aragon agent
+  uniqueAddresses.delete('0x3e40d73eb977dc6a537af587d48316fee66e9c8c')
 
   const shuffled = [...uniqueAddresses].sort(() => 0.5 - Math.random())
 
