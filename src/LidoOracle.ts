@@ -1,5 +1,6 @@
 import { Address, BigInt, dataSource } from '@graphprotocol/graph-ts'
 import { Lido } from '../generated/Lido/Lido'
+import { NodeOperatorsRegistry } from '../generated/NodeOperatorsRegistry/NodeOperatorsRegistry'
 import {
   MemberAdded,
   MemberRemoved,
@@ -29,6 +30,7 @@ import {
   BeaconSpec,
   BeaconReportReceiver,
   Totals,
+  NodeOperatorsShares,
 } from '../generated/schema'
 
 import {
@@ -152,7 +154,35 @@ export function handleCompleted(event: Completed): void {
   totalRewardsEntity.sharesToInsuranceFund = sharesToInsuranceFund
   totalRewardsEntity.sharesToOperators = sharesToOperators
   totalRewardsEntity.sharesToTreasury = sharesToTreasury
+
   totalRewardsEntity.save()
+
+  let registry = NodeOperatorsRegistry.bind(
+    Address.fromString(
+      dataSource.network() == 'mainnet'
+        ? '0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5'
+        : '0x9D4AF1Ee19Dad8857db3a45B0374c81c8A1C6320'
+    )
+  )
+  let distr = registry.getRewardsDistribution(sharesToOperators)
+
+  let opAddresses = distr.value0
+  let opShares = distr.value1
+
+  for (let i = 0; i < opAddresses.length; i++) {
+    let addr = opAddresses[i]
+    let shares = opShares[i]
+
+    let nodeOperatorsShares = new NodeOperatorsShares(
+      event.transaction.hash.toHex() + '-' + addr.toHex()
+    )
+    nodeOperatorsShares.totalReward = event.transaction.hash.toHex()
+
+    nodeOperatorsShares.address = addr
+    nodeOperatorsShares.shares = shares
+
+    nodeOperatorsShares.save()
+  }
 
   // Creating and saving data for rewards calculations
   let sharesToStethRatio = new SharesToStethRatio(

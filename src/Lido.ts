@@ -26,6 +26,7 @@ import {
   TotalReward,
   NodeOperatorFees,
   Totals,
+  NodeOperatorsShares,
 } from '../generated/schema'
 
 import { wcKeyCrops } from './wcKeyCrops'
@@ -82,11 +83,11 @@ export function handleTransfer(event: Transfer): void {
     .times(totals.totalShares)
     .div(totals.totalPooledEther)
 
-  if (!fromZeros || rewardsEntityExists) {
+  if (!fromZeros) {
     entity.shares = shares
   }
 
-  entity.save()
+  // We'll save the entity later
 
   let isFeeDistributionToTreasury =
     fromZeros &&
@@ -101,6 +102,8 @@ export function handleTransfer(event: Transfer): void {
   if (rewardsEntityExists && isFeeDistributionToTreasury && !isDust) {
     // Handling the Insurance Fee transfer event to treasury
 
+    entity.shares = totalRewardsEntity.sharesToInsuranceFund
+
     totalRewardsEntity.insuranceFee = event.params.value
 
     totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
@@ -114,6 +117,8 @@ export function handleTransfer(event: Transfer): void {
   } else if (rewardsEntityExists && isFeeDistributionToTreasury && isDust) {
     // Handling dust transfer event
 
+    entity.shares = totalRewardsEntity.sharesToTreasury
+
     totalRewardsEntity.dust = event.params.value
 
     totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
@@ -126,6 +131,12 @@ export function handleTransfer(event: Transfer): void {
     totalRewardsEntity.save()
   } else if (rewardsEntityExists && fromZeros) {
     // Handling node operator fee transfer to node operator
+
+    let nodeOperatorsShares = NodeOperatorsShares.load(
+      event.transaction.hash.toHex() + '-' + event.params.to.toHex()
+    )
+    let sharesToOperator = nodeOperatorsShares.shares
+    entity.shares = sharesToOperator
 
     let nodeOperatorFees = new NodeOperatorFees(
       event.transaction.hash.toHex() + '-' + event.logIndex.toString()
@@ -147,6 +158,8 @@ export function handleTransfer(event: Transfer): void {
     totalRewardsEntity.save()
     nodeOperatorFees.save()
   }
+
+  entity.save()
 }
 
 export function handleApproval(event: Approval): void {

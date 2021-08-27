@@ -99,9 +99,10 @@ type TotalReward @entity {
   treasuryFee: BigInt
   dust: BigInt
 
-  sharesToInsuranceFund: BigInt
-  sharesToOperators: BigInt
-  sharesToTreasury: BigInt
+  sharesToInsuranceFund: BigInt!
+  sharesToOperators: BigInt!
+  sharesToTreasury: BigInt!
+  nodeOperatorsShares: [NodeOperatorsShares!] @derivedFrom(field: "totalReward")
 
   block: BigInt!
   blockTime: BigInt!
@@ -109,10 +110,18 @@ type TotalReward @entity {
 
 type NodeOperatorFees @entity {
   id: ID!
-
   totalReward: TotalReward!
+
   address: Bytes!
   fee: BigInt!
+}
+
+type NodeOperatorsShares @entity {
+  id: ID!
+  totalReward: TotalReward!
+
+  address: Bytes!
+  shares: BigInt!
 }
 
 type Totals @entity {

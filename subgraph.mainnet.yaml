@@ -78,6 +78,8 @@ dataSources:
           file: ./abis/LidoOracle.json
         - name: Lido
           file: ./abis/Lido.json
+        - name: NodeOperatorsRegistry
+          file: ./abis/NodeOperatorsRegistry.json
       eventHandlers:
         - event: Completed(uint256,uint128,uint128)
           handler: handleCompleted
