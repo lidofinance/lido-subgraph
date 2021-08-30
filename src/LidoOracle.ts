@@ -147,21 +147,17 @@ export function handleCompleted(event: Completed): void {
     .times(operatorsFeeBasisPoints)
     .div(calculationUnit)
 
-  let sharesToTreasury = shares2mint
-    .minus(sharesToInsuranceFund)
-    .minus(sharesToOperators)
   totalRewardsEntity.shares2mint = shares2mint
 
   totalRewardsEntity.sharesToInsuranceFund = sharesToInsuranceFund
   totalRewardsEntity.sharesToOperators = sharesToOperators
-  totalRewardsEntity.sharesToTreasury = sharesToTreasury
 
   totalRewardsEntity.totalPooledEtherBefore = totalPooledEtherBefore
   totalRewardsEntity.totalPooledEtherAfter = totalPooledEtherAfter
   totalRewardsEntity.totalSharesBefore = totalSharesBefore
   totalRewardsEntity.totalSharesAfter = totalSharesAfter
 
-  totalRewardsEntity.save()
+  // We will save the entity later
 
   let registry = NodeOperatorsRegistry.bind(
     Address.fromString(
@@ -175,9 +171,14 @@ export function handleCompleted(event: Completed): void {
   let opAddresses = distr.value0
   let opShares = distr.value1
 
+  let sharesToOperatorsActual = BigInt.fromI32(0)
+
   for (let i = 0; i < opAddresses.length; i++) {
     let addr = opAddresses[i]
     let shares = opShares[i]
+
+    // Incrementing total of actual shares distributed
+    sharesToOperatorsActual = sharesToOperatorsActual.plus(shares)
 
     let nodeOperatorsShares = new NodeOperatorsShares(
       event.transaction.hash.toHex() + '-' + addr.toHex()
@@ -189,6 +190,17 @@ export function handleCompleted(event: Completed): void {
 
     nodeOperatorsShares.save()
   }
+
+  // Handling dust (rounding leftovers)
+  // sharesToInsuranceFund are exact
+  // sharesToOperators are with leftovers which we need to account for
+  let sharesToTreasury = shares2mint
+    .minus(sharesToInsuranceFund)
+    .minus(sharesToOperatorsActual)
+
+  totalRewardsEntity.sharesToTreasury = sharesToTreasury
+
+  totalRewardsEntity.save()
 }
 
 export function handleMemberAdded(event: MemberAdded): void {
