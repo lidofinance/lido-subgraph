@@ -99,6 +99,8 @@ type TotalReward @entity {
   treasuryFee: BigInt
   dust: BigInt
 
+  shares2mint: BigInt!
+
   sharesToInsuranceFund: BigInt!
   sharesToOperators: BigInt!
   sharesToTreasury: BigInt!

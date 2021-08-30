@@ -150,6 +150,7 @@ export function handleCompleted(event: Completed): void {
   let sharesToTreasury = shares2mint
     .minus(sharesToInsuranceFund)
     .minus(sharesToOperators)
+  totalRewardsEntity.shares2mint = shares2mint
 
   totalRewardsEntity.sharesToInsuranceFund = sharesToInsuranceFund
   totalRewardsEntity.sharesToOperators = sharesToOperators
