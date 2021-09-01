@@ -1,7 +1,5 @@
 {
-  "extends": ["config:base", "schedule:weekdays"],
-  "assignees": ["kolyasapphire"],
-  "stabilityDays": 2,
-  "prCreation": "not-pending",
-  "timezone": "Europe/Moscow"
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["local>lidofinance/renovate-config"],
+  "assignees": ["kolyasapphire"]
 }
