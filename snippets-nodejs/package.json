@@ -2,7 +2,7 @@
   "dependencies": {
     "big.js": "6.1.1",
     "date-fns": "2.23.0",
-    "node-fetch": "2.6.1",
+    "node-fetch": "3.0.0",
     "web3": "1.5.2"
   }
 }
