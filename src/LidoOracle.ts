@@ -63,6 +63,7 @@ export function handleCompleted(event: Completed): void {
   newCompleted.epochId = event.params.epochId
   newCompleted.beaconBalance = event.params.beaconBalance
   newCompleted.beaconValidators = event.params.beaconValidators
+
   newCompleted.block = event.block.number
   newCompleted.blockTime = event.block.timestamp
   newCompleted.transactionHash = event.transaction.hash
@@ -75,6 +76,7 @@ export function handleCompleted(event: Completed): void {
 
   totalRewardsEntity.block = event.block.number
   totalRewardsEntity.blockTime = event.block.timestamp
+  totalRewardsEntity.transactionIndex = event.transaction.index
 
   let oldBeaconValidators = previousCompleted
     ? previousCompleted.beaconValidators
