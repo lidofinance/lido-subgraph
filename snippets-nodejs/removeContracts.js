@@ -1,25 +1,21 @@
-const fs = require('fs')
-const Web3 = require('web3')
+import { ethCall } from './utils.js'
 
-const rpc = process.env.WEB3_PROVIDER_URI
-const web3 = new Web3(rpc)
+import fs from 'fs'
 
-const nonContractsFinder = async () => {
-  const withoutContracts = new Set()
-  const withContracts = await fs.promises.readFile('withContracts.json')
+const withoutContracts = new Set()
+const withContracts = await fs.promises.readFile('withContracts.json')
 
-  for (adr of JSON.parse(withContracts)) {
-    if ((await web3.eth.getCode(adr)) === '0x') {
-      withoutContracts.add(adr)
-    }
+for (const adr of JSON.parse(withContracts)) {
+  if ((await ethCall('getCode', adr)) === '0x') {
+    withoutContracts.add(adr)
+  } else {
+    process.stdout.write('x')
   }
-
-  console.log(withoutContracts.size, ' non-contract addresses of stETH holders')
-
-  await fs.promises.writeFile(
-    'nonContracts.json',
-    JSON.stringify(Array.from(withoutContracts))
-  )
 }
 
-nonContractsFinder()
+console.log(withoutContracts.size, 'non-contract addresses of stETH holders')
+
+await fs.promises.writeFile(
+  'nonContracts.json',
+  JSON.stringify(Array.from(withoutContracts))
+)

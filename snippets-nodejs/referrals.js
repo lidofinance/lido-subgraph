@@ -1,28 +1,32 @@
-const fetcher = require('./helpers/fetcher')
+import { subgraphFetch, gql, Big } from './utils.js'
+import { ADDRESS } from './config.js'
 
-const Big = require('big.js')
-
-const WEI = Big('1e18')
-const HUMAN_DECIMALS = 2
-
-const referral = '0x1234'
-
-const generateQuery = (referral, skip) => `query {
-  lidoSubmissions(skip: ${skip}, first: 1000, where: {referral:"${referral}"}, orderBy: blockTime, orderDirection: desc) {
-    sender
-    amount
-    blockTime
+const generateQuery = (referral, skip) => gql`
+  {
+    lidoSubmissions(
+      skip: ${skip}
+      first: 1000
+      where: { referral: "${referral}" }
+      orderBy: blockTime
+      orderDirection: desc
+    ) {
+      sender
+      amount
+      blockTime
+    }
   }
-}`
+`
 
 const fetchToLimits = async (referral) => {
+  const subgraphLimit = 6000
   let skip = 0
   let gotItems = 0
   let results = []
 
   // We do respect hosted Subgraph's limit here
-  while (gotItems === 0 || (gotItems % 1000 === 0 && skip < 6000)) {
-    const items = (await fetcher(generateQuery(referral, skip))).lidoSubmissions
+  while ((gotItems === 0 || gotItems % 1000 === 0) && skip < subgraphLimit) {
+    const items = (await subgraphFetch(generateQuery(referral, skip)))
+      .lidoSubmissions
 
     skip += 1000
     gotItems += items.length
@@ -34,20 +38,17 @@ const fetchToLimits = async (referral) => {
 }
 
 // This example is stats-only, doesn't take limits into account
-const getTotalAddressReferral = async () => {
-  const submissions = await fetchToLimits(referral)
 
-  const total = submissions.reduce((acc, item) => acc.plus(item.amount), Big(0))
+const submissions = await fetchToLimits(ADDRESS)
 
-  const uniqueReferred = [...new Set(submissions.map((x) => x.sender))]
+const total = submissions.reduce((acc, item) => acc.plus(item.amount), Big(0))
 
-  console.log(
-    referral,
-    'referred a total of',
-    total.div(WEI).round(HUMAN_DECIMALS).toNumber(),
-    'stETH'
-  )
-  console.log(referral, 'referred', uniqueReferred.length, 'unique addresses')
-}
+const uniqueReferred = [...new Set(submissions.map((x) => x.sender))]
 
-getTotalAddressReferral()
+console.log(
+  ADDRESS,
+  'referred a total of',
+  total.div('1e18').round(2).toNumber(),
+  'stETH'
+)
+console.log(ADDRESS, 'referred', uniqueReferred.length, 'unique addresses')

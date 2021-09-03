@@ -1,38 +1,23 @@
-const fetcher = require('./helpers/fetcher')
-const Web3 = require('web3')
-const fs = require('fs')
-const Big = require('big.js')
+import { subgraphFetch, gql, lidoFuncCall } from './utils.js'
+import { ADDRESS } from './config.js'
 
-const LIDO_ADDRESS = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
-const ABI = JSON.parse(fs.readFileSync('./../abis/Lido.json'))
-
-// Make sure to use an archive node!
-const rpc = 'http://RPC'
-const address = process.env.ADDRESS
-
-const web3 = new Web3(rpc)
-const contract = new web3.eth.Contract(ABI, LIDO_ADDRESS)
-const contractFunc = contract.methods.sharesOf(address)
-
-const query = `
-query {
-	  oracleCompleteds (first: 1000, orderBy: block, orderDirection: asc) {
-		block
-		blockTime
-	  }
-	}
+const query = gql`
+  {
+    oracleCompleteds(first: 1000, orderBy: block, orderDirection: asc) {
+      block
+      blockTime
+    }
+  }
 `
 
-const reportSharesOfAddr = async () => {
-  const oracleReports = (await fetcher(query)).oracleCompleteds
+const oracleReports = (await subgraphFetch(query)).oracleCompleteds
 
-  for (let report of oracleReports) {
-    const balance = await contractFunc.call({}, report.block)
-    const humanTime = new Date(report.blockTime * 1000).toLocaleDateString(
-      'ru-RU'
-    )
-    console.log(humanTime, balance)
-  }
+for (let report of oracleReports) {
+  const balance = await lidoFuncCall('sharesOf', ADDRESS, {
+    blockTag: parseInt(report.block),
+  })
+  const humanTime = new Date(report.blockTime * 1000).toLocaleDateString(
+    'ru-RU'
+  )
+  console.log(humanTime, balance.toString())
 }
-
-reportSharesOfAddr()

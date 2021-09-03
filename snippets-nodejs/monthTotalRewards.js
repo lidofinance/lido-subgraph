@@ -1,8 +1,6 @@
-const fetcher = require('./helpers/fetcher')
+import { subgraphFetch, gql, Big } from './utils.js'
 
-const Big = require('big.js')
-
-const sub = require('date-fns/sub')
+import { sub } from 'date-fns'
 
 const toHumanDate = (date) =>
   date.toLocaleDateString('en-GB', { timeZone: 'UTC' })
@@ -26,29 +24,26 @@ const blockTimes = {
   to: Math.round(monthStartEnd.to / 1000),
 }
 
-const monthRewardsQuery = `query {
-	totalRewards(first: 1000, where: {
-		blockTime_gte: ${blockTimes.from},
-		blockTime_lte: ${blockTimes.to}
-	}) {
-		totalRewards
-	}
-}`
+const monthRewardsQuery = gql`
+  {
+    totalRewards(first: 1000, where: {
+        blockTime_gte: ${blockTimes.from},
+        blockTime_lte: ${blockTimes.to} }) {
+          totalRewards
+    }
+  }
+`
 
-const monthRewards = async () => {
-  const rewards = (await fetcher(monthRewardsQuery)).totalRewards
-  const sum = rewards.reduce(
-    (acc, item) => acc.plus(Big(item.totalRewards)),
-    Big(0)
-  )
-  console.log(
-    'Rewarded our customers',
-    toHumanEthAmount(sum),
-    'StETH in the last 30 days',
-    toHumanDate(monthStartEnd.from),
-    '-',
-    toHumanDate(monthStartEnd.to)
-  )
-}
-
-monthRewards()
+const rewards = (await subgraphFetch(monthRewardsQuery)).totalRewards
+const sum = rewards.reduce(
+  (acc, item) => acc.plus(Big(item.totalRewards)),
+  Big(0)
+)
+console.log(
+  'Rewarded our customers',
+  toHumanEthAmount(sum),
+  'StETH in the last 30 days',
+  toHumanDate(monthStartEnd.from),
+  '-',
+  toHumanDate(monthStartEnd.to)
+)
