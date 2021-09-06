@@ -18,3 +18,6 @@ export const getAddressShares = async (address, ...args) =>
 
 export const getAddressBalance = async (address, ...args) =>
   await lidoFuncCall('balanceOf', address, ...args)
+
+export const getBalanceFromShares = async (address, ...args) =>
+  await lidoFuncCall('getPooledEthByShares', address, ...args)

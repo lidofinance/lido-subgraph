@@ -1,6 +1,12 @@
-import { subgraphFetch, gql, BigNumber } from './utils.js'
+import { subgraphFetch, gql, getBalanceFromShares, BigNumber } from './utils.js'
 
+const rpcMode = false
+
+const initialPeriodEnabled = true
 const firstTxBlock = 11480180
+
+const tailingPeriodEnabled = true
+
 const stepBlocks = 100
 
 const genTotalsQuery = (block) => gql`
@@ -51,17 +57,21 @@ for (const shares of sharesChecks) {
     })
   }
 
-  // Period before first rewards
-  periods.unshift({
-    start: firstTxBlock,
-    end: periods[0].start,
-  })
+  if (initialPeriodEnabled) {
+    // Period before first rewards
+    periods.unshift({
+      start: firstTxBlock,
+      end: periods[0].start,
+    })
+  }
 
-  // Period after last rewards
-  periods.push({
-    start: periods.at(-1).end,
-    end: lastBlock,
-  })
+  if (tailingPeriodEnabled) {
+    // Period after last rewards
+    periods.push({
+      start: periods.at(-1).end,
+      end: lastBlock,
+    })
+  }
 
   let fluctuationsNumber = 0
   let largestFluctuation = BigNumber.from(0)
@@ -72,11 +82,14 @@ for (const shares of sharesChecks) {
     let last = null
 
     for (let block = period.start; block < period.end; block += stepBlocks) {
-      const totals = (await subgraphFetch(genTotalsQuery(block))).totals
+      let balance = null
 
-      const balance = shares
-        .mul(totals.totalPooledEther)
-        .div(totals.totalShares)
+      if (rpcMode) {
+        balance = await getBalanceFromShares(shares, { blockTag: block })
+      } else {
+        const totals = (await subgraphFetch(genTotalsQuery(block))).totals
+        balance = shares.mul(totals.totalPooledEther).div(totals.totalShares)
+      }
 
       // Save initial balance for the period
       if (block === period.start) {
