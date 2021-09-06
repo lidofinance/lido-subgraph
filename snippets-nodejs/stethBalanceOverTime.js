@@ -68,6 +68,7 @@ for (const shares of sharesChecks) {
   let totalOfFluctuations = BigNumber.from(0)
 
   for (const period of periods) {
+    let firstBalance = null
     let last = null
 
     for (let block = period.start; block < period.end; block += stepBlocks) {
@@ -76,6 +77,11 @@ for (const shares of sharesChecks) {
       const balance = shares
         .mul(totals.totalPooledEther)
         .div(totals.totalShares)
+
+      // Save initial balance for the period
+      if (block === period.start) {
+        firstBalance = balance
+      }
 
       if (last && !balance.eq(last)) {
         const fluctuation = balance.sub(last).abs()
@@ -90,6 +96,18 @@ for (const shares of sharesChecks) {
       }
 
       last = balance
+    }
+    if (firstBalance) {
+      const periodDifference = firstBalance.sub(last).abs()
+      if (periodDifference.gt(0)) {
+        console.log(
+          'Start-End balance difference detected in period',
+          period.start,
+          '-',
+          period.end,
+          periodDifference.toString()
+        )
+      }
     }
   }
   console.log('Fluctuations:', fluctuationsNumber)
