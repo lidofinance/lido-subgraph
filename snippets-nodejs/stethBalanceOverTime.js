@@ -98,7 +98,7 @@ for (const shares of sharesChecks) {
       last = balance
     }
     if (firstBalance) {
-      const periodDifference = firstBalance.sub(last).abs()
+      const periodDifference = last.sub(firstBalance)
       if (periodDifference.gt(0)) {
         console.log(
           'Start-End balance difference detected in period',
