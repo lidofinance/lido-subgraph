@@ -1,4 +1,4 @@
-import { subgraphFetch, gql, Big } from './utils.js'
+import { subgraphFetch, gql, BigNumber } from './utils.js'
 
 const firstTxBlock = 11480180
 const stepBlocks = 100
@@ -33,7 +33,7 @@ const sharesChecks = [
   '17253336101171480', // 70usd
   '453884371982397608502', // 2mil usd
   '22253111414175281724765', // 90mil usd
-].map((x) => Big(x))
+].map((x) => BigNumber.from(x))
 
 for (const shares of sharesChecks) {
   console.log('Checking shares:', shares.toString())
@@ -64,8 +64,8 @@ for (const shares of sharesChecks) {
   })
 
   let fluctuationsNumber = 0
-  let largestFluctuation = Big(0)
-  let totalOfFluctuations = Big(0)
+  let largestFluctuation = BigNumber.from(0)
+  let totalOfFluctuations = BigNumber.from(0)
 
   for (const period of periods) {
     let last = null
@@ -74,13 +74,13 @@ for (const shares of sharesChecks) {
       const totals = (await subgraphFetch(genTotalsQuery(block))).totals
 
       const balance = shares
-        .times(totals.totalPooledEther)
+        .mul(totals.totalPooledEther)
         .div(totals.totalShares)
 
       if (last && !balance.eq(last)) {
-        const fluctuation = balance.minus(last).abs()
+        const fluctuation = balance.sub(last).abs()
 
-        totalOfFluctuations = totalOfFluctuations.plus(fluctuation)
+        totalOfFluctuations = totalOfFluctuations.add(fluctuation)
 
         if (fluctuation.gt(largestFluctuation)) {
           largestFluctuation = fluctuation
