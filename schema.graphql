@@ -23,6 +23,8 @@ type LidoTransfer @entity {
   value: BigInt!
   shares: BigInt
 
+  mintWithoutSubmission: Boolean!
+
   block: BigInt!
   blockTime: BigInt!
   transactionHash: Bytes!

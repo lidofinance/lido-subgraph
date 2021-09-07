@@ -77,6 +77,10 @@ export function handleTransfer(event: Transfer): void {
 
   let rewardsEntityExists = totalRewardsEntity !== null
 
+  // We know that for rewards distribution shares are minted with same from 0x0 address as staking
+  // We can save this indicator which helps us distinguish such mints from staking events
+  entity.mintWithoutSubmission = rewardsEntityExists ? true : false
+
   // Entity is already created at this point
   let totals = Totals.load('')
 
