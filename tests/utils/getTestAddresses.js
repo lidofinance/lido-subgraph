@@ -1,6 +1,5 @@
 import { subgraphFetch, gql } from '.'
 
-// We can fetch only 1000 entities in one request
 const transfersQuery = gql`
   query {
     lidoTransfers(first: 100000) {
@@ -21,10 +20,22 @@ export const getTestAddresses = async (amount = 100) => {
 
   // Mint address
   uniqueAddresses.delete('0x0000000000000000000000000000000000000000')
-  // Lido Aragon agent
-  uniqueAddresses.delete('0x3e40d73eb977dc6a537af587d48316fee66e9c8c')
 
   const shuffled = [...uniqueAddresses].sort(() => 0.5 - Math.random())
 
-  return shuffled.slice(0, amount)
+  // Make sure some important addresses get into our list:
+  // Lido Treasury (Aragon Agent)
+  shuffled.unshift('0x3e40d73eb977dc6a537af587d48316fee66e9c8c')
+  // Lido Node Operator #0
+  shuffled.unshift('0xdd4bc51496dc93a0c47008e820e0d80745476f22')
+  // Lido Node Operator #1
+  shuffled.unshift('0x8d689476eb446a1fb0065bffac32398ed7f89165')
+  // Lido Node Operator #2
+  shuffled.unshift('0x9a66fd7948a6834176fbb1c4127c61cb6d349561')
+  // Curve stETH pool
+  shuffled.unshift('0xDC24316b9AE028F1497c275EB9192a3Ea0f67022')
+
+  const sliced = shuffled.slice(0, amount)
+
+  return sliced
 }
