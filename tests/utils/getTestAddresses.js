@@ -10,7 +10,7 @@ const transfersQuery = gql`
   }
 `
 
-export const getTestAddresses = async (amount) => {
+export const getTestAddresses = async (amount = 100) => {
   const transfers = (await subgraphFetch(transfersQuery)).lidoTransfers
 
   const uniqueAddresses = transfers.reduce((acc, item) => {
