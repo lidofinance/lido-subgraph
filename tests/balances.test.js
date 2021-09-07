@@ -7,8 +7,8 @@ import {
 } from './utils'
 
 const ADDRESSES_TO_TEST = 100
-// Tweak timeout if this is a long test (many addresses)
-const timeout = ADDRESSES_TO_TEST * 0.5 * 1000 // 0.5 sec per addr (to ms)
+const timePerAddress = 0.5 // seconds
+const timeout = ADDRESSES_TO_TEST * timePerAddress * 1000 // in ms
 
 test(
   'balances',
