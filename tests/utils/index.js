@@ -1,4 +1,5 @@
 export * from './BigNumber'
+export * from './calculateAddressBalance'
 export * from './calculateShares'
 export * from './calculateSharesCeiling'
 export * from './ethCalls'
