@@ -1,17 +1,37 @@
 import { ethers } from 'ethers'
 import fs from 'fs'
 
-import { RPC, LIDO_ADDRESS } from '../config'
+import { getLastIndexedBlock } from '.'
+import { RPC, LIDO_ADDRESS, RPC_SYNC_BLOCK } from '../config'
 
 const provider = new ethers.providers.JsonRpcProvider(RPC)
 
 const lidoAbi = JSON.parse(fs.readFileSync('abis/Lido.json'))
 const lidoContract = new ethers.Contract(LIDO_ADDRESS, lidoAbi, provider)
 
-export const ethCall = async (func, ...args) => await provider[func](...args)
+const maybeAddBlock = async (args) => {
+  const blockIsOverriden = args.find((x) => x.blockTag)
 
-export const lidoFuncCall = async (func, ...args) =>
-  await lidoContract[func](...args)
+  if (blockIsOverriden) {
+    return args
+  }
 
-export const getAddressShares = async (address) =>
-  await lidoFuncCall('sharesOf', address)
+  if (RPC_SYNC_BLOCK) {
+    const block = parseInt(await getLastIndexedBlock())
+    args.push({ blockTag: block })
+  }
+
+  return args
+}
+
+export const ethCall = async (func, ...initialArgs) =>
+  await provider[func](...(await maybeAddBlock(initialArgs)))
+
+export const lidoFuncCall = async (func, ...initialArgs) =>
+  await lidoContract[func](...(await maybeAddBlock(initialArgs)))
+
+export const getAddressShares = async (address, ...args) =>
+  await lidoFuncCall('sharesOf', address, ...args)
+
+export const getAddressBalance = async (address, ...args) =>
+  await lidoFuncCall('balanceOf', address, ...args)
