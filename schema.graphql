@@ -68,7 +68,15 @@ type LidoSubmission @entity {
   sender: Bytes!
   amount: BigInt!
   referral: Bytes!
+
   shares: BigInt!
+  sharesBefore: BigInt!
+  sharesAfter: BigInt!
+
+  totalPooledEtherBefore: BigInt!
+  totalPooledEtherAfter: BigInt!
+  totalSharesBefore: BigInt!
+  totalSharesAfter: BigInt!
 
   block: BigInt!
   blockTime: BigInt!
@@ -141,6 +149,12 @@ type Totals @entity {
 
   totalPooledEther: BigInt!
   totalShares: BigInt!
+}
+
+type Shares @entity {
+  id: ID!
+
+  shares: BigInt!
 }
 
 """

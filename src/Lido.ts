@@ -27,6 +27,7 @@ import {
   NodeOperatorFees,
   Totals,
   NodeOperatorsShares,
+  Shares,
 } from '../generated/schema'
 
 import { wcKeyCrops } from './wcKeyCrops'
@@ -261,15 +262,35 @@ export function handleSubmit(event: Submitted): void {
     : event.params.amount
   entity.shares = shares
 
+  // Increasing address shares
+  let sharesEntity = Shares.load(event.params.sender.toHex())
+
+  if (!sharesEntity) {
+    sharesEntity = new Shares(event.params.sender.toHex())
+    sharesEntity.shares = BigInt.fromI32(0)
+  }
+
+  entity.sharesBefore = sharesEntity.shares
+  sharesEntity.shares = sharesEntity.shares.plus(shares)
+  entity.sharesAfter = sharesEntity.shares
+
+  sharesEntity.save()
+
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
   entity.transactionIndex = event.transaction.index
 
-  entity.save()
+  entity.totalPooledEtherBefore = totals.totalPooledEther
+  entity.totalSharesBefore = totals.totalShares
 
   // Increasing Totals
   totals.totalPooledEther = totals.totalPooledEther.plus(event.params.amount)
   totals.totalShares = totals.totalShares.plus(shares)
+
+  entity.totalPooledEtherAfter = totals.totalPooledEther
+  entity.totalSharesAfter = totals.totalShares
+
+  entity.save()
   totals.save()
 }
 
