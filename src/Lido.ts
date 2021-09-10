@@ -244,9 +244,9 @@ export function handleSubmit(event: Submitted): void {
   // Loading totals
   let totals = Totals.load('')
 
-  let firstSubmission = !totals
+  let isFirstSubmission = !totals
 
-  if (firstSubmission) {
+  if (isFirstSubmission) {
     totals = new Totals('')
     totals.totalPooledEther = BigInt.fromI32(0)
     totals.totalShares = BigInt.fromI32(0)
@@ -257,7 +257,7 @@ export function handleSubmit(event: Submitted): void {
   entity.referral = event.params.referral
 
   // At deployment ratio is 1:1
-  let shares = !firstSubmission
+  let shares = !isFirstSubmission
     ? event.params.amount.times(totals.totalShares).div(totals.totalPooledEther)
     : event.params.amount
   entity.shares = shares
