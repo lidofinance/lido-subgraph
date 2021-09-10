@@ -67,6 +67,8 @@ export function handleTransfer(event: Transfer): void {
   entity.blockTime = event.block.timestamp
   entity.transactionHash = event.transaction.hash
   entity.transactionIndex = event.transaction.index
+  entity.logIndex = event.logIndex
+  entity.transactionLogIndex = event.transactionLogIndex
 
   let fromZeros =
     event.params.from.toHexString() ==
@@ -278,7 +280,10 @@ export function handleSubmit(event: Submitted): void {
 
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
   entity.transactionIndex = event.transaction.index
+  entity.logIndex = event.logIndex
+  entity.transactionLogIndex = event.transactionLogIndex
 
   entity.totalPooledEtherBefore = totals.totalPooledEther
   entity.totalSharesBefore = totals.totalShares

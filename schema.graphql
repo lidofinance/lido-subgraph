@@ -29,6 +29,8 @@ type LidoTransfer @entity {
   blockTime: BigInt!
   transactionHash: Bytes!
   transactionIndex: BigInt!
+  logIndex: BigInt!
+  transactionLogIndex: BigInt!
 }
 
 type LidoApproval @entity {
@@ -80,7 +82,10 @@ type LidoSubmission @entity {
 
   block: BigInt!
   blockTime: BigInt!
+  transactionHash: Bytes!
   transactionIndex: BigInt!
+  logIndex: BigInt!
+  transactionLogIndex: BigInt!
 }
 
 type LidoUnbuffered @entity {
@@ -126,6 +131,8 @@ type TotalReward @entity {
   block: BigInt!
   blockTime: BigInt!
   transactionIndex: BigInt!
+  logIndex: BigInt!
+  transactionLogIndex: BigInt!
 }
 
 type NodeOperatorFees @entity {

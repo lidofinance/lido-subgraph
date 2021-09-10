@@ -77,6 +77,8 @@ export function handleCompleted(event: Completed): void {
   totalRewardsEntity.block = event.block.number
   totalRewardsEntity.blockTime = event.block.timestamp
   totalRewardsEntity.transactionIndex = event.transaction.index
+  totalRewardsEntity.logIndex = event.logIndex
+  totalRewardsEntity.transactionLogIndex = event.transactionLogIndex
 
   let oldBeaconValidators = previousCompleted
     ? previousCompleted.beaconValidators
