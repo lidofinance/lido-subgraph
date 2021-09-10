@@ -34,7 +34,7 @@ export const getTestAddresses = async (amount = 100, skipImportant = false) => {
     // Lido Node Operator #2
     shuffled.unshift('0x9a66fd7948a6834176fbb1c4127c61cb6d349561')
     // Curve stETH pool
-    shuffled.unshift('0xDC24316b9AE028F1497c275EB9192a3Ea0f67022')
+    shuffled.unshift('0xdc24316b9ae028f1497c275eb9192a3ea0f67022')
   }
 
   const sliced = shuffled.slice(0, amount)
