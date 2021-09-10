@@ -21,9 +21,20 @@ type LidoTransfer @entity {
   from: Bytes!
   to: Bytes!
   value: BigInt!
+
   shares: BigInt
+  sharesBeforeDecrease: BigInt
+  sharesAfterDecrease: BigInt
+  sharesBeforeIncrease: BigInt
+  sharesAfterIncrease: BigInt
 
   mintWithoutSubmission: Boolean!
+
+  totalPooledEther: BigInt!
+  totalShares: BigInt!
+
+  balanceAfterDecrease: BigInt
+  balanceAfterIncrease: BigInt
 
   block: BigInt!
   blockTime: BigInt!
@@ -79,6 +90,8 @@ type LidoSubmission @entity {
   totalPooledEtherAfter: BigInt!
   totalSharesBefore: BigInt!
   totalSharesAfter: BigInt!
+
+  balanceAfter: BigInt!
 
   block: BigInt!
   blockTime: BigInt!

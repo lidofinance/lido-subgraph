@@ -87,6 +87,9 @@ export function handleTransfer(event: Transfer): void {
   // Entity is already created at this point
   let totals = Totals.load('')
 
+  entity.totalPooledEther = totals.totalPooledEther
+  entity.totalShares = totals.totalShares
+
   // At deploy ratio was 1 to 1 if no Oracle report is found
   let shares = event.params.value
     .times(totals.totalShares)
@@ -145,6 +148,7 @@ export function handleTransfer(event: Transfer): void {
       event.transaction.hash.toHex() + '-' + event.params.to.toHex()
     )
     let sharesToOperator = nodeOperatorsShares.shares
+
     entity.shares = sharesToOperator
 
     let nodeOperatorFees = new NodeOperatorFees(
@@ -166,6 +170,50 @@ export function handleTransfer(event: Transfer): void {
 
     totalRewardsEntity.save()
     nodeOperatorFees.save()
+  }
+
+  if (entity.shares) {
+    // Decreasing from address shares
+    // No point in changing 0x0 shares
+    if (!fromZeros) {
+      let sharesFromEntity = Shares.load(event.params.from.toHexString())
+      // Address must already have shares, HOWEVER:
+      // Someone can and managed to produce events of 0 to 0 transfers
+      if (!sharesFromEntity) {
+        sharesFromEntity = new Shares(event.params.from.toHexString())
+        sharesFromEntity.shares = BigInt.fromI32(0)
+      }
+
+      entity.sharesBeforeDecrease = sharesFromEntity.shares
+      sharesFromEntity.shares = sharesFromEntity.shares.minus(entity.shares!)
+      entity.sharesAfterDecrease = sharesFromEntity.shares
+
+      sharesFromEntity.save()
+
+      // Calculating new balance
+      entity.balanceAfterDecrease = entity.sharesAfterDecrease
+        .times(totals.totalPooledEther)
+        .div(totals.totalShares)
+    }
+
+    // Increasing to address shares
+    let sharesToEntity = Shares.load(event.params.to.toHexString())
+
+    if (!sharesToEntity) {
+      sharesToEntity = new Shares(event.params.to.toHexString())
+      sharesToEntity.shares = BigInt.fromI32(0)
+    }
+
+    entity.sharesBeforeIncrease = sharesToEntity.shares
+    sharesToEntity.shares = sharesToEntity.shares.plus(entity.shares!)
+    entity.sharesAfterIncrease = sharesToEntity.shares
+
+    sharesToEntity.save()
+
+    // Calculating new balance
+    entity.balanceAfterIncrease = entity.sharesBeforeIncrease
+      .times(totals.totalPooledEther)
+      .div(totals.totalShares)
   }
 
   entity.save()
@@ -276,8 +324,6 @@ export function handleSubmit(event: Submitted): void {
   sharesEntity.shares = sharesEntity.shares.plus(shares)
   entity.sharesAfter = sharesEntity.shares
 
-  sharesEntity.save()
-
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
   entity.transactionHash = event.transaction.hash
@@ -295,7 +341,13 @@ export function handleSubmit(event: Submitted): void {
   entity.totalPooledEtherAfter = totals.totalPooledEther
   entity.totalSharesAfter = totals.totalShares
 
+  // Calculating new balance
+  entity.balanceAfter = entity.sharesAfter
+    .times(totals.totalPooledEther)
+    .div(totals.totalShares)
+
   entity.save()
+  sharesEntity.save()
   totals.save()
 }
 
