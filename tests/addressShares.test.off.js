@@ -1,4 +1,4 @@
-import { getTestAddresses, getAddressShares, loadAddressShares } from './utils'
+import { getTestAddresses, getAddressShares, calculateShares } from './utils'
 
 const ADDRESSES_TO_TEST = 100
 const timePerAddress = 0.5 // seconds
@@ -14,7 +14,7 @@ test(
       console.log(address)
 
       const realShareAmount = (await getAddressShares(address)).toString()
-      const subgraphShareAmount = (await loadAddressShares(address)).toString()
+      const subgraphShareAmount = (await calculateShares(address)).toString()
 
       expect(subgraphShareAmount).toEqual(realShareAmount)
     }
