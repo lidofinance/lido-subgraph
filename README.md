@@ -57,4 +57,5 @@ Pushes to master branch will automatically get the Subgraph deployed to The Grap
 
 ## Notes
 
-Please note that it's now advised not to rely on this Subgraph's node operator keys for duplicate key checks. We've hit a technical limitation on withdrawal credentials changes when unused keys are cropped. We can't guarantee cropped keys will be deleted from this Subgraph correctly in the future.
+1. Addresses are stored as-is, without conversion to checksum addresses. Keep that in mind when filtering entities by address.
+2. Please note that it's now advised not to rely on this Subgraph's node operator keys for duplicate key checks. We've hit a technical limitation on withdrawal credentials changes when unused keys are cropped. We can't guarantee cropped keys will be deleted from this Subgraph correctly in the future.
