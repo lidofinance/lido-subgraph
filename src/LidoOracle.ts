@@ -185,7 +185,7 @@ export function handleCompleted(event: Completed): void {
     sharesToOperatorsActual = sharesToOperatorsActual.plus(shares)
 
     let nodeOperatorsShares = new NodeOperatorsShares(
-      event.transaction.hash.toHex() + '-' + addr.toHex()
+      event.transaction.hash.toHex() + '-' + addr.toHexString()
     )
     nodeOperatorsShares.totalReward = event.transaction.hash.toHex()
 
@@ -208,7 +208,7 @@ export function handleCompleted(event: Completed): void {
 }
 
 export function handleMemberAdded(event: MemberAdded): void {
-  let entity = new OracleMember(event.params.member.toHex())
+  let entity = new OracleMember(event.params.member.toHexString())
 
   entity.member = event.params.member
   entity.removed = false
@@ -217,10 +217,10 @@ export function handleMemberAdded(event: MemberAdded): void {
 }
 
 export function handleMemberRemoved(event: MemberRemoved): void {
-  let entity = OracleMember.load(event.params.member.toHex())
+  let entity = OracleMember.load(event.params.member.toHexString())
 
   if (entity == null) {
-    entity = new OracleMember(event.params.member.toHex())
+    entity = new OracleMember(event.params.member.toHexString())
   }
 
   entity.removed = true

@@ -13,7 +13,7 @@ import {
 } from '../generated/schema'
 
 export function handleStartVote(event: StartVote): void {
-  let entity = new Voting(event.params.voteId.toHex())
+  let entity = new Voting(event.params.voteId.toString())
 
   entity.index = event.params.voteId.toI32()
   entity.creator = event.params.creator
@@ -28,7 +28,7 @@ export function handleCastVote(event: CastVote): void {
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
 
-  entity.voting = event.params.voteId.toHex()
+  entity.voting = event.params.voteId.toString()
   entity.voter = event.params.voter
   entity.supports = event.params.supports
   entity.stake = event.params.stake
@@ -37,10 +37,10 @@ export function handleCastVote(event: CastVote): void {
 }
 
 export function handleExecuteVote(event: ExecuteVote): void {
-  let entity = Voting.load(event.params.voteId.toHex())
+  let entity = Voting.load(event.params.voteId.toString())
 
   if (entity == null) {
-    entity = new Voting(event.params.voteId.toHex())
+    entity = new Voting(event.params.voteId.toString())
   }
 
   entity.executed = true

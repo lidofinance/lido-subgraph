@@ -11,7 +11,7 @@ import {
 import { NodeOperatorSigningKey, NodeOperator } from '../generated/schema'
 
 export function handleSigningKeyAdded(event: SigningKeyAdded): void {
-  let entity = new NodeOperatorSigningKey(event.params.pubkey.toHex())
+  let entity = new NodeOperatorSigningKey(event.params.pubkey.toHexString())
 
   entity.operatorId = event.params.operatorId
   entity.pubkey = event.params.pubkey
@@ -21,10 +21,10 @@ export function handleSigningKeyAdded(event: SigningKeyAdded): void {
 }
 
 export function handleSigningKeyRemoved(event: SigningKeyRemoved): void {
-  let entity = NodeOperatorSigningKey.load(event.params.pubkey.toHex())
+  let entity = NodeOperatorSigningKey.load(event.params.pubkey.toHexString())
 
   if (entity == null) {
-    entity = new NodeOperatorSigningKey(event.params.pubkey.toHex())
+    entity = new NodeOperatorSigningKey(event.params.pubkey.toHexString())
     entity.pubkey = event.params.pubkey
   }
 
@@ -33,7 +33,7 @@ export function handleSigningKeyRemoved(event: SigningKeyRemoved): void {
 }
 
 export function handleNodeOperatorAdded(event: NodeOperatorAdded): void {
-  let entity = new NodeOperator(event.params.id.toHex())
+  let entity = new NodeOperator(event.params.id.toString())
 
   entity.name = event.params.name
   entity.rewardAddress = event.params.rewardAddress
@@ -46,10 +46,10 @@ export function handleNodeOperatorAdded(event: NodeOperatorAdded): void {
 export function handleNodeOperatorActiveSet(
   event: NodeOperatorActiveSet
 ): void {
-  let entity = NodeOperator.load(event.params.id.toHex())
+  let entity = NodeOperator.load(event.params.id.toString())
 
   if (entity == null) {
-    entity = new NodeOperator(event.params.id.toHex())
+    entity = new NodeOperator(event.params.id.toString())
   }
 
   entity.active = event.params.active
@@ -58,10 +58,10 @@ export function handleNodeOperatorActiveSet(
 }
 
 export function handleNodeOperatorNameSet(event: NodeOperatorNameSet): void {
-  let entity = NodeOperator.load(event.params.id.toHex())
+  let entity = NodeOperator.load(event.params.id.toString())
 
   if (entity == null) {
-    entity = new NodeOperator(event.params.id.toHex())
+    entity = new NodeOperator(event.params.id.toString())
   }
 
   entity.name = event.params.name
@@ -72,10 +72,10 @@ export function handleNodeOperatorNameSet(event: NodeOperatorNameSet): void {
 export function handleNodeOperatorRewardAddressSet(
   event: NodeOperatorRewardAddressSet
 ): void {
-  let entity = NodeOperator.load(event.params.id.toHex())
+  let entity = NodeOperator.load(event.params.id.toString())
 
   if (entity == null) {
-    entity = new NodeOperator(event.params.id.toHex())
+    entity = new NodeOperator(event.params.id.toString())
   }
 
   entity.rewardAddress = event.params.rewardAddress
@@ -86,10 +86,10 @@ export function handleNodeOperatorRewardAddressSet(
 export function handleNodeOperatorStakingLimitSet(
   event: NodeOperatorStakingLimitSet
 ): void {
-  let entity = NodeOperator.load(event.params.id.toHex())
+  let entity = NodeOperator.load(event.params.id.toString())
 
   if (entity == null) {
-    entity = new NodeOperator(event.params.id.toHex())
+    entity = new NodeOperator(event.params.id.toString())
   }
 
   entity.stakingLimit = event.params.stakingLimit
@@ -100,10 +100,10 @@ export function handleNodeOperatorStakingLimitSet(
 export function handleNodeOperatorTotalStoppedValidatorsReported(
   event: NodeOperatorTotalStoppedValidatorsReported
 ): void {
-  let entity = NodeOperator.load(event.params.id.toHex())
+  let entity = NodeOperator.load(event.params.id.toString())
 
   if (entity == null) {
-    entity = new NodeOperator(event.params.id.toHex())
+    entity = new NodeOperator(event.params.id.toString())
   }
 
   entity.totalStoppedValidators = event.params.totalStopped

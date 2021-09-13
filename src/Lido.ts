@@ -144,7 +144,7 @@ export function handleTransfer(event: Transfer): void {
     // Handling node operator fee transfer to node operator
 
     let nodeOperatorsShares = NodeOperatorsShares.load(
-      event.transaction.hash.toHex() + '-' + event.params.to.toHex()
+      event.transaction.hash.toHex() + '-' + event.params.to.toHexString()
     )
     let sharesToOperator = nodeOperatorsShares.shares
 
@@ -256,7 +256,7 @@ export function handleWithdrawalCredentialsSet(
   event: WithdrawalCredentialsSet
 ): void {
   let entity = new LidoWithdrawalCredential(
-    event.params.withdrawalCredentials.toHex()
+    event.params.withdrawalCredentials.toHexString()
   )
 
   entity.withdrawalCredentials = event.params.withdrawalCredentials
@@ -312,10 +312,10 @@ export function handleSubmit(event: Submitted): void {
   entity.shares = shares
 
   // Increasing address shares
-  let sharesEntity = Shares.load(event.params.sender.toHex())
+  let sharesEntity = Shares.load(event.params.sender.toHexString())
 
   if (!sharesEntity) {
-    sharesEntity = new Shares(event.params.sender.toHex())
+    sharesEntity = new Shares(event.params.sender.toHexString())
     sharesEntity.shares = BigInt.fromI32(0)
   }
 
