@@ -1,5 +1,5 @@
-import { BigInt } from '@graphprotocol/graph-ts'
-import { store } from '@graphprotocol/graph-ts'
+import { BigInt, Address } from '@graphprotocol/graph-ts'
+import { store, dataSource } from '@graphprotocol/graph-ts'
 import {
   Stopped,
   Resumed,
@@ -71,8 +71,8 @@ export function handleTransfer(event: Transfer): void {
   entity.transactionLogIndex = event.transactionLogIndex
 
   let fromZeros =
-    event.params.from.toHexString() ==
-    '0x0000000000000000000000000000000000000000'
+    event.params.from ==
+    Address.fromString('0x0000000000000000000000000000000000000000')
 
   let totalRewardsEntity: TotalReward | null = TotalReward.load(
     event.transaction.hash.toHex()
@@ -102,10 +102,12 @@ export function handleTransfer(event: Transfer): void {
 
   let isFeeDistributionToTreasury =
     fromZeros &&
-    (event.params.to.toHexString() ==
-      '0x3e40d73eb977dc6a537af587d48316fee66e9c8c' || // Mainnet
-      event.params.to.toHexString() ==
-        '0x0a9879494d2f2ac749cf84bd043e295da5b83623') // Goerli
+    event.params.to ==
+      Address.fromString(
+        dataSource.network() == 'mainnet'
+          ? '0x3e40D73EB977Dc6a537aF587D48316feE66E9C8c'
+          : '0x4333218072D5d7008546737786663c38B4D561A4'
+      )
 
   // graph-ts less or equal to
   let isDust = event.params.value.le(BigInt.fromI32(50000))
@@ -146,6 +148,7 @@ export function handleTransfer(event: Transfer): void {
     let nodeOperatorsShares = NodeOperatorsShares.load(
       event.transaction.hash.toHex() + '-' + event.params.to.toHexString()
     )
+
     let sharesToOperator = nodeOperatorsShares.shares
 
     entity.shares = sharesToOperator
