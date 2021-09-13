@@ -229,7 +229,7 @@ export function handleMemberRemoved(event: MemberRemoved): void {
 }
 
 export function handleQuorumChanged(event: QuorumChanged): void {
-  let entity = new OracleQuorumChange(event.params.quorum.toHex())
+  let entity = new OracleQuorumChange(event.transaction.hash.toHex())
 
   entity.quorum = event.params.quorum
 
