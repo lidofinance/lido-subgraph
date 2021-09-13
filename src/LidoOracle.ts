@@ -1,4 +1,5 @@
-import { Address, BigInt, dataSource } from '@graphprotocol/graph-ts'
+import { Address, BigInt } from '@graphprotocol/graph-ts'
+import { dataSource } from '@graphprotocol/graph-ts'
 import { Lido } from '../generated/Lido/Lido'
 import { NodeOperatorsRegistry } from '../generated/NodeOperatorsRegistry/NodeOperatorsRegistry'
 import {
