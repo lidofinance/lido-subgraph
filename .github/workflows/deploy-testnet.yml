@@ -1,4 +1,4 @@
-name: Deploy Subgraph
+name: Deploy Testnet
 
 on:
   workflow_dispatch:
