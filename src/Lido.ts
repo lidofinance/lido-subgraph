@@ -211,7 +211,7 @@ export function handleTransfer(event: Transfer): void {
     sharesToEntity.save()
 
     // Calculating new balance
-    entity.balanceAfterIncrease = entity.sharesBeforeIncrease
+    entity.balanceAfterIncrease = entity.sharesAfterIncrease
       .times(totals.totalPooledEther)
       .div(totals.totalShares)
   }
