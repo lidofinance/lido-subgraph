@@ -90,7 +90,6 @@ export function handleTransfer(event: Transfer): void {
   entity.totalPooledEther = totals.totalPooledEther
   entity.totalShares = totals.totalShares
 
-  // At deploy ratio was 1 to 1 if no Oracle report is found
   let shares = event.params.value
     .times(totals.totalShares)
     .div(totals.totalPooledEther)
