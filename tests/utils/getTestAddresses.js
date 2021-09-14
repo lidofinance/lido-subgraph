@@ -35,6 +35,8 @@ export const getTestAddresses = async (amount = 100, skipImportant = false) => {
     shuffled.unshift('0x9a66fd7948a6834176fbb1c4127c61cb6d349561')
     // Curve stETH pool
     shuffled.unshift('0xdc24316b9ae028f1497c275eb9192a3ea0f67022')
+    // 1inch LDO-stETH pool
+    shuffled.unshift('0x1f629794b34ffb3b29ff206be5478a52678b47ae')
   }
 
   const sliced = shuffled.slice(0, amount)
