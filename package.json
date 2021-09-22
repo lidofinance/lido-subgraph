@@ -14,8 +14,8 @@
     "deploy-local": "env-cmd --use-shell graph deploy --node '$GRAPH_NODE' --ipfs '$GRAPH_IPFS' lido subgraph.mainnet.yaml"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.21.1",
-    "@graphprotocol/graph-ts": "0.20.1"
+    "@graphprotocol/graph-cli": "0.22.0",
+    "@graphprotocol/graph-ts": "0.22.0"
   },
   "devDependencies": {
     "@jest/types": "27.1.1",

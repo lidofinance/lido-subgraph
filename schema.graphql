@@ -120,10 +120,10 @@ type LidoWithdrawal @entity {
 type TotalReward @entity {
   id: ID!
 
-  totalRewards: BigInt
-  totalRewardsWithFees: BigInt
+  totalRewards: BigInt!
+  totalRewardsWithFees: BigInt!
 
-  totalFee: BigInt
+  totalFee: BigInt!
   nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
   insuranceFee: BigInt
   treasuryFee: BigInt

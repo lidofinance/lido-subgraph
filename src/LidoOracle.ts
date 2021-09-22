@@ -110,7 +110,8 @@ export function handleCompleted(event: Completed): void {
   // Will save later, still need to add shares data
 
   // Totals and rewards data logic
-  let totals = Totals.load('')
+  // Totals are already non-null on first oracle report
+  let totals = Totals.load('') as Totals
 
   // Keeping data before increase
   let totalPooledEtherBefore = totals.totalPooledEther

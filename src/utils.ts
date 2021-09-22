@@ -45,7 +45,7 @@ export function lastIncrementalId(entityName: string, i: i32): string {
   if (entity) {
     return i.toString()
   } else if (i == 0) {
-    return null
+    return ''
   } else {
     return lastIncrementalId(entityName, i - 1)
   }

@@ -11,7 +11,7 @@ dataSources:
       startBlock: 4533286
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
         - LidoStopped
@@ -58,7 +58,7 @@ dataSources:
       startBlock: 4533286
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
         - OracleCompleted
@@ -115,7 +115,7 @@ dataSources:
       startBlock: 4533286
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
         - NodeOperatorSigningKey
@@ -150,7 +150,7 @@ dataSources:
       startBlock: 4533286
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
         - Voting
@@ -181,7 +181,7 @@ dataSources:
       startBlock: 5353000
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.5
       language: wasm/assemblyscript
       entities:
         - Motion

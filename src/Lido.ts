@@ -74,18 +74,14 @@ export function handleTransfer(event: Transfer): void {
     event.params.from ==
     Address.fromString('0x0000000000000000000000000000000000000000')
 
-  let totalRewardsEntity: TotalReward | null = TotalReward.load(
-    event.transaction.hash.toHex()
-  )
-
-  let rewardsEntityExists = totalRewardsEntity !== null
+  let totalRewardsEntity = TotalReward.load(event.transaction.hash.toHex())
 
   // We know that for rewards distribution shares are minted with same from 0x0 address as staking
   // We can save this indicator which helps us distinguish such mints from staking events
-  entity.mintWithoutSubmission = rewardsEntityExists ? true : false
+  entity.mintWithoutSubmission = totalRewardsEntity ? true : false
 
   // Entity is already created at this point
-  let totals = Totals.load('')
+  let totals = Totals.load('') as Totals
 
   entity.totalPooledEther = totals.totalPooledEther
   entity.totalShares = totals.totalShares
@@ -112,7 +108,7 @@ export function handleTransfer(event: Transfer): void {
   // graph-ts less or equal to
   let isDust = event.params.value.le(BigInt.fromI32(50000))
 
-  if (rewardsEntityExists && isFeeDistributionToTreasury && !isDust) {
+  if (totalRewardsEntity && isFeeDistributionToTreasury && !isDust) {
     // Handling the Insurance Fee transfer event to treasury
 
     entity.shares = totalRewardsEntity.sharesToInsuranceFund
@@ -127,7 +123,7 @@ export function handleTransfer(event: Transfer): void {
     )
 
     totalRewardsEntity.save()
-  } else if (rewardsEntityExists && isFeeDistributionToTreasury && isDust) {
+  } else if (totalRewardsEntity && isFeeDistributionToTreasury && isDust) {
     // Handling dust transfer event
 
     entity.shares = totalRewardsEntity.sharesToTreasury
@@ -142,12 +138,13 @@ export function handleTransfer(event: Transfer): void {
     )
 
     totalRewardsEntity.save()
-  } else if (rewardsEntityExists && fromZeros) {
+  } else if (totalRewardsEntity && fromZeros) {
     // Handling node operator fee transfer to node operator
 
+    // Entity should be existent at this point
     let nodeOperatorsShares = NodeOperatorsShares.load(
       event.transaction.hash.toHex() + '-' + event.params.to.toHexString()
-    )
+    ) as NodeOperatorsShares
 
     let sharesToOperator = nodeOperatorsShares.shares
 
@@ -193,8 +190,8 @@ export function handleTransfer(event: Transfer): void {
       sharesFromEntity.save()
 
       // Calculating new balance
-      entity.balanceAfterDecrease = entity.sharesAfterDecrease
-        .times(totals.totalPooledEther)
+      entity.balanceAfterDecrease = entity
+        .sharesAfterDecrease!.times(totals.totalPooledEther)
         .div(totals.totalShares)
     }
 
@@ -213,8 +210,8 @@ export function handleTransfer(event: Transfer): void {
     sharesToEntity.save()
 
     // Calculating new balance
-    entity.balanceAfterIncrease = entity.sharesAfterIncrease
-      .times(totals.totalPooledEther)
+    entity.balanceAfterIncrease = entity
+      .sharesAfterIncrease!.times(totals.totalPooledEther)
       .div(totals.totalShares)
   }
 
@@ -296,9 +293,7 @@ export function handleSubmit(event: Submitted): void {
   // Loading totals
   let totals = Totals.load('')
 
-  let isFirstSubmission = !totals
-
-  if (isFirstSubmission) {
+  if (!totals) {
     totals = new Totals('')
     totals.totalPooledEther = BigInt.fromI32(0)
     totals.totalShares = BigInt.fromI32(0)
@@ -309,7 +304,7 @@ export function handleSubmit(event: Submitted): void {
   entity.referral = event.params.referral
 
   // At deployment ratio is 1:1
-  let shares = !isFirstSubmission
+  let shares = !totals
     ? event.params.amount.times(totals.totalShares).div(totals.totalPooledEther)
     : event.params.amount
   entity.shares = shares
