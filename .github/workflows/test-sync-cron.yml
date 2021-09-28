@@ -11,7 +11,7 @@ jobs:
     name: Testing sync status
     steps:
       - uses: actions/checkout@v2
-      - name: Install Graph cli and deploy
+      - name: Setup Node
         uses: actions/setup-node@v2
         with:
           node-version: 'lts/*'
