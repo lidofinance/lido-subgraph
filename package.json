@@ -1,6 +1,6 @@
 {
   "name": "lido-subgraph",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "codegen": "graph codegen subgraph.mainnet.yaml",
     "build": "graph build subgraph.mainnet.yaml",
