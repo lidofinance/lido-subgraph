@@ -1,8 +1,9 @@
 import { subgraphFetch, gql } from './utils'
 
+// TODO: This runs on hosted as well, respect limit and adjust after migration
 const query = gql`
   query {
-    totalRewards(first: 100000, where: { dust: 0 }) {
+    totalRewards(first: 1000, where: { dust: 0 }) {
       dust
     }
   }
