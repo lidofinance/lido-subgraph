@@ -23,7 +23,7 @@
     "@jest/types": "27.2.5",
     "dotenv": "10.0.0",
     "env-cmd": "10.1.0",
-    "ethers": "5.4.7",
+    "ethers": "5.5.1",
     "graphql": "15.6.1",
     "graphql-request": "3.6.1",
     "jest": "27.3.1",
