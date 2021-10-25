@@ -1,7 +1,4 @@
-import { Address, BigInt } from '@graphprotocol/graph-ts'
-import { dataSource } from '@graphprotocol/graph-ts'
-import { Lido } from '../generated/Lido/Lido'
-import { NodeOperatorsRegistry } from '../generated/NodeOperatorsRegistry/NodeOperatorsRegistry'
+import { BigInt } from '@graphprotocol/graph-ts'
 import {
   MemberAdded,
   MemberRemoved,
@@ -33,6 +30,10 @@ import {
   NodeOperatorsShares,
 } from '../generated/schema'
 
+import { CALCULATION_UNIT } from './constants'
+
+import { loadLidoContract, loadNosContract } from './contracts'
+
 import {
   nextIncrementalId,
   lastIncrementalId,
@@ -53,13 +54,7 @@ export function handleCompleted(event: Completed): void {
     )
   )
 
-  let contract = Lido.bind(
-    Address.fromString(
-      dataSource.network() == 'mainnet'
-        ? '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
-        : '0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F'
-    )
-  )
+  let contract = loadLidoContract()
 
   newCompleted.epochId = event.params.epochId
   newCompleted.beaconBalance = event.params.beaconBalance
@@ -122,15 +117,13 @@ export function handleCompleted(event: Completed): void {
   // Increasing totals
   let totalPooledEtherAfter = totals.totalPooledEther.plus(newTotalRewards)
 
-  let calculationUnit = BigInt.fromI32(10000)
-
   // Overall shares for all rewards cut
   let shares2mint = newTotalRewards
     .times(feeBasis)
     .times(totals.totalShares)
     .div(
       totalPooledEtherAfter
-        .times(calculationUnit)
+        .times(CALCULATION_UNIT)
         .minus(feeBasis.times(newTotalRewards))
     )
 
@@ -147,11 +140,11 @@ export function handleCompleted(event: Completed): void {
 
   let sharesToInsuranceFund = shares2mint
     .times(insuranceFeeBasisPoints)
-    .div(calculationUnit)
+    .div(CALCULATION_UNIT)
 
   let sharesToOperators = shares2mint
     .times(operatorsFeeBasisPoints)
-    .div(calculationUnit)
+    .div(CALCULATION_UNIT)
 
   totalRewardsEntity.shares2mint = shares2mint
 
@@ -165,13 +158,7 @@ export function handleCompleted(event: Completed): void {
 
   // We will save the entity later
 
-  let registry = NodeOperatorsRegistry.bind(
-    Address.fromString(
-      dataSource.network() == 'mainnet'
-        ? '0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5'
-        : '0x9D4AF1Ee19Dad8857db3a45B0374c81c8A1C6320'
-    )
-  )
+  let registry = loadNosContract()
   let distr = registry.getRewardsDistribution(sharesToOperators)
 
   let opAddresses = distr.value0
