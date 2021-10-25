@@ -117,37 +117,6 @@ type LidoWithdrawal @entity {
   etherAmount: BigInt!
 }
 
-type TotalReward @entity {
-  id: ID!
-
-  totalRewards: BigInt!
-  totalRewardsWithFees: BigInt!
-
-  totalFee: BigInt!
-  nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
-  insuranceFee: BigInt
-  treasuryFee: BigInt
-  dust: BigInt
-
-  shares2mint: BigInt!
-
-  sharesToInsuranceFund: BigInt!
-  sharesToOperators: BigInt!
-  sharesToTreasury: BigInt!
-  nodeOperatorsShares: [NodeOperatorsShares!] @derivedFrom(field: "totalReward")
-
-  totalPooledEtherBefore: BigInt!
-  totalPooledEtherAfter: BigInt!
-  totalSharesBefore: BigInt!
-  totalSharesAfter: BigInt!
-
-  block: BigInt!
-  blockTime: BigInt!
-  transactionIndex: BigInt!
-  logIndex: BigInt!
-  transactionLogIndex: BigInt!
-}
-
 type NodeOperatorFees @entity {
   id: ID!
   totalReward: TotalReward!
@@ -192,6 +161,45 @@ type OracleCompleted @entity {
   transactionHash: Bytes!
 }
 
+type TotalReward @entity {
+  id: ID!
+
+  totalRewards: BigInt!
+  totalRewardsWithFees: BigInt!
+
+  totalFee: BigInt!
+  nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
+  insuranceFee: BigInt
+  treasuryFee: BigInt
+  dust: BigInt
+
+  shares2mint: BigInt!
+
+  sharesToInsuranceFund: BigInt!
+  sharesToOperators: BigInt!
+  sharesToTreasury: BigInt!
+  nodeOperatorsShares: [NodeOperatorsShares!] @derivedFrom(field: "totalReward")
+
+  totalPooledEtherBefore: BigInt!
+  totalPooledEtherAfter: BigInt!
+  totalSharesBefore: BigInt!
+  totalSharesAfter: BigInt!
+
+  postTotalPooledEther: BigInt
+  preTotalPooledEther: BigInt
+  timeElapsed: BigInt
+  totalShares: BigInt
+
+  aprBeforeFees: BigDecimal
+  apr: BigDecimal
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionIndex: BigInt!
+  logIndex: BigInt!
+  transactionLogIndex: BigInt!
+}
+
 type OracleMember @entity {
   id: ID!
 
@@ -230,15 +238,6 @@ type OracleExpectedEpoch @entity {
   id: ID!
 
   epochId: BigInt!
-}
-
-type OracleTotalShares @entity {
-  id: ID!
-
-  postTotalPooledEther: BigInt!
-  preTotalPooledEther: BigInt!
-  timeElapsed: BigInt!
-  totalShares: BigInt!
 }
 
 type BeaconReport @entity {

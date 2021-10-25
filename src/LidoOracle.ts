@@ -22,7 +22,6 @@ import {
   AllowedBeaconBalanceRelativeDecrease,
   AllowedBeaconBalanceAnnualRelativeIncrease,
   OracleExpectedEpoch,
-  OracleTotalShares,
   BeaconReport,
   BeaconSpec,
   BeaconReportReceiver,
@@ -241,14 +240,39 @@ export function handleContractVersionSet(event: ContractVersionSet): void {
 }
 
 export function handlePostTotalShares(event: PostTotalShares): void {
-  let entity = new OracleTotalShares(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
+  let contract = loadLidoContract()
 
-  entity.postTotalPooledEther = event.params.postTotalPooledEther
-  entity.preTotalPooledEther = event.params.preTotalPooledEther
+  let entity = TotalReward.load(event.transaction.hash.toHex()) as TotalReward
+
+  let preTotalPooledEther = event.params.preTotalPooledEther
+  let postTotalPooledEther = event.params.postTotalPooledEther
+
+  entity.preTotalPooledEther = preTotalPooledEther
+  entity.postTotalPooledEther = postTotalPooledEther
   entity.timeElapsed = event.params.timeElapsed
   entity.totalShares = event.params.totalShares
+
+  let aprBeforeFees = postTotalPooledEther
+    .toBigDecimal()
+    .div(preTotalPooledEther.toBigDecimal())
+    .minus(BigInt.fromI32(1).toBigDecimal())
+    .times(BigInt.fromI32(100).toBigDecimal())
+    .times(BigInt.fromI32(365).toBigDecimal())
+
+  let feeBasis = BigInt.fromI32(contract.getFee()).toBigDecimal() // 1000
+
+  let apr = aprBeforeFees.minus(
+    aprBeforeFees
+      .times(CALCULATION_UNIT.toBigDecimal())
+      .div(feeBasis)
+      .div(BigInt.fromI32(100).toBigDecimal())
+  )
+
+  entity.aprBeforeFees = aprBeforeFees
+  entity.apr = apr
+
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
 
   entity.save()
 }
