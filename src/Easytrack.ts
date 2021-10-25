@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import {
   Easytrack,
   AdminChanged,
@@ -19,12 +19,18 @@ import {
   Unpaused,
   RoleAdminChanged,
   RoleGranted,
-  RoleRevoked
-} from "../generated/Easytrack/Easytrack"
+  RoleRevoked,
+} from '../generated/Easytrack/Easytrack'
 
 const EASYTRACK_ADDRESS = '0xb8ADb098a1B729e5fBC09291977044DEF766146c'
 
-import { Motion, Role, EVMScriptFactory, Objection, EasyTrackConfig } from "../generated/schema"
+import {
+  Motion,
+  Role,
+  EVMScriptFactory,
+  Objection,
+  EasyTrackConfig,
+} from '../generated/schema'
 
 export function handleUpgraded(event: Upgraded): void {
   let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)
@@ -41,75 +47,76 @@ export function handleUpgraded(event: Upgraded): void {
   entity.save()
 }
 
-
 export function handleAdminChanged(event: AdminChanged): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)
+  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
 
   entity.admin = event.params.newAdmin
 
   entity.save()
 }
 
-
-export function handleEVMScriptExecutorChanged(event: EVMScriptExecutorChanged): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)
+export function handleEVMScriptExecutorChanged(
+  event: EVMScriptExecutorChanged
+): void {
+  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
 
   entity.evmScriptExecutor = event.params._evmScriptExecutor
 
   entity.save()
 }
 
-
-export function handleMotionDurationChanged(event: MotionDurationChanged): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)
+export function handleMotionDurationChanged(
+  event: MotionDurationChanged
+): void {
+  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
 
   entity.motionDuration = event.params._motionDuration
 
   entity.save()
 }
 
-
-export function handleMotionsCountLimitChanged(event: MotionsCountLimitChanged): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)
+export function handleMotionsCountLimitChanged(
+  event: MotionsCountLimitChanged
+): void {
+  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
 
   entity.motionsCountLimit = event.params._newMotionsCountLimit
 
   entity.save()
 }
 
-
-export function handleObjectionsThresholdChanged(event: ObjectionsThresholdChanged): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)
+export function handleObjectionsThresholdChanged(
+  event: ObjectionsThresholdChanged
+): void {
+  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
 
   entity.objectionsThreshold = event.params._newThreshold
 
   entity.save()
 }
 
-
 export function handlePaused(event: Paused): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)
+  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
 
   entity.isPaused = true
 
   entity.save()
 }
 
-
 export function handleUnpaused(event: Unpaused): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)
+  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
 
   entity.isPaused = false
 
   entity.save()
 }
 
-
 export function handleRoleAdminChanged(event: RoleAdminChanged): void {}
 export function handleBeaconUpgraded(event: BeaconUpgraded): void {}
 
-
-export function handleEVMScriptFactoryAdded(event: EVMScriptFactoryAdded): void {
+export function handleEVMScriptFactoryAdded(
+  event: EVMScriptFactoryAdded
+): void {
   let entity = new EVMScriptFactory(event.params._evmScriptFactory.toHex())
 
   entity.address = event.params._evmScriptFactory
@@ -119,20 +126,20 @@ export function handleEVMScriptFactoryAdded(event: EVMScriptFactoryAdded): void 
   entity.save()
 }
 
-
-export function handleEVMScriptFactoryRemoved(event: EVMScriptFactoryRemoved): void {
-  let entity = EVMScriptFactory.load(event.params._evmScriptFactory.toHex())
+export function handleEVMScriptFactoryRemoved(
+  event: EVMScriptFactoryRemoved
+): void {
+  let entity = EVMScriptFactory.load(event.params._evmScriptFactory.toHex())!
 
   entity.isActive = false
 
   entity.save()
 }
 
-
 export function handleMotionCreated(event: MotionCreated): void {
   let entity = new Motion(event.params._motionId.toString())
 
-  let config = EasyTrackConfig.load(EASYTRACK_ADDRESS)
+  let config = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
 
   entity.snapshotBlock = event.block.number
   entity.startDate = event.block.timestamp
@@ -150,16 +157,17 @@ export function handleMotionCreated(event: MotionCreated): void {
   entity.save()
 }
 
-
 export function handleMotionObjected(event: MotionObjected): void {
-  let entity = Motion.load(event.params._motionId.toString())
+  let entity = Motion.load(event.params._motionId.toString())!
 
   entity.objectionsAmount = event.params._newObjectionsAmount
   entity.objectionsAmountPct = event.params._newObjectionsAmountPct
 
   entity.save()
 
-  let objectionEntity = new Objection(event.params._motionId.toHex() + '-' + event.params._objector.toHex())
+  let objectionEntity = new Objection(
+    event.params._motionId.toHex() + '-' + event.params._objector.toHex()
+  )
 
   objectionEntity.objector = event.params._objector
   objectionEntity.motionId = event.params._motionId
@@ -170,7 +178,6 @@ export function handleMotionObjected(event: MotionObjected): void {
   objectionEntity.save()
 }
 
-
 export function handleMotionCanceled(event: MotionCanceled): void {
   let entity = new Motion(event.params._motionId.toString())
 
@@ -180,7 +187,6 @@ export function handleMotionCanceled(event: MotionCanceled): void {
   entity.save()
 }
 
-
 export function handleMotionEnacted(event: MotionEnacted): void {
   let entity = new Motion(event.params._motionId.toString())
 
@@ -189,7 +195,6 @@ export function handleMotionEnacted(event: MotionEnacted): void {
 
   entity.save()
 }
-
 
 export function handleMotionRejected(event: MotionRejected): void {
   let entity = new Motion(event.params._motionId.toString())
@@ -201,7 +206,9 @@ export function handleMotionRejected(event: MotionRejected): void {
 }
 
 export function handleRoleGranted(event: RoleGranted): void {
-  let entity = new Role(event.params.account.toHex() + '-' + event.params.role.toHex())
+  let entity = new Role(
+    event.params.account.toHex() + '-' + event.params.role.toHex()
+  )
 
   entity.role = event.params.role
   entity.address = event.params.account
@@ -211,9 +218,10 @@ export function handleRoleGranted(event: RoleGranted): void {
   entity.save()
 }
 
-
 export function handleRoleRevoked(event: RoleRevoked): void {
-  let entity = Role.load(event.params.account.toHex() + '-' + event.params.role.toHex())
+  let entity = Role.load(
+    event.params.account.toHex() + '-' + event.params.role.toHex()
+  )!
 
   entity.isActive = false
 
