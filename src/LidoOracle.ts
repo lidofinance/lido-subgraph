@@ -29,7 +29,7 @@ import {
   NodeOperatorsShares,
 } from '../generated/schema'
 
-import { CALCULATION_UNIT } from './constants'
+import { CALCULATION_UNIT, DEPOSIT_AMOUNT } from './constants'
 
 import { loadLidoContract, loadNosContract } from './contracts'
 
@@ -86,12 +86,8 @@ export function handleCompleted(event: Completed): void {
   let newBeaconValidators = event.params.beaconValidators
   let newBeaconBalance = event.params.beaconBalance
 
-  let wei = BigInt.fromString('1000000000000000000')
-  let depositSize = BigInt.fromI32(32)
-  let depositAmount = depositSize.times(wei)
-
   let appearedValidators = newBeaconValidators.minus(oldBeaconValidators)
-  let appearedValidatorsDeposits = appearedValidators.times(depositAmount)
+  let appearedValidatorsDeposits = appearedValidators.times(DEPOSIT_AMOUNT)
   let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
   let newTotalRewards = newBeaconBalance.minus(rewardBase)
 

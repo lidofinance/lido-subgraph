@@ -2,6 +2,11 @@ import { BigInt, Address, TypedMap } from '@graphprotocol/graph-ts'
 
 export const CALCULATION_UNIT = BigInt.fromI32(10000)
 
+export const WEI = BigInt.fromString('1000000000000000000')
+
+export const DEPOSIT_SIZE = BigInt.fromI32(32)
+export const DEPOSIT_AMOUNT = DEPOSIT_SIZE.times(WEI)
+
 const LIDO_ADDRESSES = new TypedMap<string, string>()
 LIDO_ADDRESSES.set('mainnet', '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84')
 LIDO_ADDRESSES.set('goerli', '0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F')
