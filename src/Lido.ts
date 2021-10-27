@@ -1,5 +1,5 @@
 import { BigInt, Address } from '@graphprotocol/graph-ts'
-import { store, dataSource } from '@graphprotocol/graph-ts'
+import { store } from '@graphprotocol/graph-ts'
 import {
   Stopped,
   Resumed,
@@ -30,7 +30,7 @@ import {
   Shares,
 } from '../generated/schema'
 
-import { ZERO } from './constants'
+import { ZERO, getAddress } from './constants'
 
 import { wcKeyCrops } from './wcKeyCrops'
 
@@ -99,13 +99,7 @@ export function handleTransfer(event: Transfer): void {
   // We'll save the entity later
 
   let isFeeDistributionToTreasury =
-    fromZeros &&
-    event.params.to ==
-      Address.fromString(
-        dataSource.network() == 'mainnet'
-          ? '0x3e40D73EB977Dc6a537aF587D48316feE66E9C8c'
-          : '0x4333218072D5d7008546737786663c38B4D561A4'
-      )
+    fromZeros && event.params.to == getAddress('Treasury')
 
   // graph-ts less or equal to
   let isDust = event.params.value.le(BigInt.fromI32(50000))
