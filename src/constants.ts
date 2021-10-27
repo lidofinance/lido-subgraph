@@ -1,5 +1,7 @@
 import { BigInt, Address, TypedMap } from '@graphprotocol/graph-ts'
 
+export const ZERO = BigInt.fromI32(0)
+
 export const CALCULATION_UNIT = BigInt.fromI32(10000)
 
 export const WEI = BigInt.fromString('1000000000000000000')

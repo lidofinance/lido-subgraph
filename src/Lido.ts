@@ -30,6 +30,8 @@ import {
   Shares,
 } from '../generated/schema'
 
+import { ZERO } from './constants'
+
 import { wcKeyCrops } from './wcKeyCrops'
 
 export function handleStopped(event: Stopped): void {
@@ -180,7 +182,7 @@ export function handleTransfer(event: Transfer): void {
       // Someone can and managed to produce events of 0 to 0 transfers
       if (!sharesFromEntity) {
         sharesFromEntity = new Shares(event.params.from.toHexString())
-        sharesFromEntity.shares = BigInt.fromI32(0)
+        sharesFromEntity.shares = ZERO
       }
 
       entity.sharesBeforeDecrease = sharesFromEntity.shares
@@ -200,7 +202,7 @@ export function handleTransfer(event: Transfer): void {
 
     if (!sharesToEntity) {
       sharesToEntity = new Shares(event.params.to.toHexString())
-      sharesToEntity.shares = BigInt.fromI32(0)
+      sharesToEntity.shares = ZERO
     }
 
     entity.sharesBeforeIncrease = sharesToEntity.shares
@@ -297,8 +299,8 @@ export function handleSubmit(event: Submitted): void {
 
   if (!totals) {
     totals = new Totals('')
-    totals.totalPooledEther = BigInt.fromI32(0)
-    totals.totalShares = BigInt.fromI32(0)
+    totals.totalPooledEther = ZERO
+    totals.totalShares = ZERO
   }
 
   entity.sender = event.params.sender
@@ -316,7 +318,7 @@ export function handleSubmit(event: Submitted): void {
 
   if (!sharesEntity) {
     sharesEntity = new Shares(event.params.sender.toHexString())
-    sharesEntity.shares = BigInt.fromI32(0)
+    sharesEntity.shares = ZERO
   }
 
   entity.sharesBefore = sharesEntity.shares

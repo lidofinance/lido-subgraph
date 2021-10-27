@@ -29,7 +29,7 @@ import {
   NodeOperatorsShares,
 } from '../generated/schema'
 
-import { CALCULATION_UNIT, DEPOSIT_AMOUNT } from './constants'
+import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ZERO } from './constants'
 
 import { loadLidoContract, loadNosContract } from './contracts'
 
@@ -77,11 +77,11 @@ export function handleCompleted(event: Completed): void {
 
   let oldBeaconValidators = previousCompleted
     ? previousCompleted.beaconValidators
-    : BigInt.fromI32(0)
+    : ZERO
 
   let oldBeaconBalance = previousCompleted
     ? previousCompleted.beaconBalance
-    : BigInt.fromI32(0)
+    : ZERO
 
   let newBeaconValidators = event.params.beaconValidators
   let newBeaconBalance = event.params.beaconBalance
@@ -95,7 +95,7 @@ export function handleCompleted(event: Completed): void {
   // Setting totalRewards to totalRewardsWithFees so we can subtract fees from it
   totalRewardsEntity.totalRewards = newTotalRewards
   // Setting initial 0 value so we can add fees to it
-  totalRewardsEntity.totalFee = BigInt.fromI32(0)
+  totalRewardsEntity.totalFee = ZERO
 
   // Will save later, still need to add shares data
 
@@ -159,7 +159,7 @@ export function handleCompleted(event: Completed): void {
   let opAddresses = distr.value0
   let opShares = distr.value1
 
-  let sharesToOperatorsActual = BigInt.fromI32(0)
+  let sharesToOperatorsActual = ZERO
 
   for (let i = 0; i < opAddresses.length; i++) {
     let addr = opAddresses[i]
