@@ -26,8 +26,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn install --immutable
-      - run: yarn test:hostedSync
+      - run: yarn test:sync
         env:
           GRAPH: https://api.thegraph.com/subgraphs/name/lidofinance/lido
+          GRAPH_MONITORING: https://api.thegraph.com/index-node/graphql
           RPC: ${{ secrets.RPC_MAINNET }}
           LIDO_ADDRESS: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'

@@ -2,7 +2,7 @@ import { subgraphFetch, gql } from '.'
 
 const transfersQuery = gql`
   {
-    indexingStatusForCurrentVersion(subgraphName: "lido") {
+    indexingStatusForCurrentVersion(subgraphName: "lidofinance/lido") {
       chains {
         latestBlock {
           hash
