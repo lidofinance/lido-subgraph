@@ -86,10 +86,13 @@ export function handleCompleted(event: Completed): void {
   let newBeaconValidators = event.params.beaconValidators
   let newBeaconBalance = event.params.beaconBalance
 
+  // TODO: Can appearedValidators be negative? If eg active keys are deleted for some reason
   let appearedValidators = newBeaconValidators.minus(oldBeaconValidators)
   let appearedValidatorsDeposits = appearedValidators.times(DEPOSIT_AMOUNT)
   let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
   let newTotalRewards = newBeaconBalance.minus(rewardBase)
+
+  let positiveRewards = newTotalRewards.gt(ZERO)
 
   totalRewardsEntity.totalRewardsWithFees = newTotalRewards
   // Setting totalRewards to totalRewardsWithFees so we can subtract fees from it
@@ -109,18 +112,22 @@ export function handleCompleted(event: Completed): void {
 
   let feeBasis = BigInt.fromI32(contract.getFee()) // 1000
 
-  // Increasing totals
-  let totalPooledEtherAfter = totals.totalPooledEther.plus(newTotalRewards)
+  // Increasing or decreasing totals
+  let totalPooledEtherAfter = positiveRewards
+    ? totals.totalPooledEther.plus(newTotalRewards)
+    : totals.totalPooledEther.minus(newTotalRewards.abs())
 
   // Overall shares for all rewards cut
-  let shares2mint = newTotalRewards
-    .times(feeBasis)
-    .times(totals.totalShares)
-    .div(
-      totalPooledEtherAfter
-        .times(CALCULATION_UNIT)
-        .minus(feeBasis.times(newTotalRewards))
-    )
+  let shares2mint = positiveRewards
+    ? newTotalRewards
+        .times(feeBasis)
+        .times(totals.totalShares)
+        .div(
+          totalPooledEtherAfter
+            .times(CALCULATION_UNIT)
+            .minus(feeBasis.times(newTotalRewards))
+        )
+    : ZERO
 
   let totalSharesAfter = totals.totalShares.plus(shares2mint)
 
