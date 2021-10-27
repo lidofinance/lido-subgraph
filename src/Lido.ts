@@ -28,6 +28,7 @@ import {
   Totals,
   NodeOperatorsShares,
   Shares,
+  Holder,
 } from '../generated/schema'
 
 import { ZERO, getAddress } from './constants'
@@ -212,6 +213,17 @@ export function handleTransfer(event: Transfer): void {
   }
 
   entity.save()
+
+  // Saving recipient address as a unique stETH holder
+  if (event.params.value.gt(ZERO)) {
+    let holder = Holder.load(event.params.to.toHexString())
+
+    if (!holder) holder = new Holder(event.params.to.toHexString())
+
+    holder.address = event.params.to
+
+    holder.save()
+  }
 }
 
 export function handleApproval(event: Approval): void {

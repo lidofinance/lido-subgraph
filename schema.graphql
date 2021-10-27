@@ -146,6 +146,12 @@ type Shares @entity {
   shares: BigInt!
 }
 
+type Holder @entity {
+  id: ID!
+
+  address: Bytes!
+}
+
 """
 LidoOracle
 """
