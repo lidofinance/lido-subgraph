@@ -1,4 +1,4 @@
-import { BigInt, Address } from '@graphprotocol/graph-ts'
+import { Address } from '@graphprotocol/graph-ts'
 import { store } from '@graphprotocol/graph-ts'
 import {
   Stopped,
@@ -31,7 +31,7 @@ import {
   Holder,
 } from '../generated/schema'
 
-import { ZERO, getAddress } from './constants'
+import { ZERO, getAddress, DUST_BOUNDARY } from './constants'
 
 import { wcKeyCrops } from './wcKeyCrops'
 
@@ -103,7 +103,7 @@ export function handleTransfer(event: Transfer): void {
     fromZeros && event.params.to == getAddress('Treasury')
 
   // graph-ts less or equal to
-  let isDust = event.params.value.le(BigInt.fromI32(50000))
+  let isDust = event.params.value.lt(DUST_BOUNDARY)
 
   if (totalRewardsEntity && isFeeDistributionToTreasury && !isDust) {
     // Handling the Insurance Fee transfer event to treasury
