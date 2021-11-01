@@ -681,10 +681,10 @@
     which "2.0.2"
     yaml "^1.5.1"
 
-"@graphprotocol/graph-ts@0.23.0":
-  version "0.23.0"
-  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-ts/-/graph-ts-0.23.0.tgz#f2f9cca465205f7d0737db36d6ad29bee6f605e9"
-  integrity sha512-gTGF1/xb4I0aje7oFLs7GQmPTBwNNeHb3pdtxpUEx9NTTWmr569nM7YMQDUwjfqC5ddS+3a1+K/41HpirQkiGQ==
+"@graphprotocol/graph-ts@0.23.1":
+  version "0.23.1"
+  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-ts/-/graph-ts-0.23.1.tgz#76e595d26ec5672f3778b1d3830e4640a57aec1b"
+  integrity sha512-pipofvN1LlwLOXrS7IWy8hSBFZzVyVHdLXDpQskl9nKqdbb3chelj4JoVEzCl7klvomDpP84ngLpW17fBh5vww==
   dependencies:
     assemblyscript "0.19.10"
 
