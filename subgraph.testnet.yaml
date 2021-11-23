@@ -176,9 +176,9 @@ dataSources:
     name: Easytrack
     network: goerli
     source:
-      address: '0xe413799Ee2978489a6299031924b5DBD858f3a52'
+      address: '0xAf072C8D368E4DD4A9d4fF6A76693887d6ae92Af'
       abi: Easytrack
-      startBlock: 5353000
+      startBlock: 5574270
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.5
@@ -193,12 +193,6 @@ dataSources:
         - name: Easytrack
           file: ./abis/Easytrack.json
       eventHandlers:
-        - event: AdminChanged(address,address)
-          handler: handleAdminChanged
-        - event: BeaconUpgraded(indexed address)
-          handler: handleBeaconUpgraded
-        - event: Upgraded(indexed address)
-          handler: handleUpgraded
         - event: EVMScriptExecutorChanged(indexed address)
           handler: handleEVMScriptExecutorChanged
         - event: EVMScriptFactoryAdded(indexed address,bytes)

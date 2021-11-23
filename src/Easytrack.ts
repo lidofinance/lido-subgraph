@@ -1,9 +1,5 @@
-import { BigInt, Bytes } from '@graphprotocol/graph-ts'
+import { BigInt } from '@graphprotocol/graph-ts'
 import {
-  Easytrack,
-  AdminChanged,
-  BeaconUpgraded,
-  Upgraded,
   EVMScriptExecutorChanged,
   EVMScriptFactoryAdded,
   EVMScriptFactoryRemoved,
@@ -22,8 +18,6 @@ import {
   RoleRevoked,
 } from '../generated/Easytrack/Easytrack'
 
-const EASYTRACK_ADDRESS = '0xb8ADb098a1B729e5fBC09291977044DEF766146c'
-
 import {
   Motion,
   Role,
@@ -32,33 +26,16 @@ import {
   EasyTrackConfig,
 } from '../generated/schema'
 
-export function handleUpgraded(event: Upgraded): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)
-  if (!entity) entity = new EasyTrackConfig(EASYTRACK_ADDRESS)
-
-  entity.implementation = event.params.implementation
-  entity.admin = new Bytes(0)
-  entity.evmScriptExecutor = new Bytes(0)
-  entity.motionDuration = new BigInt(0)
-  entity.motionsCountLimit = new BigInt(0)
-  entity.objectionsThreshold = new BigInt(0)
-  entity.isPaused = false
-
-  entity.save()
-}
-
-export function handleAdminChanged(event: AdminChanged): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
-
-  entity.admin = event.params.newAdmin
-
-  entity.save()
+function loadConfig(): EasyTrackConfig {
+  let entity = EasyTrackConfig.load('0')
+  if (!entity) entity = new EasyTrackConfig('0')
+  return entity
 }
 
 export function handleEVMScriptExecutorChanged(
   event: EVMScriptExecutorChanged
 ): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
+  let entity = loadConfig()
 
   entity.evmScriptExecutor = event.params._evmScriptExecutor
 
@@ -68,7 +45,7 @@ export function handleEVMScriptExecutorChanged(
 export function handleMotionDurationChanged(
   event: MotionDurationChanged
 ): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
+  let entity = loadConfig()
 
   entity.motionDuration = event.params._motionDuration
 
@@ -78,7 +55,7 @@ export function handleMotionDurationChanged(
 export function handleMotionsCountLimitChanged(
   event: MotionsCountLimitChanged
 ): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
+  let entity = loadConfig()
 
   entity.motionsCountLimit = event.params._newMotionsCountLimit
 
@@ -88,7 +65,7 @@ export function handleMotionsCountLimitChanged(
 export function handleObjectionsThresholdChanged(
   event: ObjectionsThresholdChanged
 ): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
+  let entity = loadConfig()
 
   entity.objectionsThreshold = event.params._newThreshold
 
@@ -96,7 +73,7 @@ export function handleObjectionsThresholdChanged(
 }
 
 export function handlePaused(event: Paused): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
+  let entity = loadConfig()
 
   entity.isPaused = true
 
@@ -104,7 +81,7 @@ export function handlePaused(event: Paused): void {
 }
 
 export function handleUnpaused(event: Unpaused): void {
-  let entity = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
+  let entity = loadConfig()
 
   entity.isPaused = false
 
@@ -112,7 +89,6 @@ export function handleUnpaused(event: Unpaused): void {
 }
 
 export function handleRoleAdminChanged(event: RoleAdminChanged): void {}
-export function handleBeaconUpgraded(event: BeaconUpgraded): void {}
 
 export function handleEVMScriptFactoryAdded(
   event: EVMScriptFactoryAdded
@@ -139,7 +115,7 @@ export function handleEVMScriptFactoryRemoved(
 export function handleMotionCreated(event: MotionCreated): void {
   let entity = new Motion(event.params._motionId.toString())
 
-  let config = EasyTrackConfig.load(EASYTRACK_ADDRESS)!
+  let config = loadConfig()
 
   entity.snapshotBlock = event.block.number
   entity.startDate = event.block.timestamp
@@ -179,7 +155,7 @@ export function handleMotionObjected(event: MotionObjected): void {
 }
 
 export function handleMotionCanceled(event: MotionCanceled): void {
-  let entity = new Motion(event.params._motionId.toString())
+  let entity = Motion.load(event.params._motionId.toString())!
 
   entity.status = 'CANCELED'
   entity.canceled_at = event.block.timestamp
@@ -188,7 +164,7 @@ export function handleMotionCanceled(event: MotionCanceled): void {
 }
 
 export function handleMotionEnacted(event: MotionEnacted): void {
-  let entity = new Motion(event.params._motionId.toString())
+  let entity = Motion.load(event.params._motionId.toString())!
 
   entity.status = 'ENACTED'
   entity.enacted_at = event.block.timestamp
@@ -197,7 +173,7 @@ export function handleMotionEnacted(event: MotionEnacted): void {
 }
 
 export function handleMotionRejected(event: MotionRejected): void {
-  let entity = new Motion(event.params._motionId.toString())
+  let entity = Motion.load(event.params._motionId.toString())!
 
   entity.status = 'REJECTED'
   entity.rejected_at = event.block.timestamp

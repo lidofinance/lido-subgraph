@@ -351,8 +351,6 @@ type Motion @entity {
 type EasyTrackConfig @entity {
   id: ID!
 
-  implementation: Bytes!
-  admin: Bytes!
   evmScriptExecutor: Bytes!
   motionDuration: BigInt!
   motionsCountLimit: BigInt!
