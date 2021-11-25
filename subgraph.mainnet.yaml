@@ -172,3 +172,57 @@ dataSources:
         - event: ChangeMinQuorum(uint64)
           handler: handleChangeMinQuorum
       file: ./src/Voting.ts
+  - kind: ethereum/contract
+    name: Easytrack
+    network: mainnet
+    source:
+      address: '0xF0211b7660680B49De1A7E9f25C65660F0a13Fea'
+      abi: Easytrack
+      startBlock: 13676720
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Motion
+        - EasyTrackConfig
+        - Role
+        - EVMScriptFactory
+        - Objection
+      abis:
+        - name: Easytrack
+          file: ./abis/Easytrack.json
+      eventHandlers:
+        - event: EVMScriptExecutorChanged(indexed address)
+          handler: handleEVMScriptExecutorChanged
+        - event: EVMScriptFactoryAdded(indexed address,bytes)
+          handler: handleEVMScriptFactoryAdded
+        - event: EVMScriptFactoryRemoved(indexed address)
+          handler: handleEVMScriptFactoryRemoved
+        - event: MotionCanceled(indexed uint256)
+          handler: handleMotionCanceled
+        - event: MotionCreated(indexed uint256,address,indexed address,bytes,bytes)
+          handler: handleMotionCreated
+        - event: MotionDurationChanged(uint256)
+          handler: handleMotionDurationChanged
+        - event: MotionEnacted(indexed uint256)
+          handler: handleMotionEnacted
+        - event: MotionObjected(indexed uint256,indexed address,uint256,uint256,uint256)
+          handler: handleMotionObjected
+        - event: MotionRejected(indexed uint256)
+          handler: handleMotionRejected
+        - event: MotionsCountLimitChanged(uint256)
+          handler: handleMotionsCountLimitChanged
+        - event: ObjectionsThresholdChanged(uint256)
+          handler: handleObjectionsThresholdChanged
+        - event: Paused(address)
+          handler: handlePaused
+        - event: Unpaused(address)
+          handler: handleUnpaused
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+      file: ./src/Easytrack.ts
