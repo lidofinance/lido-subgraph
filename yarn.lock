@@ -652,10 +652,10 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@graphprotocol/graph-cli@0.24.1":
-  version "0.24.1"
-  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-cli/-/graph-cli-0.24.1.tgz#711641669321afffee10ff01231876b4be87ef51"
-  integrity sha512-SwAvaB3A+UhiuX7Tosc5XCr24rujCFrO8tW+DAg0W6Fjbyef2Yl1qt8UxPlhobU/oQW0U4k1CY7pjIf9OLDpdQ==
+"@graphprotocol/graph-cli@0.25.0":
+  version "0.25.0"
+  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-cli/-/graph-cli-0.25.0.tgz#f2a35158cc399c9e42f20571d7ce1643ccd842fa"
+  integrity sha512-94InY8tPkwyUeDh5LTRURJK5NhZDE5e6Lg5q8u1jCuZ8q2ZTCf64W8wa6u3/o27jbyavDQzcsTQgJVeyL2JXfg==
   dependencies:
     assemblyscript "0.19.10"
     binary-install-raw "0.0.13"
