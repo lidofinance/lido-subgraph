@@ -17,6 +17,8 @@ export function handleSigningKeyAdded(event: SigningKeyAdded): void {
   entity.pubkey = event.params.pubkey
   entity.removed = false
 
+  entity.operator = event.params.operatorId.toString()
+
   entity.save()
 }
 

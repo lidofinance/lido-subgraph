@@ -279,6 +279,8 @@ type NodeOperatorSigningKey @entity {
   operatorId: BigInt!
   pubkey: Bytes!
   removed: Boolean!
+
+  operator: NodeOperator!
 }
 
 type NodeOperator @entity {
