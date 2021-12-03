@@ -385,3 +385,107 @@ type Objection @entity {
   block: BigInt!
   blockTime: BigInt!
 }
+
+"""
+DepositSecurityModule
+"""
+type DepositSecurityModuleSettings @entity {
+  id: ID!
+
+  paused: Boolean
+  guardianQuorum: BigInt
+  maxDeposits: BigInt
+  minDepositBlockDistance: BigInt
+  nodeOperatorsRegistry: Bytes
+  owner: Bytes
+  pauseIntentValidityPeriodBlocks: BigInt
+}
+
+type DepositsPause @entity {
+  id: ID!
+
+  guardian: Guardian!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+}
+
+type DepositsUnpause @entity {
+  id: ID!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+}
+
+type Guardian @entity {
+  id: ID!
+
+  address: Bytes!
+  removed: Boolean!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+}
+
+type GuardianQuorumChange @entity {
+  id: ID!
+
+  guardianQuorum: BigInt!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+}
+
+type MaxDepositsChange @entity {
+  id: ID!
+
+  maxDeposits: BigInt!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+}
+
+type MinDepositBlockDistanceChange @entity {
+  id: ID!
+
+  minDepositBlockDistance: BigInt!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+}
+
+type NodeOperatorsRegistryChange @entity {
+  id: ID!
+
+  nodeOperatorsRegistry: Bytes!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnerChange @entity {
+  id: ID!
+
+  owner: Bytes!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+}
+
+type PauseIntentValidityPeriodBlocksChange @entity {
+  id: ID!
+
+  pauseIntentValidityPeriodBlocks: BigInt!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+}

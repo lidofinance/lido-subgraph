@@ -226,3 +226,50 @@ dataSources:
         - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
           handler: handleRoleRevoked
       file: ./src/Easytrack.ts
+  - kind: ethereum/contract
+    name: DepositSecurityModule
+    network: goerli
+    source:
+      address: '0xEd23AD3EA5Fb9d10e7371Caef1b141AD1C23A80c'
+      abi: DepositSecurityModule
+      startBlock: 5692116
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - DepositSecurityModuleSettings
+        - DepositsPause
+        - DepositsUnpause
+        - Guardian
+        - GuardianQuorumChange
+        - MaxDepositsChange
+        - MinDepositBlockDistanceChange
+        - NodeOperatorsRegistryChange
+        - OwnerChange
+        - PauseIntentValidityPeriodBlocksChange
+      abis:
+        - name: DepositSecurityModule
+          file: ./abis/DepositSecurityModule.json
+      eventHandlers:
+        - event: DepositsPaused(address)
+          handler: handleDepositsPaused
+        - event: DepositsUnpaused()
+          handler: handleDepositsUnpaused
+        - event: GuardianAdded(address)
+          handler: handleGuardianAdded
+        - event: GuardianQuorumChanged(uint256)
+          handler: handleGuardianQuorumChanged
+        - event: GuardianRemoved(address)
+          handler: handleGuardianRemoved
+        - event: MaxDepositsChanged(uint256)
+          handler: handleMaxDepositsChanged
+        - event: MinDepositBlockDistanceChanged(uint256)
+          handler: handleMinDepositBlockDistanceChanged
+        - event: NodeOperatorsRegistryChanged(address)
+          handler: handleNodeOperatorsRegistryChanged
+        - event: OwnerChanged(address)
+          handler: handleOwnerChanged
+        - event: PauseIntentValidityPeriodBlocksChanged(uint256)
+          handler: handlePauseIntentValidityPeriodBlocksChanged
+      file: ./src/DepositSecurityModule.ts
