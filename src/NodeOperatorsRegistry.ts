@@ -38,7 +38,7 @@ export function handleNodeOperatorAdded(event: NodeOperatorAdded): void {
   entity.name = event.params.name
   entity.rewardAddress = event.params.rewardAddress
   entity.stakingLimit = event.params.stakingLimit
-  entity.active = false
+  entity.active = true
 
   entity.save()
 }
