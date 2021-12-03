@@ -24,13 +24,13 @@
     "@graphprotocol/graph-ts": "0.24.1"
   },
   "devDependencies": {
-    "@jest/types": "27.2.5",
+    "@jest/types": "27.4.2",
     "dotenv": "10.0.0",
     "env-cmd": "10.1.0",
     "ethers": "5.5.1",
     "graphql": "16.0.1",
     "graphql-request": "3.6.1",
-    "jest": "27.3.1",
+    "jest": "27.4.3",
     "jest-esm-transformer": "1.0.0"
   }
 }
