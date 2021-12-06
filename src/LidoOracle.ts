@@ -255,12 +255,39 @@ export function handlePostTotalShares(event: PostTotalShares): void {
   entity.timeElapsed = event.params.timeElapsed
   entity.totalShares = event.params.totalShares
 
-  let aprBeforeFees = postTotalPooledEther
+  /**
+  
+  aprRaw -> aprBeforeFees -> apr
+  
+  aprRaw - APR straight from validator balances without adjustments
+  aprBeforeFees - APR compensated for time difference between oracle reports
+  apr - APR with fees subtracted and time-compensated
+  
+  **/
+
+  // APR without subtracting fees and without any compensations
+  let aprRaw = postTotalPooledEther
     .toBigDecimal()
     .div(preTotalPooledEther.toBigDecimal())
     .minus(BigInt.fromI32(1).toBigDecimal())
     .times(BigInt.fromI32(100).toBigDecimal())
     .times(BigInt.fromI32(365).toBigDecimal())
+
+  entity.aprRaw = aprRaw
+
+  // Time compensation logic
+
+  let timeElapsed = event.params.timeElapsed
+
+  let day = BigInt.fromI32(60 * 60 * 24).toBigDecimal()
+
+  let dayDifference = timeElapsed.toBigDecimal().div(day)
+
+  let aprBeforeFees = aprRaw.div(dayDifference)
+
+  entity.aprBeforeFees = aprBeforeFees
+
+  // Subtracting fees
 
   let feeBasis = BigInt.fromI32(contract.getFee()).toBigDecimal() // 1000
 
@@ -271,7 +298,6 @@ export function handlePostTotalShares(event: PostTotalShares): void {
       .div(BigInt.fromI32(100).toBigDecimal())
   )
 
-  entity.aprBeforeFees = aprBeforeFees
   entity.apr = apr
 
   entity.block = event.block.number

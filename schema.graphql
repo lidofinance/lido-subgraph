@@ -196,6 +196,7 @@ type TotalReward @entity {
   timeElapsed: BigInt
   totalShares: BigInt
 
+  aprRaw: BigDecimal
   aprBeforeFees: BigDecimal
   apr: BigDecimal
 
