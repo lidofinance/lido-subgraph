@@ -72,7 +72,7 @@ export function handleObjectionsThresholdChanged(
   entity.save()
 }
 
-export function handlePaused(event: Paused): void {
+export function handlePaused(_event: Paused): void {
   let entity = loadConfig()
 
   entity.isPaused = true
@@ -80,7 +80,7 @@ export function handlePaused(event: Paused): void {
   entity.save()
 }
 
-export function handleUnpaused(event: Unpaused): void {
+export function handleUnpaused(_event: Unpaused): void {
   let entity = loadConfig()
 
   entity.isPaused = false
@@ -88,7 +88,7 @@ export function handleUnpaused(event: Unpaused): void {
   entity.save()
 }
 
-export function handleRoleAdminChanged(event: RoleAdminChanged): void {}
+export function handleRoleAdminChanged(_event: RoleAdminChanged): void {}
 
 export function handleEVMScriptFactoryAdded(
   event: EVMScriptFactoryAdded
