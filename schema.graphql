@@ -342,7 +342,7 @@ type Motion @entity {
   snapshotBlock: BigInt!
   objectionsAmount: BigInt!
   objectionsAmountPct: BigInt!
-  objectionsThreshold: BigInt!
+  objectionsThreshold: BigInt
   evmScriptHash: Bytes!
   evmScriptCalldata: Bytes!
   status: String!
@@ -354,11 +354,11 @@ type Motion @entity {
 type EasyTrackConfig @entity {
   id: ID!
 
-  evmScriptExecutor: Bytes!
-  motionDuration: BigInt!
-  motionsCountLimit: BigInt!
-  objectionsThreshold: BigInt!
-  isPaused: Boolean!
+  evmScriptExecutor: Bytes
+  motionDuration: BigInt
+  motionsCountLimit: BigInt
+  objectionsThreshold: BigInt
+  isPaused: Boolean
 }
 
 type Role @entity {
