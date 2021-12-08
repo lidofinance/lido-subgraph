@@ -2,6 +2,7 @@ import { BigInt, Address, TypedMap } from '@graphprotocol/graph-ts'
 import { dataSource } from '@graphprotocol/graph-ts'
 
 export const ZERO = BigInt.fromI32(0)
+export const ONE = BigInt.fromI32(1)
 
 export const CALCULATION_UNIT = BigInt.fromI32(10000)
 
