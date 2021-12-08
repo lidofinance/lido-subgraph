@@ -71,6 +71,8 @@ export function handleGuardianAdded(event: GuardianAdded): void {
   entity.blockTime = event.block.timestamp
   entity.transactionHash = event.block.hash
 
+  entity.removed = false
+
   entity.save()
 }
 
