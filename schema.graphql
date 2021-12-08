@@ -140,6 +140,13 @@ type Totals @entity {
   totalShares: BigInt!
 }
 
+type Stats @entity {
+  id: ID!
+
+  uniqueHolders: BigInt
+  uniqueAnytimeHolders: BigInt
+}
+
 type Shares @entity {
   id: ID!
 

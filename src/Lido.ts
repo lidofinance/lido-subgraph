@@ -1,4 +1,4 @@
-import { Address } from '@graphprotocol/graph-ts'
+import { Address, BigInt } from '@graphprotocol/graph-ts'
 import { store } from '@graphprotocol/graph-ts'
 import {
   Stopped,
@@ -29,9 +29,10 @@ import {
   NodeOperatorsShares,
   Shares,
   Holder,
+  Stats,
 } from '../generated/schema'
 
-import { ZERO, getAddress, DUST_BOUNDARY } from './constants'
+import { ZERO, getAddress, DUST_BOUNDARY, ONE } from './constants'
 
 import { wcKeyCrops } from './wcKeyCrops'
 
@@ -218,11 +219,32 @@ export function handleTransfer(event: Transfer): void {
   if (event.params.value.gt(ZERO)) {
     let holder = Holder.load(event.params.to.toHexString())
 
-    if (!holder) holder = new Holder(event.params.to.toHexString())
+    let holderExists = !!holder
 
-    holder.address = event.params.to
+    if (!holder) {
+      holder = new Holder(event.params.to.toHexString())
+      holder.address = event.params.to
+      holder.save()
+    }
 
-    holder.save()
+    let stats = Stats.load('')
+
+    if (!stats) {
+      stats = new Stats('')
+      stats.uniqueHolders = ZERO
+      stats.uniqueAnytimeHolders = ZERO
+    }
+
+    if (!holderExists) {
+      stats.uniqueHolders = stats.uniqueHolders!.plus(ONE)
+      stats.uniqueAnytimeHolders = stats.uniqueAnytimeHolders!.plus(ONE)
+    } else if (!fromZeros && entity.balanceAfterDecrease!.equals(ZERO)) {
+      // Mints don't have balanceAfterDecrease
+
+      stats.uniqueHolders = stats.uniqueHolders!.minus(ONE)
+    }
+
+    stats.save()
   }
 }
 
