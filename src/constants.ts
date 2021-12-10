@@ -1,6 +1,9 @@
 import { BigInt, Address, TypedMap } from '@graphprotocol/graph-ts'
 import { dataSource } from '@graphprotocol/graph-ts'
 
+const network = dataSource.network()
+const isMainnet = network == 'mainnet'
+
 export const ZERO = BigInt.fromI32(0)
 export const ONE = BigInt.fromI32(1)
 
@@ -24,8 +27,6 @@ NOS_ADDRESSES.set('goerli', '0x9D4AF1Ee19Dad8857db3a45B0374c81c8A1C6320')
 const TREASURY_ADDRESSES = new TypedMap<string, string>()
 TREASURY_ADDRESSES.set('mainnet', '0x3e40D73EB977Dc6a537aF587D48316feE66E9C8c')
 TREASURY_ADDRESSES.set('goerli', '0x4333218072D5d7008546737786663c38B4D561A4')
-
-let network = dataSource.network()
 
 export const getAddress = (contract: string): Address =>
   Address.fromString(
