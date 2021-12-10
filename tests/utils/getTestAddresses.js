@@ -1,4 +1,4 @@
-import { subgraphFetch, gql } from '.'
+import { subgraphFetch, gql, getSubgraphNetwork } from '.'
 
 const transfersQuery = gql`
   query {
@@ -23,7 +23,7 @@ export const getTestAddresses = async (amount = 100, skipImportant = false) => {
 
   const shuffled = [...uniqueAddresses].sort(() => 0.5 - Math.random())
 
-  if (!skipImportant) {
+  if (!skipImportant && getSubgraphNetwork() === 'mainnet') {
     // Make sure some important addresses get into our list:
     // Lido Treasury (Aragon Agent)
     shuffled.unshift('0x3e40d73eb977dc6a537af587d48316fee66e9c8c')
