@@ -9,6 +9,10 @@ const provider = new ethers.providers.JsonRpcProvider(RPC)
 const lidoAbi = JSON.parse(fs.readFileSync('abis/Lido.json'))
 const lidoContract = new ethers.Contract(LIDO_ADDRESS, lidoAbi, provider)
 
+const oracleAddress = await lidoContract.getOracle()
+const oracleAbi = JSON.parse(fs.readFileSync('abis/LidoOracle.json'))
+const oracleContract = new ethers.Contract(oracleAddress, oracleAbi, provider)
+
 const maybeAddBlock = async (args) => {
   const blockIsOverriden = args.find((x) => x.blockTag)
 
@@ -30,6 +34,9 @@ export const ethCall = async (func, ...initialArgs) =>
 export const lidoFuncCall = async (func, ...initialArgs) =>
   await lidoContract[func](...(await maybeAddBlock(initialArgs)))
 
+export const oracleFuncCall = async (func, ...initialArgs) =>
+  await oracleContract[func](...(await maybeAddBlock(initialArgs)))
+
 export const getAddressShares = async (address, ...args) =>
   await lidoFuncCall('sharesOf', address, ...args)
 
@@ -38,3 +45,10 @@ export const getAddressBalance = async (address, ...args) =>
 
 export const getBalanceFromShares = async (address, ...args) =>
   await lidoFuncCall('getPooledEthByShares', address, ...args)
+
+export const getOracleCompletedEvents = async () => {
+  const filter = oracleContract.filters.Completed()
+  const logs = oracleContract.queryFilter(filter, 0, 'latest')
+
+  return logs
+}
