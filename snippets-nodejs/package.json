@@ -4,7 +4,7 @@
     "@types/big.js": "6.1.2",
     "big.js": "6.1.1",
     "date-fns": "2.27.0",
-    "graphql": "16.0.1",
+    "graphql": "16.1.0",
     "graphql-request": "3.7.0"
   }
 }
