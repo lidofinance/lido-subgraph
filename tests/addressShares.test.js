@@ -1,7 +1,7 @@
 import { getTestAddresses, getAddressShares, loadAddressShares } from './utils'
 
 const ADDRESSES_TO_TEST = 100
-const timePerAddress = 0.5 // seconds
+const timePerAddress = 3 // seconds
 const timeout = ADDRESSES_TO_TEST * timePerAddress * 1000 // in ms
 
 test(
