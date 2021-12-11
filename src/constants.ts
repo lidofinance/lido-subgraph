@@ -30,11 +30,11 @@ Oracle
 // Buffer of oracle runs if we underestimated the number
 export const ORACLE_RUNS_BUFFER = BigInt.fromI32(50)
 
-export const MAINNET_FIRST_ORACLE_REPORT = BigInt.fromI32(1610016625)
-export const TESTNET_FIRST_ORACLE_REPORT = BigInt.fromI32(1617282681)
+export const MAINNET_FIRST_ORACLE_REPORT = BigInt.fromI32(1610016625) // block 11607098
+export const TESTNET_FIRST_ORACLE_REPORT = BigInt.fromI32(1617282681) // block 4543056
 
 // Oracle report period is dependent on network (eg much often on testnet)
-export const MAINNET_ORACLE_PERIOD = BigInt.fromI32(86400) // A day
+export const MAINNET_ORACLE_PERIOD = BigInt.fromI32(86400) // 1 day
 export const TESTNET_ORACLE_PERIOD = BigInt.fromI32(3840) // 10 epochs by ~6.4 minutes
 
 // Anything below this we will be consider rounding leftovers
