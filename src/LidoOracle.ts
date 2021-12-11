@@ -29,7 +29,7 @@ import {
   NodeOperatorsShares,
 } from '../generated/schema'
 
-import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ZERO } from './constants'
+import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ZERO, ONE } from './constants'
 
 import { loadLidoContract, loadNosContract } from './contracts'
 
@@ -40,7 +40,9 @@ export function handleCompleted(event: Completed): void {
     'OracleCompleted',
     guessOracleRunsTotal(event.block.timestamp)
   )
-  let nextCompletedId = (parseInt(previousCompletedId) + 1).toString()
+  let nextCompletedId = BigInt.fromString(previousCompletedId)
+    .plus(ONE)
+    .toString()
 
   let previousCompleted = OracleCompleted.load(previousCompletedId)
   let newCompleted = new OracleCompleted(nextCompletedId)
