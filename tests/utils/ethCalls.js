@@ -46,9 +46,16 @@ export const getAddressBalance = async (address, ...args) =>
 export const getBalanceFromShares = async (address, ...args) =>
   await lidoFuncCall('getPooledEthByShares', address, ...args)
 
-export const getOracleCompletedEvents = async () => {
-  const filter = oracleContract.filters.Completed()
+export const getLidoEventNumber = async (eventName) => {
+  const filter = lidoContract.filters[eventName]()
+  const logs = lidoContract.queryFilter(filter, 0, 'latest')
+
+  return (await logs).length
+}
+
+export const getOracleEventNumber = async (eventName) => {
+  const filter = oracleContract.filters[eventName]()
   const logs = oracleContract.queryFilter(filter, 0, 'latest')
 
-  return logs
+  return (await logs).length
 }

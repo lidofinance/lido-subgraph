@@ -1,8 +1,8 @@
-import { getAllOraclesReports, getOracleCompletedEvents } from './utils'
+import { getOracleEventNumber, getEntityCount } from './utils'
 
 test('allOracleReportsExist', async () => {
-  const oracleReportsNumber = (await getOracleCompletedEvents()).length
-  const subgraphReportsNumber = (await getAllOraclesReports()).length
+  const ethNumber = await getOracleEventNumber('Completed')
+  const subgraphNumber = await getEntityCount('totalRewards')
 
-  expect(subgraphReportsNumber).toEqual(oracleReportsNumber)
+  expect(subgraphNumber).toEqual(ethNumber)
 })
