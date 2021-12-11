@@ -244,7 +244,11 @@ export function handleContractVersionSet(event: ContractVersionSet): void {
 export function handlePostTotalShares(event: PostTotalShares): void {
   let contract = loadLidoContract()
 
-  let entity = TotalReward.load(event.transaction.hash.toHex()) as TotalReward
+  let entity = TotalReward.load(event.transaction.hash.toHex())
+
+  if (!entity) {
+    return
+  }
 
   let preTotalPooledEther = event.params.preTotalPooledEther
   let postTotalPooledEther = event.params.postTotalPooledEther
