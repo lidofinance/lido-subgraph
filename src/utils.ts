@@ -1,53 +1,76 @@
 import { store, crypto } from '@graphprotocol/graph-ts'
 import { BigInt, Address, ByteArray } from '@graphprotocol/graph-ts'
 
-export function guessOracleRunsTotal(currentblockTime: BigInt): i32 {
+import {
+  ORACLE_RUNS_BUFFER,
+  getOraclePeriod,
+  getFirstOracleReport,
+  ZERO,
+  ONE,
+} from './constants'
+
+export function guessOracleRunsTotal(currentblockTime: BigInt): BigInt {
   // We know when first Oracle report happened
-  let oracleFirstReportBlockTime = 1610016625
-  // Convert it to full days
-  let oracleFirstdDaySinceEpoch = <i32>(
-    Math.floor(oracleFirstReportBlockTime / 60 / 60 / 24)
-  )
-  // Convert input argument to full days
-  let fullDaysSinceEpoch = <i32>(
-    Math.floor(currentblockTime.toI32() / 60 / 60 / 24)
+  // We can find out for how long Oracle report have been happening
+  // Knowing how often they happen, we can estimate how many reports there have been
+
+  let currentFullDaysSinceEpoch = currentblockTime
+  let oracleFirstDaySinceEpoch = getFirstOracleReport()
+
+  let runningTime = currentFullDaysSinceEpoch.minus(oracleFirstDaySinceEpoch)
+
+  // TODO: Can we improve this?
+  // Writing this would round the number to zero:
+  // let probableId = runningTime.div(getOraclePeriod())
+  // For it's best to overestimate than underestimate:
+  let probableId = BigInt.fromI64(
+    <i64>Math.ceil(<f64>runningTime.toI64() / <f64>getOraclePeriod().toI64())
   )
 
-  let probableId = fullDaysSinceEpoch - oracleFirstdDaySinceEpoch
-
-  // If there were any transfers before first oracle report, then number would be negative
-  if (probableId < 0) {
-    return 0
+  // If estimation is requested before first report, number would be negative
+  if (probableId.le(ZERO)) {
+    return ZERO
   }
 
-  // Our estimation is not 100% - needs a buffer
-  return probableId + 10
+  // Our estimation is not 100% accurate - it needs a safety buffer
+  // We will try to load this estimate and if it fails try n-1 each time until we load an entity successfully or reach zero
+  return probableId.plus(ORACLE_RUNS_BUFFER)
 }
 
-export function nextIncrementalId(entityName: string, i: i32): string {
+export function lastIncrementalId(entityName: string, i: BigInt): string {
+  // Wrong id, doesn't exist yet. Make sure it doesn't load.
+  if (i.equals(ZERO)) {
+    // 0 id doesn't exist (id start from 1), but
+    // But allows us to still do newId = lastIncrementalId() + 1
+    return ZERO.toString()
+  }
+
   // Try to load entity with this id
   let entity = store.get(entityName, i.toString())
 
   if (entity) {
-    let nextItem = i + 1
-    return nextItem.toString()
-  } else if (i == 0) {
-    return '0'
-  } else {
-    return nextIncrementalId(entityName, i - 1)
-  }
-}
-
-export function lastIncrementalId(entityName: string, i: i32): string {
-  // Try to load entity with this id
-  let entity = store.get(entityName, i.toString())
-
-  if (entity) {
+    // It exists, return id
     return i.toString()
-  } else if (i == 0) {
-    return ''
   } else {
-    return lastIncrementalId(entityName, i - 1)
+    // It doesn't exist, trying id - 1
+    return lastIncrementalId(entityName, i.minus(ONE))
+  }
+}
+
+export function nextIncrementalId(entityName: string, i: BigInt): string {
+  if (i.equals(ZERO)) {
+    // No entities, start from 1
+    return ONE.toString()
+  }
+
+  // Try to load entity with this id
+  let entity = store.get(entityName, i.toString())
+
+  if (entity) {
+    let nextItem = i.plus(ONE)
+    return nextItem.toString()
+  } else {
+    return nextIncrementalId(entityName, i.minus(ONE))
   }
 }
 
