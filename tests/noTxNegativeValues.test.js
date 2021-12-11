@@ -14,5 +14,5 @@ const query = gql`
 test('there are no transactions going to minus', async () => {
   const lidoTransfers = (await subgraphFetch(query)).lidoTransfers
 
-  expect(lidoTransfers).toEqual([])
+  expect(lidoTransfers.length).toEqual(0)
 })
