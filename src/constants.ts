@@ -4,17 +4,36 @@ import { dataSource } from '@graphprotocol/graph-ts'
 const network = dataSource.network()
 const isMainnet = network == 'mainnet'
 
+/**
+Units
+**/
+
 export const ZERO = BigInt.fromI32(0)
 export const ONE = BigInt.fromI32(1)
 
 export const CALCULATION_UNIT = BigInt.fromI32(10000)
 
-export const WEI = BigInt.fromString('1000000000000000000')
+// 1 ETH in WEI
+export const ETHER = BigInt.fromString('1000000000000000000')
+
+/**
+Deposits
+**/
 
 export const DEPOSIT_SIZE = BigInt.fromI32(32)
-export const DEPOSIT_AMOUNT = DEPOSIT_SIZE.times(WEI)
+export const DEPOSIT_AMOUNT = DEPOSIT_SIZE.times(ETHER) // in Wei
 
+/**
+Oracle
+**/
+
+
+// Anything below this we will be consider rounding leftovers
 export const DUST_BOUNDARY = BigInt.fromI32(50000)
+
+/**
+Addresses
+**/
 
 const LIDO_ADDRESSES = new TypedMap<string, string>()
 LIDO_ADDRESSES.set('mainnet', '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84')
