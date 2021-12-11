@@ -57,16 +57,6 @@ export function handleCompleted(event: Completed): void {
 
   newCompleted.save()
 
-  // Create an empty TotalReward entity that will be filled on Transfer events
-  // We know that in this transaction there will be Transfer events which we can identify by existence of TotalReward entity with transaction hash as its id
-  let totalRewardsEntity = new TotalReward(event.transaction.hash.toHex())
-
-  totalRewardsEntity.block = event.block.number
-  totalRewardsEntity.blockTime = event.block.timestamp
-  totalRewardsEntity.transactionIndex = event.transaction.index
-  totalRewardsEntity.logIndex = event.logIndex
-  totalRewardsEntity.transactionLogIndex = event.transactionLogIndex
-
   let oldBeaconValidators = previousCompleted
     ? previousCompleted.beaconValidators
     : ZERO
@@ -86,14 +76,6 @@ export function handleCompleted(event: Completed): void {
 
   let positiveRewards = newTotalRewards.gt(ZERO)
 
-  totalRewardsEntity.totalRewardsWithFees = newTotalRewards
-  // Setting totalRewards to totalRewardsWithFees so we can subtract fees from it
-  totalRewardsEntity.totalRewards = newTotalRewards
-  // Setting initial 0 value so we can add fees to it
-  totalRewardsEntity.totalFee = ZERO
-
-  // Will save later, still need to add shares data
-
   // Totals and rewards data logic
   // Totals are already non-null on first oracle report
   let totals = Totals.load('') as Totals
@@ -102,12 +84,35 @@ export function handleCompleted(event: Completed): void {
   let totalPooledEtherBefore = totals.totalPooledEther
   let totalSharesBefore = totals.totalShares
 
-  let feeBasis = BigInt.fromI32(contract.getFee()) // 1000
-
   // Increasing or decreasing totals
   let totalPooledEtherAfter = positiveRewards
     ? totals.totalPooledEther.plus(newTotalRewards)
     : totals.totalPooledEther.minus(newTotalRewards.abs())
+
+  // There are no rewards so we don't need a new TotalReward entity
+  if (!positiveRewards) {
+    totals.totalPooledEther = totalPooledEtherAfter
+    return
+  }
+
+  // Create an empty TotalReward entity that will be filled on Transfer events
+  // We know that in this transaction there will be Transfer events which we can identify by existence of TotalReward entity with transaction hash as its id
+  let totalRewardsEntity = new TotalReward(event.transaction.hash.toHex())
+
+  // Saving meta values
+  totalRewardsEntity.block = event.block.number
+  totalRewardsEntity.blockTime = event.block.timestamp
+  totalRewardsEntity.transactionIndex = event.transaction.index
+  totalRewardsEntity.logIndex = event.logIndex
+  totalRewardsEntity.transactionLogIndex = event.transactionLogIndex
+
+  totalRewardsEntity.totalRewardsWithFees = newTotalRewards
+  // Setting totalRewards to totalRewardsWithFees so we can subtract fees from it
+  totalRewardsEntity.totalRewards = newTotalRewards
+  // Setting initial 0 value so we can add fees to it
+  totalRewardsEntity.totalFee = ZERO
+
+  let feeBasis = BigInt.fromI32(contract.getFee()) // 1000
 
   // Overall shares for all rewards cut
   let shares2mint = positiveRewards
