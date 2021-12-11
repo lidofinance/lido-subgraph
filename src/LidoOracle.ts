@@ -33,25 +33,17 @@ import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ZERO } from './constants'
 
 import { loadLidoContract, loadNosContract } from './contracts'
 
-import {
-  nextIncrementalId,
-  lastIncrementalId,
-  guessOracleRunsTotal,
-} from './utils'
+import { lastIncrementalId, guessOracleRunsTotal } from './utils'
 
 export function handleCompleted(event: Completed): void {
-  let previousCompleted = OracleCompleted.load(
-    lastIncrementalId(
-      'OracleCompleted',
-      guessOracleRunsTotal(event.block.timestamp)
-    )
+  let previousCompletedId = lastIncrementalId(
+    'OracleCompleted',
+    guessOracleRunsTotal(event.block.timestamp)
   )
-  let newCompleted = new OracleCompleted(
-    nextIncrementalId(
-      'OracleCompleted',
-      guessOracleRunsTotal(event.block.timestamp)
-    )
-  )
+  let nextCompletedId = (parseInt(previousCompletedId) + 1).toString()
+
+  let previousCompleted = OracleCompleted.load(previousCompletedId)
+  let newCompleted = new OracleCompleted(nextCompletedId)
 
   let contract = loadLidoContract()
 
