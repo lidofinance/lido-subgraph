@@ -30,7 +30,7 @@
     "ethers": "5.5.2",
     "graphql": "16.1.0",
     "graphql-request": "3.7.0",
-    "jest": "27.4.3",
+    "jest": "27.4.4",
     "jest-esm-transformer": "1.0.0"
   }
 }
