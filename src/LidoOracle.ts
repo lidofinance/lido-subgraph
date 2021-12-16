@@ -76,8 +76,6 @@ export function handleCompleted(event: Completed): void {
   let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
   let newTotalRewards = newBeaconBalance.minus(rewardBase)
 
-  let positiveRewards = newTotalRewards.gt(ZERO)
-
   // Totals and rewards data logic
   // Totals are already non-null on first oracle report
   let totals = Totals.load('') as Totals
@@ -87,13 +85,14 @@ export function handleCompleted(event: Completed): void {
   let totalSharesBefore = totals.totalShares
 
   // Increasing or decreasing totals
-  let totalPooledEtherAfter = positiveRewards
-    ? totals.totalPooledEther.plus(newTotalRewards)
-    : totals.totalPooledEther.minus(newTotalRewards.abs())
+  // newTotalRewards can be negative, can decrease totalPooledEther here
+  let totalPooledEtherAfter = totals.totalPooledEther.plus(newTotalRewards)
 
-  // There are no rewards so we don't need a new TotalReward entity
-  if (!positiveRewards) {
+  // There are no rewards, exit early
+  if (newTotalRewards.le(ZERO)) {
     totals.totalPooledEther = totalPooledEtherAfter
+    totals.save()
+
     return
   }
 
@@ -117,16 +116,14 @@ export function handleCompleted(event: Completed): void {
   let feeBasis = BigInt.fromI32(contract.getFee()) // 1000
 
   // Overall shares for all rewards cut
-  let shares2mint = positiveRewards
-    ? newTotalRewards
-        .times(feeBasis)
-        .times(totals.totalShares)
-        .div(
-          totalPooledEtherAfter
-            .times(CALCULATION_UNIT)
-            .minus(feeBasis.times(newTotalRewards))
-        )
-    : ZERO
+  let shares2mint = newTotalRewards
+    .times(feeBasis)
+    .times(totals.totalShares)
+    .div(
+      totalPooledEtherAfter
+        .times(CALCULATION_UNIT)
+        .minus(feeBasis.times(newTotalRewards))
+    )
 
   let totalSharesAfter = totals.totalShares.plus(shares2mint)
 
