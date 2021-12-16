@@ -316,6 +316,10 @@ export function handleWithdrawalCredentialsSet(
 }
 
 export function handleSubmit(event: Submitted): void {
+  /**
+  Notice: Contract checks if someone submitted zero wei, no need for checking again.
+  **/
+
   let entity = new LidoSubmission(
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
@@ -335,10 +339,22 @@ export function handleSubmit(event: Submitted): void {
   entity.amount = event.params.amount
   entity.referral = event.params.referral
 
-  // At deployment ratio is 1:1
+  /**
+   Use 1:1 ether-shares ratio when:
+   1. Nothing was staked yet
+   2. Someone staked something, but shares got rounded to 0 eg staking 1 wei
+  **/
+
+  // Check if contract has no ether or shares yet
   let shares = !isFirstSubmission
     ? event.params.amount.times(totals.totalShares).div(totals.totalPooledEther)
     : event.params.amount
+
+  // Someone staked > 0 wei, but shares to mint got rounded to 0
+  if (shares.equals(ZERO)) {
+    shares = event.params.amount
+  }
+
   entity.shares = shares
 
   // Increasing address shares
