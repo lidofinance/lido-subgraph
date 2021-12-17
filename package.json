@@ -9,7 +9,7 @@
     "test": "yarn test:sync && yarn test:withoutSync",
     "test:withoutSync": "NODE_OPTIONS=--experimental-vm-modules jest --testPathIgnorePatterns isSynced.test.js",
     "test:sync": "NODE_OPTIONS=--experimental-vm-modules jest tests/isSynced.test.js",
-    "test:totals": "yarn test:sync && NODE_OPTIONS=--experimental-vm-modules jest tests/totalPooledEth.test.js tests/totalShares.test.js tests/allOracleReportsExist.test.js",
+    "test:totals": "yarn test:sync && NODE_OPTIONS=--experimental-vm-modules jest tests/totalPooledEth.test.js tests/totalShares.test.js",
     "test:dust": "NODE_OPTIONS=--experimental-vm-modules jest tests/noWrongDust.test.js",
     "deploy": "graph deploy --product hosted-service --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido subgraph.mainnet.yaml",
     "deploy-testnet": "graph deploy --product hosted-service --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido-testnet subgraph.testnet.yaml",
