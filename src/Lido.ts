@@ -11,6 +11,7 @@ import {
   Submitted,
   Unbuffered,
   Withdrawal,
+  BurnSharesCall,
 } from '../generated/Lido/Lido'
 import {
   LidoStopped,
@@ -418,4 +419,18 @@ export function handleWithdrawal(event: Withdrawal): void {
   entity.etherAmount = event.params.etherAmount
 
   entity.save()
+}
+
+export function handleBurnShares(call: BurnSharesCall): void {
+  let address = call.inputs._account
+  let sharesAmount = call.inputs._sharesAmount
+  let newTotalShares = call.outputs.newTotalShares
+
+  let shares = Shares.load(address.toHexString())!
+  shares.shares = shares.shares.minus(sharesAmount)
+  shares.save()
+
+  let totals = Totals.load('')!
+  totals.totalShares = newTotalShares
+  totals.save()
 }

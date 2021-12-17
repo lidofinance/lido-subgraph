@@ -48,6 +48,9 @@ dataSources:
           handler: handleUnbuffered
         - event: Withdrawal(indexed address,uint256,uint256,indexed bytes32,uint256)
           handler: handleWithdrawal
+      callHandlers:
+        - function: burnShares(address,uint256)
+          handler: handleBurnShares
       file: ./src/Lido.ts
   - kind: ethereum/contract
     name: LidoOracle
