@@ -26,7 +26,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn install --immutable
-      - run: yarn test:sync
+      - run: yarn test:syncLoose
         env:
           SUBGRAPH_NAME: lidofinance/lido
           GRAPH: https://api.thegraph.com/subgraphs/name/lidofinance/lido
