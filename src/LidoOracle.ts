@@ -88,12 +88,14 @@ export function handleCompleted(event: Completed): void {
    BEACON_VALIDATORS_POSITION was decreased
    
    This would increase totalPooledEther until an oracle report is made.
+   Here we can adjust back totalPooledEther by checking if validator number is going down.
   **/
 
   // Can become negative and decrease reward base
   let appearedValidatorsDeposits = appearedValidators.times(DEPOSIT_AMOUNT)
 
-  let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
+  // appearedValidatorsDeposits can be negative, account for that
+  let rewardBase = appearedValidatorsDeposits.abs().plus(oldBeaconBalance)
 
   // Totals are already non-null on first oracle report
   let totals = Totals.load('') as Totals
@@ -102,8 +104,7 @@ export function handleCompleted(event: Completed): void {
   let totalPooledEtherBefore = totals.totalPooledEther
   let totalSharesBefore = totals.totalShares
 
-  // Reward base can be negative, account for that
-  let newTotalRewards = newBeaconBalance.minus(rewardBase.abs())
+  let newTotalRewards = newBeaconBalance.minus(rewardBase)
 
   // Increasing or decreasing totals
   // newTotalRewards can be negative, can decrease totalPooledEther here
