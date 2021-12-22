@@ -1,9 +1,9 @@
 import { jest } from '@jest/globals'
 import { ethCall, getLastIndexedBlock } from './utils'
 
-jest.setTimeout(10000)
+jest.setTimeout(20000)
 
-jest.retryTimes(3)
+jest.retryTimes(20)
 
 test('isSynced', async () => {
   const currentBlock = parseInt((await ethCall('getBlock', 'latest')).number)
