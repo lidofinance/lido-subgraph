@@ -70,13 +70,31 @@ export function handleCompleted(event: Completed): void {
   let newBeaconValidators = event.params.beaconValidators
   let newBeaconBalance = event.params.beaconBalance
 
-  // TODO: Can appearedValidators be negative? If eg active keys are deleted for some reason
   let appearedValidators = newBeaconValidators.minus(oldBeaconValidators)
-  let appearedValidatorsDeposits = appearedValidators.times(DEPOSIT_AMOUNT)
-  let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
-  let newTotalRewards = newBeaconBalance.minus(rewardBase)
 
-  // Totals and rewards data logic
+  /**
+   Appeared validators can be negative if active keys are deleted, however at the moment this would require a contract upgrade.
+   
+   totalPooledEther = bufferedBalance (in the contract) + beaconBalance (validator balances) + transientBalance (sent to validators, but not yet there)
+   
+   transientBalance is tricky, it's (depositedValidators - beaconValidators) * 32eth
+   
+   DEPOSITED_VALIDATORS_POSITION is incremented on ETH deposit to deposit contract
+   BEACON_VALIDATORS_POSITION is incremented on oracle reports
+   
+   As we saw on testnet, manual active key removal will adjust totalPooledEther straight away as there will be a difference between validators deposited and beacon validators.
+   
+   DEPOSITED_VALIDATORS_POSITION was left intact
+   BEACON_VALIDATORS_POSITION was decreased
+   
+   This would increase totalPooledEther until an oracle report is made.
+  **/
+
+  // Can become negative and decrease reward base
+  let appearedValidatorsDeposits = appearedValidators.times(DEPOSIT_AMOUNT)
+
+  let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
+
   // Totals are already non-null on first oracle report
   let totals = Totals.load('') as Totals
 
@@ -84,9 +102,19 @@ export function handleCompleted(event: Completed): void {
   let totalPooledEtherBefore = totals.totalPooledEther
   let totalSharesBefore = totals.totalShares
 
+  // Reward base can be negative, account for that
+  let newTotalRewards = newBeaconBalance.minus(rewardBase.abs())
+
   // Increasing or decreasing totals
   // newTotalRewards can be negative, can decrease totalPooledEther here
   let totalPooledEtherAfter = totals.totalPooledEther.plus(newTotalRewards)
+
+  // Special non-contract logic override to handle validator removal
+  if (newBeaconValidators.lt(oldBeaconValidators)) {
+    totalPooledEtherAfter = totalPooledEtherBefore.minus(
+      oldBeaconBalance.minus(newBeaconBalance)
+    )
+  }
 
   // There are no rewards, exit early
   if (newTotalRewards.le(ZERO)) {
