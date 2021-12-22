@@ -9,7 +9,7 @@ from gql.transport.requests import RequestsHTTPTransport
 subgraph_url = "https://api.thegraph.com/subgraphs/name/lidofinance/lido"
 
 lido_address = "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"
-lido_abi = json.load(open("../abis/Lido.json"))["abi"]
+lido_abi = json.load(open("../abis/Lido.json"))
 
 w3 = Web3(Web3.HTTPProvider("RPC_PROVIDER_HERE"))
 lido_contract = w3.eth.contract(address=lido_address, abi=lido_abi)
