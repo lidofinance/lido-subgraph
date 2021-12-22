@@ -51,6 +51,8 @@ dataSources:
       callHandlers:
         - function: burnShares(address,uint256)
           handler: handleBurnShares
+        - function: setValidatorsNumber(uint256)
+          handler: handleSetValidatorsNumber
       file: ./src/Lido.ts
   - kind: ethereum/contract
     name: LidoOracle

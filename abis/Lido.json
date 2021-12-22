@@ -1,6 +1,20 @@
 [
   {
     "constant": false,
+    "inputs": [
+      {
+        "name": "_validators",
+        "type": "uint256"
+      }
+    ],
+    "name": "setValidatorsNumber",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
     "inputs": [],
     "name": "resume",
     "outputs": [],

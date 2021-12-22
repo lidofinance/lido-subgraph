@@ -12,6 +12,7 @@ import {
   Unbuffered,
   Withdrawal,
   BurnSharesCall,
+  SetValidatorsNumberCall,
 } from '../generated/Lido/Lido'
 import {
   LidoStopped,
@@ -32,6 +33,8 @@ import {
   Holder,
   Stats,
 } from '../generated/schema'
+
+import { loadLidoContract } from './contracts'
 
 import { ZERO, getAddress, DUST_BOUNDARY, ONE } from './constants'
 
@@ -432,5 +435,16 @@ export function handleBurnShares(call: BurnSharesCall): void {
 
   let totals = Totals.load('')!
   totals.totalShares = newTotalShares
+  totals.save()
+}
+
+export function handleSetValidatorsNumber(
+  _call: SetValidatorsNumberCall
+): void {
+  let contract = loadLidoContract()
+  let realPooledEther = contract.getTotalPooledEther()
+
+  let totals = Totals.load('')!
+  totals.totalPooledEther = realPooledEther
   totals.save()
 }
