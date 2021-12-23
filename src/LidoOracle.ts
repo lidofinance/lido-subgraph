@@ -286,10 +286,11 @@ export function handlePostTotalShares(event: PostTotalShares): void {
 
   let preTotalPooledEther = event.params.preTotalPooledEther
   let postTotalPooledEther = event.params.postTotalPooledEther
+  let timeElapsed = event.params.timeElapsed
 
   entity.preTotalPooledEther = preTotalPooledEther
   entity.postTotalPooledEther = postTotalPooledEther
-  entity.timeElapsed = event.params.timeElapsed
+  entity.timeElapsed = timeElapsed
   entity.totalShares = event.params.totalShares
 
   /**
@@ -298,11 +299,12 @@ export function handlePostTotalShares(event: PostTotalShares): void {
   
   aprRaw - APR straight from validator balances without adjustments
   aprBeforeFees - APR compensated for time difference between oracle reports
-  apr - APR with fees subtracted and time-compensated
+  apr - Time-compensated APR with fees subtracted
   
   **/
 
   // APR without subtracting fees and without any compensations
+
   let aprRaw = postTotalPooledEther
     .toBigDecimal()
     .div(preTotalPooledEther.toBigDecimal())
@@ -312,15 +314,17 @@ export function handlePostTotalShares(event: PostTotalShares): void {
 
   entity.aprRaw = aprRaw
 
-  // Time compensation logic
+  // Time-compensated APR
+  // (postTotalPooledEther - preTotalPooledEther) * secondsInYear / (preTotalPooledEther * timeElapsed)
 
-  let timeElapsed = event.params.timeElapsed
+  let secondsInYear = BigInt.fromI32(60 * 60 * 24 * 365)
 
-  let day = BigInt.fromI32(60 * 60 * 24).toBigDecimal()
-
-  let dayDifference = timeElapsed.toBigDecimal().div(day)
-
-  let aprBeforeFees = aprRaw.div(dayDifference)
+  let aprBeforeFees = postTotalPooledEther
+    .minus(preTotalPooledEther)
+    .times(secondsInYear)
+    .toBigDecimal()
+    .div(preTotalPooledEther.times(timeElapsed).toBigDecimal())
+    .times(BigInt.fromI32(100).toBigDecimal())
 
   entity.aprBeforeFees = aprBeforeFees
 
