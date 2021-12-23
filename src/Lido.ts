@@ -128,7 +128,7 @@ export function handleTransfer(event: Transfer): void {
   } else if (totalRewardsEntity && isFeeDistributionToTreasury && isDust) {
     // Handling dust transfer event
 
-    entity.shares = totalRewardsEntity.sharesToTreasury
+    entity.shares = totalRewardsEntity.dustSharesToTreasury
 
     totalRewardsEntity.dust = event.params.value
 

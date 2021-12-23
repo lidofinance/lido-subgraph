@@ -188,10 +188,11 @@ type TotalReward @entity {
 
   shares2mint: BigInt!
 
+  sharesToTreasury: BigInt!
   sharesToInsuranceFund: BigInt!
   sharesToOperators: BigInt!
-  sharesToTreasury: BigInt!
   nodeOperatorsShares: [NodeOperatorsShares!] @derivedFrom(field: "totalReward")
+  dustSharesToTreasury: BigInt!
 
   totalPooledEtherBefore: BigInt!
   totalPooledEtherAfter: BigInt!

@@ -142,6 +142,7 @@ export function handleCompleted(event: Completed): void {
   // Setting initial 0 value so we can add fees to it
   totalRewardsEntity.totalFee = ZERO
 
+  // Total fee of the protocol eg 1000 / 100 = 10% fee
   let feeBasis = BigInt.fromI32(contract.getFee()) // 1000
 
   // Overall shares for all rewards cut
@@ -162,8 +163,14 @@ export function handleCompleted(event: Completed): void {
 
   // Further shares calculations
   let feeDistribution = contract.getFeeDistribution()
+  // There are currently 3 possible fees
+  let treasuryFeeBasisPoints = BigInt.fromI32(feeDistribution.value0) // 0
   let insuranceFeeBasisPoints = BigInt.fromI32(feeDistribution.value1) // 5000
   let operatorsFeeBasisPoints = BigInt.fromI32(feeDistribution.value2) // 5000
+
+  let sharesToTreasury = shares2mint
+    .times(treasuryFeeBasisPoints)
+    .div(CALCULATION_UNIT)
 
   let sharesToInsuranceFund = shares2mint
     .times(insuranceFeeBasisPoints)
@@ -175,6 +182,7 @@ export function handleCompleted(event: Completed): void {
 
   totalRewardsEntity.shares2mint = shares2mint
 
+  totalRewardsEntity.sharesToTreasury = sharesToTreasury
   totalRewardsEntity.sharesToInsuranceFund = sharesToInsuranceFund
   totalRewardsEntity.sharesToOperators = sharesToOperators
 
@@ -214,11 +222,11 @@ export function handleCompleted(event: Completed): void {
   // Handling dust (rounding leftovers)
   // sharesToInsuranceFund are exact
   // sharesToOperators are with leftovers which we need to account for
-  let sharesToTreasury = shares2mint
+  let dustSharesToTreasury = shares2mint
     .minus(sharesToInsuranceFund)
     .minus(sharesToOperatorsActual)
 
-  totalRewardsEntity.sharesToTreasury = sharesToTreasury
+  totalRewardsEntity.dustSharesToTreasury = dustSharesToTreasury
 
   totalRewardsEntity.save()
 }
