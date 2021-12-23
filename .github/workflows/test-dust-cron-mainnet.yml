@@ -1,14 +1,14 @@
-name: Test Totals
+name: Test Dust Mainnet
 
 on:
   schedule:
-    - cron: '0 5 * * *'
+    - cron: '0 12 * * *'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Testing totals
+    name: Testing for wrong dust on Mainnet
     steps:
       - uses: actions/checkout@v2
       - name: Setup Node
@@ -26,10 +26,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn install --immutable
-      - run: yarn test:totals
+      - run: yarn test:dust
         env:
-          SUBGRAPH_NAME: lidofinance/lido
           GRAPH: https://api.thegraph.com/subgraphs/name/lidofinance/lido
-          GRAPH_MONITORING: https://api.thegraph.com/index-node/graphql
           RPC: ${{ secrets.RPC_MAINNET }}
           LIDO_ADDRESS: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'

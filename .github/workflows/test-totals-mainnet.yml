@@ -1,14 +1,14 @@
-name: Test Sync
+name: Test Totals Mainnet
 
 on:
   schedule:
-    - cron: '*/20 * * * *'
+    - cron: '0 5 * * *'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Testing sync status
+    name: Testing totals on Mainnet
     steps:
       - uses: actions/checkout@v2
       - name: Setup Node
@@ -26,7 +26,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn install --immutable
-      - run: yarn test:syncLoose
+      - run: yarn test:totals
         env:
           SUBGRAPH_NAME: lidofinance/lido
           GRAPH: https://api.thegraph.com/subgraphs/name/lidofinance/lido

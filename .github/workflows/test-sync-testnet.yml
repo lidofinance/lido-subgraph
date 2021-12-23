@@ -1,14 +1,14 @@
-name: Test Dust
+name: Test Sync Testnet
 
 on:
   schedule:
-    - cron: '0 12 * * *'
+    - cron: '*/20 * * * *'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Testing for wrong dust
+    name: Testing sync status on Testnet
     steps:
       - uses: actions/checkout@v2
       - name: Setup Node
@@ -26,8 +26,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn install --immutable
-      - run: yarn test:dust
+      - run: yarn test:syncLoose
         env:
-          GRAPH: https://api.thegraph.com/subgraphs/name/lidofinance/lido
-          RPC: ${{ secrets.RPC_MAINNET }}
-          LIDO_ADDRESS: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
+          SUBGRAPH_NAME: lidofinance/lido-testnet
+          GRAPH: https://api.thegraph.com/subgraphs/name/lidofinance/lido-testnet
+          GRAPH_MONITORING: https://api.thegraph.com/index-node/graphql
+          RPC: ${{ secrets.RPC_TESTNET }}
+          LIDO_ADDRESS: '0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F'
