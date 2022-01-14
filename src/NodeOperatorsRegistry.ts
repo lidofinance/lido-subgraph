@@ -7,8 +7,15 @@ import {
   NodeOperatorTotalStoppedValidatorsReported,
   SigningKeyAdded,
   SigningKeyRemoved,
+  NodeOperatorTotalKeysTrimmed,
+  KeysOpIndexSet,
 } from '../generated/NodeOperatorsRegistry/NodeOperatorsRegistry'
-import { NodeOperatorSigningKey, NodeOperator } from '../generated/schema'
+import {
+  NodeOperatorSigningKey,
+  NodeOperator,
+  NodeOperatorTotalKeysTrim,
+  handleKeysOpIndexChange,
+} from '../generated/schema'
 
 export function handleSigningKeyAdded(event: SigningKeyAdded): void {
   let entity = new NodeOperatorSigningKey(event.params.pubkey.toHexString())
@@ -109,6 +116,37 @@ export function handleNodeOperatorTotalStoppedValidatorsReported(
   }
 
   entity.totalStoppedValidators = event.params.totalStopped
+
+  entity.save()
+}
+
+export function handleNodeOperatorTotalKeysTrimmed(
+  event: NodeOperatorTotalKeysTrimmed
+): void {
+  let entity = new NodeOperatorTotalKeysTrim(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.operatorId = event.params.id
+  entity.totalKeysTrimmed = event.params.totalKeysTrimmed
+
+  entity.operator = event.params.id.toString()
+
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+
+  entity.save()
+}
+
+export function handleKeysOpIndexSet(event: KeysOpIndexSet): void {
+  let entity = new handleKeysOpIndexChange(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.index = event.params.keysOpIndex
+
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
 
   entity.save()
 }

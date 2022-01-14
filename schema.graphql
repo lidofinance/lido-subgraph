@@ -302,6 +302,27 @@ type NodeOperator @entity {
   totalStoppedValidators: BigInt
 }
 
+type NodeOperatorTotalKeysTrim @entity {
+  id: ID!
+
+  operatorId: BigInt!
+  totalKeysTrimmed: BigInt!
+
+  operator: NodeOperator!
+
+  block: BigInt!
+  blockTime: BigInt!
+}
+
+type handleKeysOpIndexChange @entity {
+  id: ID!
+
+  index: BigInt!
+
+  block: BigInt!
+  blockTime: BigInt!
+}
+
 """
 Voting
 """

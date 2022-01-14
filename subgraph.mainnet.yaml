@@ -143,6 +143,10 @@ dataSources:
           handler: handleSigningKeyAdded
         - event: SigningKeyRemoved(indexed uint256,bytes)
           handler: handleSigningKeyRemoved
+        - event: NodeOperatorTotalKeysTrimmed(indexed uint256,uint64)
+          handler: handleNodeOperatorTotalKeysTrimmed
+        - event: KeysOpIndexSet(uint256)
+          handler: handleKeysOpIndexSet
       file: ./src/NodeOperatorsRegistry.ts
   - kind: ethereum/contract
     name: Voting
