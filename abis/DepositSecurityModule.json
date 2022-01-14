@@ -204,15 +204,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      { "internalType": "bytes32", "name": "c__0x3a7e3a41", "type": "bytes32" }
-    ],
-    "name": "c_0x3a7e3a41",
-    "outputs": [],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
     "inputs": [],
     "name": "canDeposit",
     "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
