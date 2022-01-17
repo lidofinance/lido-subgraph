@@ -1,0 +1,44 @@
+name: Build Subgraph
+
+on:
+  push:
+    tags-ignore:
+      # Don't re-run on bot pushing new tags for releases
+      - '**'
+    paths-ignore:
+      # Ignoring package version increase, dependencies change package lock
+      - 'package.json'
+      - 'CHANGELOG.md'
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build Subgraph
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 'lts/*'
+      - name: Get Yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - uses: actions/cache@v2
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install Graph CLI
+        run: |
+          yarn global add @graphprotocol/graph-cli
+          echo "$(yarn global bin)" >> $GITHUB_PATH
+      - name: Install Dependencies
+        run: yarn install --immutable
+      - name: Generate Types
+        run: graph codegen subgraph.mainnet.yaml
+      - name: Build the Project
+        run: graph build subgraph.mainnet.yaml
