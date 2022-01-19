@@ -168,6 +168,13 @@ export function handleCompleted(event: Completed): void {
   let insuranceFeeBasisPoints = BigInt.fromI32(feeDistribution.value1) // 5000
   let operatorsFeeBasisPoints = BigInt.fromI32(feeDistribution.value2) // 5000
 
+  // Storing contract calls data so we don't need to fetch it again
+  // We will load them in handleMevTxFeeReceived in Lido handlers
+  totalRewardsEntity.feeBasis = feeBasis
+  totalRewardsEntity.treasuryFeeBasisPoints = treasuryFeeBasisPoints
+  totalRewardsEntity.insuranceFeeBasisPoints = insuranceFeeBasisPoints
+  totalRewardsEntity.operatorsFeeBasisPoints = operatorsFeeBasisPoints
+
   let sharesToTreasury = shares2mint
     .times(treasuryFeeBasisPoints)
     .div(CALCULATION_UNIT)

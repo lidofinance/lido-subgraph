@@ -1,4 +1,4 @@
-import { Address, BigInt } from '@graphprotocol/graph-ts'
+import { Address } from '@graphprotocol/graph-ts'
 import { store } from '@graphprotocol/graph-ts'
 import {
   Stopped,
@@ -462,20 +462,15 @@ We need to recalculate total rewards when there are MEV rewards.
 This event is emitted only when there was something taken from MEV vault.
 Most logic is the same as in Oracle's handleCompleted.
 
-TODO: There is a room for optimisation eg store contract calls data in entity: basis fee and fee distribution.
 TODO: We should not skip TotalReward creation when there are no basic rewards but there are MEV rewards. 
 
 Order of events:
 BeaconReported -> Completed -> MevTxFeeReceived
 **/
 export function handleMevTxFeeReceived(event: MevTxFeeReceived): void {
-  let contract = loadLidoContract()
   let totalRewardsEntity = TotalReward.load(event.transaction.hash.toHex())!
   let mevFee = event.params.amount
   totalRewardsEntity.mevFee = mevFee
-
-  // Total fee of the protocol eg 1000 / 100 = 10% fee
-  let feeBasis = BigInt.fromI32(contract.getFee()) // 1000
 
   let newTotalRewards = totalRewardsEntity.totalRewardsWithFees.plus(mevFee)
 
@@ -487,12 +482,12 @@ export function handleMevTxFeeReceived(event: MevTxFeeReceived): void {
 
   // Overall shares for all rewards cut
   let shares2mint = newTotalRewards
-    .times(feeBasis)
+    .times(totalRewardsEntity.feeBasis)
     .times(totalRewardsEntity.totalSharesBefore)
     .div(
       totalPooledEtherAfter
         .times(CALCULATION_UNIT)
-        .minus(feeBasis.times(newTotalRewards))
+        .minus(totalRewardsEntity.feeBasis.times(newTotalRewards))
     )
 
   let totalSharesAfter = totalRewardsEntity.totalSharesBefore.plus(shares2mint)
@@ -502,23 +497,16 @@ export function handleMevTxFeeReceived(event: MevTxFeeReceived): void {
   totals.totalShares = totalSharesAfter
   totals.save()
 
-  // Further shares calculations
-  let feeDistribution = contract.getFeeDistribution()
-  // There are currently 3 possible fees
-  let treasuryFeeBasisPoints = BigInt.fromI32(feeDistribution.value0) // 0
-  let insuranceFeeBasisPoints = BigInt.fromI32(feeDistribution.value1) // 5000
-  let operatorsFeeBasisPoints = BigInt.fromI32(feeDistribution.value2) // 5000
-
   let sharesToTreasury = shares2mint
-    .times(treasuryFeeBasisPoints)
+    .times(totalRewardsEntity.treasuryFeeBasisPoints)
     .div(CALCULATION_UNIT)
 
   let sharesToInsuranceFund = shares2mint
-    .times(insuranceFeeBasisPoints)
+    .times(totalRewardsEntity.insuranceFeeBasisPoints)
     .div(CALCULATION_UNIT)
 
   let sharesToOperators = shares2mint
-    .times(operatorsFeeBasisPoints)
+    .times(totalRewardsEntity.operatorsFeeBasisPoints)
     .div(CALCULATION_UNIT)
 
   totalRewardsEntity.shares2mint = shares2mint
