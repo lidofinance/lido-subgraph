@@ -14,6 +14,12 @@
     "type": "function"
   },
   {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "name": "amount", "type": "uint256" }],
+    "name": "MevTxFeeReceived",
+    "type": "event"
+  },
+  {
     "constant": false,
     "inputs": [],
     "name": "resume",

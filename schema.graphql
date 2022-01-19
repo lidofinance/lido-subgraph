@@ -180,6 +180,8 @@ type TotalReward @entity {
   totalRewards: BigInt!
   totalRewardsWithFees: BigInt!
 
+  mevFee: BigInt
+
   totalFee: BigInt!
   nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
   insuranceFee: BigInt

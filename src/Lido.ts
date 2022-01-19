@@ -1,4 +1,4 @@
-import { Address } from '@graphprotocol/graph-ts'
+import { Address, BigInt } from '@graphprotocol/graph-ts'
 import { store } from '@graphprotocol/graph-ts'
 import {
   Stopped,
@@ -13,7 +13,9 @@ import {
   Withdrawal,
   BurnSharesCall,
   SetValidatorsNumberCall,
+  MevTxFeeReceived,
 } from '../generated/Lido/Lido'
+
 import {
   LidoStopped,
   LidoResumed,
@@ -34,9 +36,15 @@ import {
   Stats,
 } from '../generated/schema'
 
-import { loadLidoContract } from './contracts'
+import { loadLidoContract, loadNosContract } from './contracts'
 
-import { ZERO, getAddress, DUST_BOUNDARY, ONE } from './constants'
+import {
+  ZERO,
+  getAddress,
+  DUST_BOUNDARY,
+  ONE,
+  CALCULATION_UNIT,
+} from './constants'
 
 import { wcKeyCrops } from './wcKeyCrops'
 
@@ -447,4 +455,117 @@ export function handleSetValidatorsNumber(
   let totals = Totals.load('')!
   totals.totalPooledEther = realPooledEther
   totals.save()
+}
+
+/**
+We need to recalculate total rewards when there are MEV rewards.
+This event is emitted only when there was something taken from MEV vault.
+Most logic is the same as in Oracle's handleCompleted.
+
+TODO: There is a room for optimisation eg store contract calls data in entity: basis fee and fee distribution.
+TODO: We should not skip TotalReward creation when there are no basic rewards but there are MEV rewards. 
+
+Order of events:
+BeaconReported -> Completed -> MevTxFeeReceived
+**/
+export function handleMevTxFeeReceived(event: MevTxFeeReceived): void {
+  let contract = loadLidoContract()
+  let totalRewardsEntity = TotalReward.load(event.transaction.hash.toHex())!
+  let mevFee = event.params.amount
+  totalRewardsEntity.mevFee = mevFee
+
+  // Total fee of the protocol eg 1000 / 100 = 10% fee
+  let feeBasis = BigInt.fromI32(contract.getFee()) // 1000
+
+  let newTotalRewards = totalRewardsEntity.totalRewardsWithFees.plus(mevFee)
+
+  totalRewardsEntity.totalRewardsWithFees = newTotalRewards
+  totalRewardsEntity.totalRewards = newTotalRewards
+
+  let totalPooledEtherAfter =
+    totalRewardsEntity.totalPooledEtherBefore.plus(newTotalRewards)
+
+  // Overall shares for all rewards cut
+  let shares2mint = newTotalRewards
+    .times(feeBasis)
+    .times(totalRewardsEntity.totalSharesBefore)
+    .div(
+      totalPooledEtherAfter
+        .times(CALCULATION_UNIT)
+        .minus(feeBasis.times(newTotalRewards))
+    )
+
+  let totalSharesAfter = totalRewardsEntity.totalSharesBefore.plus(shares2mint)
+
+  let totals = Totals.load('') as Totals
+  totals.totalPooledEther = totalPooledEtherAfter
+  totals.totalShares = totalSharesAfter
+  totals.save()
+
+  // Further shares calculations
+  let feeDistribution = contract.getFeeDistribution()
+  // There are currently 3 possible fees
+  let treasuryFeeBasisPoints = BigInt.fromI32(feeDistribution.value0) // 0
+  let insuranceFeeBasisPoints = BigInt.fromI32(feeDistribution.value1) // 5000
+  let operatorsFeeBasisPoints = BigInt.fromI32(feeDistribution.value2) // 5000
+
+  let sharesToTreasury = shares2mint
+    .times(treasuryFeeBasisPoints)
+    .div(CALCULATION_UNIT)
+
+  let sharesToInsuranceFund = shares2mint
+    .times(insuranceFeeBasisPoints)
+    .div(CALCULATION_UNIT)
+
+  let sharesToOperators = shares2mint
+    .times(operatorsFeeBasisPoints)
+    .div(CALCULATION_UNIT)
+
+  totalRewardsEntity.shares2mint = shares2mint
+
+  totalRewardsEntity.sharesToTreasury = sharesToTreasury
+  totalRewardsEntity.sharesToInsuranceFund = sharesToInsuranceFund
+  totalRewardsEntity.sharesToOperators = sharesToOperators
+
+  totalRewardsEntity.totalPooledEtherAfter = totalPooledEtherAfter
+  totalRewardsEntity.totalSharesAfter = totalSharesAfter
+
+  // We will save the entity later
+
+  let registry = loadNosContract()
+  let distr = registry.getRewardsDistribution(sharesToOperators)
+
+  let opAddresses = distr.value0
+  let opShares = distr.value1
+
+  let sharesToOperatorsActual = ZERO
+
+  for (let i = 0; i < opAddresses.length; i++) {
+    let addr = opAddresses[i]
+    let shares = opShares[i]
+
+    // Incrementing total of actual shares distributed
+    sharesToOperatorsActual = sharesToOperatorsActual.plus(shares)
+
+    let nodeOperatorsShares = new NodeOperatorsShares(
+      event.transaction.hash.toHex() + '-' + addr.toHexString()
+    )
+    nodeOperatorsShares.totalReward = event.transaction.hash.toHex()
+
+    nodeOperatorsShares.address = addr
+    nodeOperatorsShares.shares = shares
+
+    nodeOperatorsShares.save()
+  }
+
+  // Handling dust (rounding leftovers)
+  // sharesToInsuranceFund are exact
+  // sharesToOperators are with leftovers which we need to account for
+  let dustSharesToTreasury = shares2mint
+    .minus(sharesToInsuranceFund)
+    .minus(sharesToOperatorsActual)
+
+  totalRewardsEntity.dustSharesToTreasury = dustSharesToTreasury
+
+  totalRewardsEntity.save()
 }
