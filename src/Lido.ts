@@ -1,4 +1,4 @@
-import { Address } from '@graphprotocol/graph-ts'
+import { Address, BigInt } from '@graphprotocol/graph-ts'
 import { store } from '@graphprotocol/graph-ts'
 import {
   Stopped,
@@ -15,7 +15,6 @@ import {
   SetValidatorsNumberCall,
   MevTxFeeReceived,
 } from '../generated/Lido/Lido'
-
 import {
   LidoStopped,
   LidoResumed,
@@ -34,6 +33,7 @@ import {
   Shares,
   Holder,
   Stats,
+  CurrentFees,
 } from '../generated/schema'
 
 import { loadLidoContract, loadNosContract } from './contracts'
@@ -280,6 +280,11 @@ export function handleFeeSet(event: FeeSet): void {
   entity.feeBasisPoints = event.params.feeBasisPoints
 
   entity.save()
+
+  let current = CurrentFees.load('')
+  if (!current) current = new CurrentFees('')
+  current.feeBasisPoints = BigInt.fromI32(event.params.feeBasisPoints)
+  current.save()
 }
 
 export function handleFeeDistributionSet(event: FeeDistributionSet): void {
@@ -292,6 +297,19 @@ export function handleFeeDistributionSet(event: FeeDistributionSet): void {
   entity.operatorsFeeBasisPoints = event.params.operatorsFeeBasisPoints
 
   entity.save()
+
+  let current = CurrentFees.load('')
+  if (!current) current = new CurrentFees('')
+  current.treasuryFeeBasisPoints = BigInt.fromI32(
+    event.params.treasuryFeeBasisPoints
+  )
+  current.insuranceFeeBasisPoints = BigInt.fromI32(
+    event.params.insuranceFeeBasisPoints
+  )
+  current.operatorsFeeBasisPoints = BigInt.fromI32(
+    event.params.operatorsFeeBasisPoints
+  )
+  current.save()
 }
 
 export function handleWithdrawalCredentialsSet(

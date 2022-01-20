@@ -159,6 +159,15 @@ type Holder @entity {
   address: Bytes!
 }
 
+type CurrentFees @entity {
+  id: ID!
+
+  feeBasisPoints: BigInt
+  treasuryFeeBasisPoints: BigInt
+  insuranceFeeBasisPoints: BigInt
+  operatorsFeeBasisPoints: BigInt
+}
+
 """
 LidoOracle
 """

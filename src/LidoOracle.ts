@@ -27,11 +27,12 @@ import {
   BeaconReportReceiver,
   Totals,
   NodeOperatorsShares,
+  CurrentFees,
 } from '../generated/schema'
 
 import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ZERO, ONE } from './constants'
 
-import { loadLidoContract, loadNosContract } from './contracts'
+import { loadNosContract } from './contracts'
 
 import { lastIncrementalId, guessOracleRunsTotal } from './utils'
 
@@ -46,8 +47,6 @@ export function handleCompleted(event: Completed): void {
 
   let previousCompleted = OracleCompleted.load(previousCompletedId)
   let newCompleted = new OracleCompleted(nextCompletedId)
-
-  let contract = loadLidoContract()
 
   newCompleted.epochId = event.params.epochId
   newCompleted.beaconBalance = event.params.beaconBalance
@@ -142,8 +141,10 @@ export function handleCompleted(event: Completed): void {
   // Setting initial 0 value so we can add fees to it
   totalRewardsEntity.totalFee = ZERO
 
+  let currentFees = CurrentFees.load('')!
+
   // Total fee of the protocol eg 1000 / 100 = 10% fee
-  let feeBasis = BigInt.fromI32(contract.getFee()) // 1000
+  let feeBasis = currentFees.feeBasisPoints! // 1000
 
   // Overall shares for all rewards cut
   let shares2mint = newTotalRewards
@@ -162,11 +163,10 @@ export function handleCompleted(event: Completed): void {
   totals.save()
 
   // Further shares calculations
-  let feeDistribution = contract.getFeeDistribution()
   // There are currently 3 possible fees
-  let treasuryFeeBasisPoints = BigInt.fromI32(feeDistribution.value0) // 0
-  let insuranceFeeBasisPoints = BigInt.fromI32(feeDistribution.value1) // 5000
-  let operatorsFeeBasisPoints = BigInt.fromI32(feeDistribution.value2) // 5000
+  let treasuryFeeBasisPoints = currentFees.treasuryFeeBasisPoints! // 0
+  let insuranceFeeBasisPoints = currentFees.insuranceFeeBasisPoints! // 5000
+  let operatorsFeeBasisPoints = currentFees.operatorsFeeBasisPoints! // 5000
 
   // Storing contract calls data so we don't need to fetch it again
   // We will load them in handleMevTxFeeReceived in Lido handlers
@@ -283,8 +283,6 @@ export function handleContractVersionSet(event: ContractVersionSet): void {
 }
 
 export function handlePostTotalShares(event: PostTotalShares): void {
-  let contract = loadLidoContract()
-
   let entity = TotalReward.load(event.transaction.hash.toHex())
 
   if (!entity) {
@@ -337,7 +335,9 @@ export function handlePostTotalShares(event: PostTotalShares): void {
 
   // Subtracting fees
 
-  let feeBasis = BigInt.fromI32(contract.getFee()).toBigDecimal() // 1000
+  let currentFees = CurrentFees.load('')!
+
+  let feeBasis = currentFees.feeBasisPoints!.toBigDecimal() // 1000
 
   let apr = aprBeforeFees.minus(
     aprBeforeFees
