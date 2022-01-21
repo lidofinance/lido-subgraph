@@ -486,7 +486,36 @@ Order of events:
 BeaconReported -> Completed -> MevTxFeeReceived
 **/
 export function handleMevTxFeeReceived(event: MevTxFeeReceived): void {
-  let totalRewardsEntity = TotalReward.load(event.transaction.hash.toHex())!
+  let totalRewardsEntity = TotalReward.load(event.transaction.hash.toHex())
+
+  // Construct TotalReward if there were no basic rewards but there are MEV rewards
+  if (!totalRewardsEntity) {
+    totalRewardsEntity = new TotalReward(event.transaction.hash.toHex())
+
+    totalRewardsEntity.totalRewardsWithFees = ZERO
+    totalRewardsEntity.totalRewards = ZERO
+    totalRewardsEntity.totalFee = ZERO
+
+    let currentFees = CurrentFees.load('')!
+    totalRewardsEntity.feeBasis = currentFees.feeBasisPoints!
+    totalRewardsEntity.treasuryFeeBasisPoints =
+      currentFees.treasuryFeeBasisPoints!
+    totalRewardsEntity.insuranceFeeBasisPoints =
+      currentFees.insuranceFeeBasisPoints!
+    totalRewardsEntity.operatorsFeeBasisPoints =
+      currentFees.operatorsFeeBasisPoints!
+
+    let totals = Totals.load('')!
+    totalRewardsEntity.totalPooledEtherBefore = totals.totalPooledEther
+    totalRewardsEntity.totalSharesBefore = totals.totalShares
+
+    totalRewardsEntity.block = event.block.number
+    totalRewardsEntity.blockTime = event.block.timestamp
+    totalRewardsEntity.transactionIndex = event.transaction.index
+    totalRewardsEntity.logIndex = event.logIndex
+    totalRewardsEntity.transactionLogIndex = event.transactionLogIndex
+  }
+
   let mevFee = event.params.amount
   totalRewardsEntity.mevFee = mevFee
 
