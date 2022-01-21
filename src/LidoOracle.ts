@@ -1,4 +1,4 @@
-import { BigInt } from '@graphprotocol/graph-ts'
+import { BigInt, BigDecimal } from '@graphprotocol/graph-ts'
 import {
   MemberAdded,
   MemberRemoved,
@@ -235,6 +235,49 @@ export function handleCompleted(event: Completed): void {
 
   totalRewardsEntity.dustSharesToTreasury = dustSharesToTreasury
 
+  // Calculating APR
+  // Can be overridden by handlePostTotalShares
+
+  let aprRaw = totalPooledEtherAfter
+    .toBigDecimal()
+    .div(totalPooledEtherBefore.toBigDecimal())
+    .minus(BigInt.fromI32(1).toBigDecimal())
+    .times(BigInt.fromI32(100).toBigDecimal())
+    .times(BigInt.fromI32(365).toBigDecimal())
+
+  totalRewardsEntity.aprRaw = aprRaw
+
+  // Time-compensated APR
+  // (postTotalPooledEther - preTotalPooledEther) * secondsInYear / (preTotalPooledEther * timeElapsed)
+
+  let aprBeforeFees: BigDecimal | null = null
+
+  if (previousCompleted) {
+    let secondsInYear = BigInt.fromI32(60 * 60 * 24 * 365)
+    let timeElapsed = newCompleted.blockTime.minus(previousCompleted.blockTime)
+
+    aprBeforeFees = totalPooledEtherAfter
+      .minus(totalPooledEtherBefore)
+      .times(secondsInYear)
+      .toBigDecimal()
+      .div(totalPooledEtherBefore.times(timeElapsed).toBigDecimal())
+      .times(BigInt.fromI32(100).toBigDecimal())
+
+    totalRewardsEntity.aprBeforeFees = aprBeforeFees
+  }
+
+  // Subtracting fees
+  // Fallback time-adjusted values to no adjustments if this is the first report
+  let feeSubtractionBase = aprBeforeFees ? aprBeforeFees : aprRaw
+
+  let apr = feeSubtractionBase.minus(
+    feeSubtractionBase
+      .times(CALCULATION_UNIT.toBigDecimal())
+      .div(feeBasis.toBigDecimal())
+      .div(BigInt.fromI32(100).toBigDecimal())
+  )
+
+  totalRewardsEntity.apr = apr
   totalRewardsEntity.save()
 }
 
