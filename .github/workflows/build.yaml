@@ -2,15 +2,9 @@ name: Build Subgraph
 
 on:
   push:
-    tags-ignore:
-      # Don't re-run on bot pushing new tags for releases
-      - '**'
-    paths-ignore:
-      # Ignoring package version increase, dependencies change package lock
-      - 'package.json'
-      - 'CHANGELOG.md'
+    branches:
+      - master
   pull_request:
-    types: [opened, reopened, synchronize]
 
 jobs:
   build:
