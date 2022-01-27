@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@jest/types": "27.4.2",
-    "dotenv": "14.2.0",
+    "dotenv": "14.3.2",
     "env-cmd": "10.1.0",
     "ethers": "5.5.3",
     "graphql": "16.2.0",
