@@ -1,4 +1,4 @@
-const { DefaultReporter } = require('@jest/reporters')
+import { DefaultReporter } from '@jest/reporters'
 
 /**
 This reporter will output console.log only when a test fails.
@@ -24,4 +24,4 @@ class Reporter extends DefaultReporter {
   }
 }
 
-module.exports = Reporter
+export default Reporter

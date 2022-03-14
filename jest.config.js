@@ -1,5 +1,5 @@
 module.exports = {
   transform: {},
   setupFiles: ['dotenv/config'],
-  reporters: ['./tests/reporter.cjs'],
+  reporters: ['./tests/reporter.js'],
 }
