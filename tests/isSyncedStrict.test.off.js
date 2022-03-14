@@ -3,7 +3,7 @@ import { ethCall, getLastIndexedBlock } from './utils/index.js'
 
 jest.setTimeout(20000)
 
-jest.retryTimes(20)
+jest.retryTimes(3)
 
 test('isSynced', async () => {
   const currentBlock = parseInt((await ethCall('getBlock', 'latest')).number)
