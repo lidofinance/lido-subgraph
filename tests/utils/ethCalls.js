@@ -1,7 +1,6 @@
 import { ethers } from 'ethers'
 import fs from 'fs'
 
-import { getLastIndexedBlock } from '.'
 import { RPC, LIDO_ADDRESS, RPC_SYNC_BLOCK } from '../config.js'
 
 const provider = new ethers.providers.JsonRpcProvider(RPC)
@@ -13,7 +12,7 @@ const oracleAddress = await lidoContract.getOracle()
 const oracleAbi = JSON.parse(fs.readFileSync('abis/LidoOracle.json'))
 const oracleContract = new ethers.Contract(oracleAddress, oracleAbi, provider)
 
-const maybeAddBlock = async (args) => {
+const genCallBlock = async (args) => {
   const blockIsOverriden = args.find((x) => x.blockTag)
 
   if (blockIsOverriden) {
@@ -21,21 +20,20 @@ const maybeAddBlock = async (args) => {
   }
 
   if (RPC_SYNC_BLOCK) {
-    const block = parseInt(await getLastIndexedBlock())
-    args.push({ blockTag: block })
+    args.push({ blockTag: parseInt(process.env.BLOCK) })
   }
 
   return args
 }
 
 export const ethCall = async (func, ...initialArgs) =>
-  await provider[func](...(await maybeAddBlock(initialArgs)))
+  await provider[func](...(await genCallBlock(initialArgs)))
 
 export const lidoFuncCall = async (func, ...initialArgs) =>
-  await lidoContract[func](...(await maybeAddBlock(initialArgs)))
+  await lidoContract[func](...(await genCallBlock(initialArgs)))
 
 export const oracleFuncCall = async (func, ...initialArgs) =>
-  await oracleContract[func](...(await maybeAddBlock(initialArgs)))
+  await oracleContract[func](...(await genCallBlock(initialArgs)))
 
 export const getAddressShares = async (address, ...args) =>
   await lidoFuncCall('sharesOf', address, ...args)
@@ -46,16 +44,19 @@ export const getAddressBalance = async (address, ...args) =>
 export const getBalanceFromShares = async (address, ...args) =>
   await lidoFuncCall('getPooledEthByShares', address, ...args)
 
+const genEventBlock = async () =>
+  RPC_SYNC_BLOCK ? parseInt(process.env.BLOCK) : 'latest'
+
 export const getLidoEventNumber = async (eventName) => {
   const filter = lidoContract.filters[eventName]()
-  const logs = lidoContract.queryFilter(filter, 0, 'latest')
+  const logs = lidoContract.queryFilter(filter, 0, await genEventBlock())
 
   return (await logs).length
 }
 
 export const getOracleEventNumber = async (eventName) => {
   const filter = oracleContract.filters[eventName]()
-  const logs = oracleContract.queryFilter(filter, 0, 'latest')
+  const logs = oracleContract.queryFilter(filter, 0, await genEventBlock())
 
   return (await logs).length
 }
