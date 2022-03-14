@@ -1,4 +1,4 @@
-import { getOracleEventNumber, getEntityCount } from './utils'
+import { getOracleEventNumber, getEntityCount } from './utils/index.js'
 
 test('allOracleReportsExist', async () => {
   const ethNumber = await getOracleEventNumber('Completed')

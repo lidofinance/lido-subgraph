@@ -1,4 +1,4 @@
-import { getLidoEventNumber, getEntityCount } from './utils'
+import { getLidoEventNumber, getEntityCount } from './utils/index.js'
 
 /**
 Timeout is for testnet - needs to be adjusted for mainnet or when transaction count increases.

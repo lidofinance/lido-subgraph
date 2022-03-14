@@ -1,4 +1,5 @@
-import { subgraphFetch, gql, getSubgraphNetwork } from '.'
+import { subgraphFetch, getSubgraphNetwork } from './index.js'
+import { gql } from 'graphql-request'
 
 const transfersQuery = gql`
   query {

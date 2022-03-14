@@ -1,4 +1,5 @@
-import { subgraphFetch, gql } from './utils'
+import { gql } from 'graphql-request'
+import { subgraphFetch } from './utils/index.js'
 
 const query = gql`
   query {

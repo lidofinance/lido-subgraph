@@ -2,7 +2,7 @@ import { ethers } from 'ethers'
 import fs from 'fs'
 
 import { getLastIndexedBlock } from '.'
-import { RPC, LIDO_ADDRESS, RPC_SYNC_BLOCK } from '../config'
+import { RPC, LIDO_ADDRESS, RPC_SYNC_BLOCK } from '../config.js'
 
 const provider = new ethers.providers.JsonRpcProvider(RPC)
 

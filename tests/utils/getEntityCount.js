@@ -1,4 +1,5 @@
-import { subgraphFetch, gql } from '.'
+import { gql } from 'graphql-request'
+import { subgraphFetch } from './index.js'
 
 const genQuery = (entityName) => gql`
   {

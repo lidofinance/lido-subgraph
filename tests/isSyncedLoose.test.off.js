@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals'
-import { ethCall, getLastIndexedBlock } from './utils'
+import { ethCall, getLastIndexedBlock } from './utils/index.js'
 
 jest.setTimeout(20000)
 

@@ -1,4 +1,5 @@
-import { subgraphFetch, gql } from './utils'
+import { gql } from 'graphql-request'
+import { subgraphFetch } from './utils/index.js'
 
 // If we chose a wrong dust boundary, dust can be mistaken as treasury fee
 const query = gql`

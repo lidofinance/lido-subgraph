@@ -2,7 +2,7 @@ import {
   lidoFuncCall,
   getTestAddresses,
   calculateAddressBalance,
-} from './utils'
+} from './utils/index.js'
 
 const ADDRESSES_TO_TEST = 100
 const timePerAddress = 0.5 // seconds

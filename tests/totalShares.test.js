@@ -1,4 +1,5 @@
-import { lidoFuncCall, subgraphFetch, gql } from './utils'
+import { gql } from 'graphql-request'
+import { lidoFuncCall, subgraphFetch } from './utils/index.js'
 
 const query = gql`
   {

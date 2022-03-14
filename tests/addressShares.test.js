@@ -1,4 +1,8 @@
-import { getTestAddresses, getAddressShares, loadAddressShares } from './utils'
+import {
+  getTestAddresses,
+  getAddressShares,
+  loadAddressShares,
+} from './utils/index.js'
 
 const ADDRESSES_TO_TEST = 100
 const timePerAddress = 3 // seconds

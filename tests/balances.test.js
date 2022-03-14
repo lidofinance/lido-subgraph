@@ -4,7 +4,7 @@ import {
   calculateShares,
   getTotals,
   BigNumber,
-} from './utils'
+} from './utils/index.js'
 
 const ADDRESSES_TO_TEST = 100
 const timePerAddress = 3 // seconds
