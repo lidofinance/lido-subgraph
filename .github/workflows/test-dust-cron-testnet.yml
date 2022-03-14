@@ -31,3 +31,4 @@ jobs:
           GRAPH: https://api.thegraph.com/subgraphs/name/lidofinance/lido-testnet
           RPC: ${{ secrets.RPC_TESTNET }}
           LIDO_ADDRESS: '0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F'
+          RPC_SYNC_BLOCK: 1
