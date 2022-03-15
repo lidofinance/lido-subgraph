@@ -443,11 +443,24 @@ export function handleWithdrawal(event: Withdrawal): void {
 
   entity.sender = event.params.sender
   entity.tokenAmount = event.params.tokenAmount
-  entity.sentFromBuffer = event.params.sentFromBuffer
-  entity.pubkeyHash = event.params.pubkeyHash
-  entity.etherAmount = event.params.etherAmount
+  entity.sentFromBuffer = event.params.sentFromBuffer // current ETH side
+  entity.pubkeyHash = event.params.pubkeyHash // ETH 2.0 side
+  entity.etherAmount = event.params.etherAmount // ETH 2.0 side
 
   entity.save()
+
+  let totals = Totals.load('')!
+
+  let shares = event.params.tokenAmount
+    .times(totals.totalShares)
+    .div(totals.totalPooledEther)
+
+  totals.totalPooledEther = totals.totalPooledEther.minus(
+    event.params.tokenAmount
+  )
+  totals.totalShares = totals.totalShares.minus(shares)
+
+  totals.save()
 }
 
 export function handleBurnShares(call: BurnSharesCall): void {
