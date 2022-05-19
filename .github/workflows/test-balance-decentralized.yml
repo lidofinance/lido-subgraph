@@ -28,4 +28,4 @@ jobs:
       - run: yarn install --immutable
       - run: yarn test:graphBalance
         env:
-          THEGRAPH_BILLING_ADDRESS: ${{ secrets.THEGRAPH_BILLING_ADDRESS}}
+          THEGRAPH_BILLING_ADDRESS: ${{ secrets.THEGRAPH_BILLING_ADDRESS }}
