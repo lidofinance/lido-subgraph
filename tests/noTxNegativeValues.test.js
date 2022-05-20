@@ -1,11 +1,24 @@
 import { gql } from 'graphql-request'
 import { subgraphFetch } from './utils/index.js'
 
-const query = gql`
-  query {
+const sharesQuery = gql`
+  query ($first: Int, $skip: Int) {
     lidoTransfers(
-      first: 100000
-      where: { sharesAfterDecrease_lt: 0, balanceAfterDecrease_lt: 0 }
+      first: $first
+      skip: $skip
+      where: { sharesAfterDecrease_lt: 0 }
+    ) {
+      id
+    }
+  }
+`
+
+const balanceQuery = gql`
+  query ($first: Int, $skip: Int) {
+    lidoTransfers(
+      first: $first
+      skip: $skip
+      where: { balanceAfterDecrease_lt: 0 }
     ) {
       id
     }
@@ -13,7 +26,9 @@ const query = gql`
 `
 
 test('there are no transactions going to minus', async () => {
-  const lidoTransfers = (await subgraphFetch(query)).lidoTransfers
+  const sharesItems = (await subgraphFetch(sharesQuery)).lidoTransfers
+  const balanceItems = (await subgraphFetch(balanceQuery)).lidoTransfers
 
-  expect(lidoTransfers.length).toEqual(0)
-})
+  expect(sharesItems.length).toEqual(0)
+  expect(balanceItems.length).toEqual(0)
+}, 50000)
