@@ -3,8 +3,12 @@ import { subgraphFetch } from './utils/index.js'
 
 // If we chose a wrong dust boundary, dust can be mistaken as treasury fee
 const query = gql`
-  query {
-    totalRewards(first: 1000, where: { dust: 0, treasuryFee_not: null }) {
+  query ($first: Int, $skip: Int) {
+    totalRewards(
+      first: $first
+      skip: $skip
+      where: { dust: 0, treasuryFee_not: null }
+    ) {
       dust
     }
   }

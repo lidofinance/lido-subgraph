@@ -3,8 +3,8 @@ import { subgraphFetch, BigNumber } from './index.js'
 
 export const calculateAddressBalance = async (address) => {
   const submissionsQuery = gql`
-	query {
-	  lidoSubmissions(first: 100000, where: {sender: "${address}"}) {
+	query ($first: Int, $skip: Int) {
+	  lidoSubmissions(first: $first, skip: $skip, where: {sender: "${address}"}) {
 		amount
 		shares
     
@@ -15,8 +15,8 @@ export const calculateAddressBalance = async (address) => {
 	`
 
   const transfersInboundQuery = gql`
-	query {
-		  lidoTransfers (first: 100000, where: {to: "${address}"}) {
+	query ($first: Int, $skip: Int) {
+		  lidoTransfers (first: $first, skip: $skip, where: {to: "${address}"}) {
       value
 			shares
 			to
@@ -30,8 +30,8 @@ export const calculateAddressBalance = async (address) => {
 	`
 
   const transfersOutboundQuery = gql`
-	query {
-		  lidoTransfers (first: 100000, where: {from: "${address}"}) {
+	query ($first: Int, $skip: Int) {
+		  lidoTransfers (first: $first, skip: $skip, where: {from: "${address}"}) {
       value
 			shares
 			to
@@ -43,8 +43,13 @@ export const calculateAddressBalance = async (address) => {
 	`
 
   const ratioQuery = gql`
-    {
-      totalRewards(first: 500, orderBy: block, orderDirection: asc) {
+    query ($first: Int, $skip: Int) {
+      totalRewards(
+        first: $first
+        skip: $skip
+        orderBy: block
+        orderDirection: asc
+      ) {
         id
 
         totalRewards

@@ -21,8 +21,13 @@ const sharesChecks = [
 ].map((x) => BigNumber.from(x))
 
 const ratioQuery = gql`
-  {
-    totalRewards(first: 100000, orderBy: block, orderDirection: asc) {
+  query ($first: Int, $skip: Int) {
+    totalRewards(
+      first: $first
+      skip: $skip
+      orderBy: block
+      orderDirection: asc
+    ) {
       totalPooledEtherBefore
       totalPooledEtherAfter
       totalSharesBefore
