@@ -6,7 +6,7 @@ import {
   BigNumber,
 } from './utils/index.js'
 
-const ADDRESSES_TO_TEST = 100
+const ADDRESSES_TO_TEST = 30
 const timePerAddress = 3 // seconds
 const timeout = ADDRESSES_TO_TEST * timePerAddress * 1000 // in ms
 
