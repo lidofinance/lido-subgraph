@@ -1,17 +1,26 @@
-import { subgraphFetch, getSubgraphNetwork } from './index.js'
+import { subgraphFetch } from './index.js'
+import { getIsMainnet } from '../config.js'
+
 import { gql } from 'graphql-request'
 
-const transfersQuery = gql`
-  query {
-    lidoTransfers(first: 100000) {
+// Enough for random selection, saves us from brute forcing entity amount
+const MAX = 200000
+
+const genQuery = (first, skip) => gql`
+  query ($block: Block_height) {
+    lidoTransfers(first: ${first}, skip: ${skip}, block: $block) {
       from
       to
     }
   }
 `
 
-export const getTestAddresses = async (amount = 100, skipImportant = false) => {
-  const transfers = (await subgraphFetch(transfersQuery)).lidoTransfers
+export const getTestAddresses = async (amount = 30, skipImportant = false) => {
+  const maxSkip = MAX - amount
+  const randomSkip = Math.floor(Math.random() * maxSkip)
+
+  const query = genQuery(amount, randomSkip)
+  const transfers = (await subgraphFetch(query)).lidoTransfers
 
   const uniqueAddresses = transfers.reduce((acc, item) => {
     acc.add(item.from)
@@ -24,7 +33,10 @@ export const getTestAddresses = async (amount = 100, skipImportant = false) => {
 
   const shuffled = [...uniqueAddresses].sort(() => 0.5 - Math.random())
 
-  if (!skipImportant && (await getSubgraphNetwork()) === 'mainnet') {
+  const isMainnet = getIsMainnet()
+
+  // Addresses only for Mainnet
+  if (isMainnet && !skipImportant) {
     // Make sure some important addresses get into our list:
     // Lido Treasury (Aragon Agent)
     shuffled.unshift('0x3e40d73eb977dc6a537af587d48316fee66e9c8c')
