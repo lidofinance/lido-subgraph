@@ -1,7 +1,6 @@
-import { RPC_SYNC_BLOCK } from './config.js'
-import { getLastIndexedBlock } from './utils/index.js'
+import { getLastIndexedBlock, getRpcNetwork } from './utils/index.js'
 
-if (RPC_SYNC_BLOCK) {
-  const block = await getLastIndexedBlock()
-  process.env.BLOCK = block
-}
+process.env.BLOCK = await getLastIndexedBlock()
+
+const networkName = (await getRpcNetwork()).name
+process.env.NETWORK = networkName === 'homestead' ? 'mainnet' : networkName
