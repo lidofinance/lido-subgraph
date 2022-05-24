@@ -28,9 +28,6 @@ jobs:
       - run: yarn install --immutable
       - run: yarn test:dust
         env:
-          SUBGRAPH_NAME: lidofinance/lido
           GRAPH: ${{ secrets.THEGRAPH_DECENTRALIZED_ENDPOINT }}
-          GRAPH_MONITORING: https://api.thegraph.com/index-node/graphql
           RPC: ${{ secrets.RPC_MAINNET }}
           LIDO_ADDRESS: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
-          RPC_SYNC_BLOCK: 0
