@@ -38,13 +38,7 @@ import {
 
 import { loadLidoContract, loadNosContract } from './contracts'
 
-import {
-  ZERO,
-  getAddress,
-  DUST_BOUNDARY,
-  ONE,
-  CALCULATION_UNIT,
-} from './constants'
+import { ZERO, getAddress, ONE, CALCULATION_UNIT } from './constants'
 
 import { wcKeyCrops } from './wcKeyCrops'
 
@@ -112,13 +106,14 @@ export function handleTransfer(event: Transfer): void {
 
   // We'll save the entity later
 
-  let isFeeDistributionToTreasury =
-    fromZeros && event.params.to == getAddress('Treasury')
+  let isMintToTreasury = fromZeros && event.params.to == getAddress('Treasury')
 
-  // graph-ts less or equal to
-  let isDust = event.params.value.lt(DUST_BOUNDARY)
+  // If insuranceFee on totalRewards exists, then next transfer is of dust to treasury
+  let insuranceFeeExists =
+    !!totalRewardsEntity && !!totalRewardsEntity.insuranceFee
+  let isDust = isMintToTreasury && insuranceFeeExists
 
-  if (totalRewardsEntity && isFeeDistributionToTreasury && !isDust) {
+  if (totalRewardsEntity && isMintToTreasury && !isDust) {
     // Handling the Insurance Fee transfer event to treasury
 
     entity.shares = totalRewardsEntity.sharesToInsuranceFund
@@ -133,7 +128,7 @@ export function handleTransfer(event: Transfer): void {
     )
 
     totalRewardsEntity.save()
-  } else if (totalRewardsEntity && isFeeDistributionToTreasury && isDust) {
+  } else if (totalRewardsEntity && isMintToTreasury && isDust) {
     // Handling dust transfer event
 
     entity.shares = totalRewardsEntity.dustSharesToTreasury

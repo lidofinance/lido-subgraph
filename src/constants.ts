@@ -37,9 +37,6 @@ export const TESTNET_FIRST_ORACLE_REPORT = BigInt.fromI32(1617282681) // block 4
 export const MAINNET_ORACLE_PERIOD = BigInt.fromI32(86400) // 1 day
 export const TESTNET_ORACLE_PERIOD = BigInt.fromI32(3840) // 10 epochs by ~6.4 minutes
 
-// Anything below this we will be consider rounding leftovers
-export const DUST_BOUNDARY = BigInt.fromI32(50000)
-
 export const getFirstOracleReport = (): BigInt =>
   isMainnet ? MAINNET_FIRST_ORACLE_REPORT : TESTNET_FIRST_ORACLE_REPORT
 
