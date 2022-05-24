@@ -2,8 +2,8 @@ import { gql } from 'graphql-request'
 import { lidoFuncCall, subgraphFetch } from './utils/index.js'
 
 const query = gql`
-  {
-    totals(id: "") {
+  query ($block: Block_height) {
+    totals(id: "", block: $block) {
       totalShares
     }
   }

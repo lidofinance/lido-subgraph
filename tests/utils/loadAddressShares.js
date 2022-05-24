@@ -3,8 +3,8 @@ import { subgraphFetch } from './index.js'
 
 export const loadAddressShares = async (address) => {
   const query = gql`
-    {
-      shares(id: "${address}") {
+    query ($block: Block_height) {
+      shares(id: "${address}", block: $block) {
         shares
       }
     }

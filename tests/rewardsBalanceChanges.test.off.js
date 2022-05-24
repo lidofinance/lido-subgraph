@@ -21,10 +21,11 @@ const sharesChecks = [
 ].map((x) => BigNumber.from(x))
 
 const ratioQuery = gql`
-  query ($first: Int, $skip: Int) {
+  query ($first: Int, $skip: Int, $block: Block_height) {
     totalRewards(
       first: $first
       skip: $skip
+      block: $block
       orderBy: block
       orderDirection: asc
     ) {

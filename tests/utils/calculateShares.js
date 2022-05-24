@@ -3,36 +3,49 @@ import { subgraphFetch, BigNumber } from './index.js'
 
 export const calculateShares = async (address) => {
   const submissionsQuery = gql`
-	query ($first: Int, $skip: Int) {
-	  lidoSubmissions(first: $first, skip: $skip, where: {sender: "${address}"}) {
-		amount
-		shares
-		block
-	  }
-	
-	}
-	`
+    query ($first: Int, $skip: Int, $block: Block_height) {
+      lidoSubmissions(
+        first: $first
+        skip: $skip
+        block: $block
+        where: { sender: "${address}" }
+      ) {
+        amount
+        shares
+        block
+      }
+    }
+  `
 
   const transfersInboundQuery = gql`
-	query ($first: Int, $skip: Int) {
-		  lidoTransfers (first: $first, skip: $skip, where: {to: "${address}"}) {
-			shares
-			to
-			block
-		  }
-	}
-	`
+    query ($first: Int, $skip: Int, $block: Block_height) {
+      lidoTransfers(
+        first: $first
+        skip: $skip
+        block: $block
+        where: { to: "${address}" }
+      ) {
+        shares
+        to
+        block
+      }
+    }
+  `
 
   const transfersOutboundQuery = gql`
-	query ($first: Int, $skip: Int) {
-		  lidoTransfers (first: $first, skip: $skip, where: {from: "${address}"}) {
-			shares
-			to
-			block
-		  }
-	}
-	`
-
+    query ($first: Int, $skip: Int, $block: Block_height) {
+      lidoTransfers(
+        first: $first
+        skip: $skip
+        block: $block
+        where: { from: "${address}" }
+      ) {
+        shares
+        to
+        block
+      }
+    }
+  `
   const submissions = (await subgraphFetch(submissionsQuery)).lidoSubmissions
   const transfersInbound = (await subgraphFetch(transfersInboundQuery))
     .lidoTransfers

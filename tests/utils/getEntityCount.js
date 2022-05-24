@@ -2,8 +2,8 @@ import { gql } from 'graphql-request'
 import { subgraphFetch } from './index.js'
 
 const genQuery = (entityName) => gql`
-  query ($first: Int, $skip: Int) {
-    ${entityName}(first: $first, skip: $skip, orderBy: block, orderDirection: desc) {
+  query ($first: Int, $skip: Int, $block: Block_height) {
+    ${entityName}(first: $first, skip: $skip, block: $block, orderBy: block, orderDirection: desc) {
       id
     }
   }

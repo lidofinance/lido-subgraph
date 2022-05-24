@@ -3,8 +3,8 @@ import { subgraphFetch } from './index.js'
 
 // We can fetch only 1000 entities in one request
 const totalsQuery = gql`
-  query {
-    totals(id: "") {
+  query ($block: Block_height) {
+    totals(id: "", block: $block) {
       totalPooledEther
       totalShares
     }
