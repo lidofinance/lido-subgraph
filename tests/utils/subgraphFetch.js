@@ -38,6 +38,13 @@ export const subgraphFetch = async (query, vars = {}) => {
 
     results = results ? mergeObjects([results, res]) : res
 
+    // Breaking if there is exactly SKIP_STEP items and new results are now empty
+    // Still adding an empty key to the result above
+    const value = res[Object.keys(res)[0]]
+    if (Array.isArray(value) && !value.length) {
+      break
+    }
+
     // Exit if we don't need to pull all available data
     if (vars?.first || vars?.skip) {
       break
