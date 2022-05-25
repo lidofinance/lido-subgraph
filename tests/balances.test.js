@@ -1,7 +1,7 @@
 import {
   lidoFuncCall,
   getTestAddresses,
-  calculateShares,
+  loadAddressShares,
   getTotals,
   BigNumber,
 } from './utils/index.js'
@@ -20,7 +20,8 @@ test(
       console.log(address)
 
       const { totalPooledEther, totalShares } = await getTotals(address)
-      const shares = await calculateShares(address)
+
+      const shares = await loadAddressShares(address)
 
       const subgraphBalance = BigNumber.from(shares)
         .mul(totalPooledEther)
