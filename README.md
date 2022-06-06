@@ -28,7 +28,8 @@ https://api.thegraph.com/subgraphs/name/lidofinance/lido-testnet
 - Lido Oracle
 - Node Operator Registry
 - Voting
-- Easytrack
+- EasyTrack
+- Deposit Security Module
 
 ## Developing
 
