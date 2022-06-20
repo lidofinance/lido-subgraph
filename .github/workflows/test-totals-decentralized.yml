@@ -2,7 +2,7 @@ name: Test Totals Decentralized
 
 on:
   schedule:
-    - cron: '0 5 * * *'
+    - cron: '0 12 * * *'
   workflow_dispatch:
 
 jobs:
