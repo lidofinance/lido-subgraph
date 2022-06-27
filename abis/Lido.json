@@ -1,5 +1,13 @@
 [
   {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "beaconValidators", "type": "uint256" }
+    ],
+    "name": "BeaconValidatorsUpdated",
+    "type": "event"
+  },
+  {
     "constant": false,
     "inputs": [
       {

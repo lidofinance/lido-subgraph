@@ -12,7 +12,6 @@ import {
   Unbuffered,
   Withdrawal,
   BurnSharesCall,
-  SetValidatorsNumberCall,
   MevTxFeeReceived,
 } from '../generated/Lido/Lido'
 import {
@@ -472,9 +471,7 @@ export function handleBurnShares(call: BurnSharesCall): void {
   totals.save()
 }
 
-export function handleSetValidatorsNumber(
-  _call: SetValidatorsNumberCall
-): void {
+export function resetTotalPooledEther(): void {
   let contract = loadLidoContract()
   let realPooledEther = contract.getTotalPooledEther()
 
