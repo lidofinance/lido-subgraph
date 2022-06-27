@@ -183,45 +183,60 @@ type OracleCompleted @entity {
   transactionHash: Bytes!
 }
 
+"""
+Main entity for daily rewards
+"""
 type TotalReward @entity {
   id: ID!
 
+  "Total user rewards"
   totalRewards: BigInt!
+  "Total user rewards + fees"
   totalRewardsWithFees: BigInt!
 
+  "Fees received via validator MEV"
   mevFee: BigInt
 
+  "Fee basis points eg fractions of total fees"
   feeBasis: BigInt!
   treasuryFeeBasisPoints: BigInt!
   insuranceFeeBasisPoints: BigInt!
   operatorsFeeBasisPoints: BigInt!
 
+  "Fees and leftover dust after rounding"
   totalFee: BigInt!
   nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
   insuranceFee: BigInt
   treasuryFee: BigInt
   dust: BigInt
 
+  "Total shares that were minted for distribution"
   shares2mint: BigInt!
 
+  "Shares distributed to each destination"
   sharesToTreasury: BigInt!
   sharesToInsuranceFund: BigInt!
   sharesToOperators: BigInt!
   nodeOperatorsShares: [NodeOperatorsShares!] @derivedFrom(field: "totalReward")
   dustSharesToTreasury: BigInt!
 
+  "State of the pool before and after rewards"
   totalPooledEtherBefore: BigInt!
   totalPooledEtherAfter: BigInt!
   totalSharesBefore: BigInt!
   totalSharesAfter: BigInt!
 
+  "Data for easy APR calculations"
   postTotalPooledEther: BigInt
   preTotalPooledEther: BigInt
   timeElapsed: BigInt
   totalShares: BigInt
 
+  "Raw APR from validator balances"
   aprRaw: BigDecimal!
+  "Time-compensated APR eg account for a missed day of rewards between reports"
   aprBeforeFees: BigDecimal
+  "User APR after fees and time correction"
   apr: BigDecimal!
 
   block: BigInt!
