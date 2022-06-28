@@ -13,7 +13,7 @@ jobs:
         with:
           require: 'admin'
       - name: Fail if unauthorized
-        if: steps.checkUser.outputs.check-result == 'false'
+        if: steps.checkUser.outputs.check-result == false
         run: exit 1
       - uses: actions/checkout@v2
       - name: Install Graph cli and deploy
