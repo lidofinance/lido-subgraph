@@ -1,23 +1,34 @@
-import fs from 'fs'
+import { gql, request } from 'graphql-request'
 import ethers from 'ethers'
 import { jest } from '@jest/globals'
 
-const BILLING_CONTRACT_ADDRESS = '0x10829DB618E6F520Fa3A01c75bC6dDf8722fA9fE'
 const LIDO_ADDRESS = process.env.THEGRAPH_BILLING_ADDRESS
 const THRESHOLD_ETH = 1 * 1000 // 1k GRT
+const BILLING_SUBGRAPH =
+  'https://api.thegraph.com/subgraphs/name/graphprotocol/billing'
 
 jest.setTimeout(10000)
 
 jest.retryTimes(3)
 
-test('The Graph balance check', async () => {
-  const provider = new ethers.providers.JsonRpcProvider(
-    'https://polygon-rpc.com'
-  )
-  const abi = JSON.parse(fs.readFileSync('abis/Billing.json'))
-  const contract = new ethers.Contract(BILLING_CONTRACT_ADDRESS, abi, provider)
-  const balanceWei = await contract.userBalances(LIDO_ADDRESS)
-  const balanceEth = balanceWei.div(ethers.constants.WeiPerEther).toNumber()
+const balanceQuery = gql`
+  query billingAccount($id: ID!, $block: Block_height) {
+    user(id: $id, block: $block) {
+      id
+      billingBalance
+      polygonGRTBalance
+    }
+  }
+`
 
-  expect(balanceEth).toBeGreaterThan(THRESHOLD_ETH)
+test('The Graph balance check', async () => {
+  const res = await request(BILLING_SUBGRAPH, balanceQuery, {
+    // Don't use checksummed addresses here as they are not checksummed in Subgraphs
+    id: LIDO_ADDRESS.toLowerCase(),
+  })
+
+  const rawBalance = ethers.BigNumber.from(res.user.billingBalance)
+  const balance = rawBalance.div(ethers.constants.WeiPerEther).toNumber()
+
+  expect(balance).toBeGreaterThan(THRESHOLD_ETH)
 })
