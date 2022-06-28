@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploying to The Graph
     steps:
+      - uses: lidofinance/check-user-permission@v2.0.1
+        with:
+          require: 'admin'
       - uses: actions/checkout@v2
       - name: Install Graph cli and deploy
         uses: actions/setup-node@v2

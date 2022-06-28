@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to the decentralized Graph network
     steps:
+      - uses: lidofinance/check-user-permission@v2.0.1
+        with:
+          require: 'admin'
       - uses: actions/checkout@v2
       - name: Install Graph cli and deploy
         uses: actions/setup-node@v2
