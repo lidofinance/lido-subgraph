@@ -8,13 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploying to The Graph
     steps:
-      - uses: lidofinance/check-user-permission@v2.0.1
-        id: checkUser
+      - uses: lidofinance/check-user-permission@v3
         with:
           require: 'admin'
-      - name: Fail if unauthorized
-        if: ${{ steps.checkUser.outputs.check-result == 'false' }}
-        run: exit 1
       - uses: actions/checkout@v2
       - name: Install Graph cli and deploy
         uses: actions/setup-node@v2
