@@ -67,6 +67,8 @@ export function handleDepositsUnpaused(event: DepositsUnpaused): void {
 export function handleGuardianAdded(event: GuardianAdded): void {
   let entity = new Guardian(event.params.guardian.toHexString())
 
+  entity.address = event.params.guardian
+
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
   entity.transactionHash = event.block.hash
