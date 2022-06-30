@@ -1,6 +1,6 @@
 module.exports = {
   transform: {},
   setupFiles: ['dotenv/config'],
-  setupFilesAfterEnv: ['./tests/globalBlockSetup.js'],
+  setupFilesAfterEnv: ['./tests/globalSetup.js'],
   reporters: ['./tests/reporter.js'],
 }

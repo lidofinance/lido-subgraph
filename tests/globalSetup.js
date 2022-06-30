@@ -1,10 +1,17 @@
 import { GRAPH, RPC } from './config.js'
-import { getLastIndexedBlock, getRpcNetwork } from './utils/index.js'
+import {
+  getLastIndexedBlock,
+  getRpcNetwork,
+  checkIfLimited,
+} from './utils/index.js'
 
 if (GRAPH) {
   process.env.BLOCK = await getLastIndexedBlock()
+  process.env.LIMITED = await checkIfLimited()
 } else {
-  console.info('BLOCK env was not set as there is no GRAPH provided.')
+  console.info(
+    'BLOCK and LIMITED env was not set as there is no GRAPH provided.'
+  )
 }
 
 if (RPC) {

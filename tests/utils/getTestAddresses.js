@@ -1,10 +1,11 @@
 import { subgraphFetch } from './index.js'
-import { getIsMainnet } from '../config.js'
+import { getIsMainnet, getLimited } from '../config.js'
 
 import { gql } from 'graphql-request'
 
 // Enough for random selection, saves us from brute forcing entity amount
-const MAX = 200000
+const MAX_LIMITED = 6000
+const MAX_UNLIMITED = 200000
 
 const IMPORTANT_ADDRESSES = [
   // Lido Treasury (Aragon Agent)
@@ -31,7 +32,8 @@ const genQuery = (first, skip) => gql`
 `
 
 export const getTestAddresses = async (amount = 30, skipImportant = false) => {
-  const maxSkip = MAX - amount
+  const max = getLimited() ? MAX_LIMITED : MAX_UNLIMITED
+  const maxSkip = max - amount
   const randomSkip = Math.floor(Math.random() * maxSkip)
 
   const query = genQuery(amount, randomSkip)

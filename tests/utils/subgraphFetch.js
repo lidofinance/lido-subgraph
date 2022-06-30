@@ -1,8 +1,9 @@
 import { request } from 'graphql-request'
-import { GRAPH, getBlock } from '../config.js'
+import { GRAPH, getBlock, getLimited } from '../config.js'
 
 const FETCH_STEP = 1000
 const SKIP_STEP = 1000
+const HOSTED_LIMIT = 6000
 
 // Add fixed block if not set already
 const mbAddFixedBlock = (vars) => {
@@ -40,7 +41,7 @@ export const subgraphFetch = async (query, vars = {}) => {
 
     // Breaking if there is exactly SKIP_STEP items and new results are now empty
     // Still adding an empty key to the result above
-    const value = res[Object.keys(res)[0]]
+    const value = Object.values(res)[0]
     if (Array.isArray(value) && !value.length) {
       break
     }
@@ -51,11 +52,15 @@ export const subgraphFetch = async (query, vars = {}) => {
     }
 
     skip += SKIP_STEP
+
+    if (getLimited() && skip >= HOSTED_LIMIT) {
+      break
+    }
   } while (
     // Items should exist at all
-    results[Object.keys(results)[0]].length &&
+    Object.values(results)[0].length &&
     // More items should exist
-    results[Object.keys(results)[0]].length % SKIP_STEP === 0
+    Object.values(results)[0].length % SKIP_STEP === 0
   )
 
   return results
