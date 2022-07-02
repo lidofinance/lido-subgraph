@@ -4,7 +4,7 @@ import { getIsMainnet, getLimited } from '../config.js'
 import { gql } from 'graphql-request'
 
 // Enough for random selection, saves us from brute forcing entity amount
-const MAX_LIMITED = 6000
+const MAX_LIMITED = 5000
 const MAX_UNLIMITED = 200000
 
 const IMPORTANT_ADDRESSES = [
