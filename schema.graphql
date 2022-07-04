@@ -366,6 +366,7 @@ type Voting @entity {
   executed: Boolean!
 
   votes: [Vote!]! @derivedFrom(field: "voting")
+  objections: [VotingObjection!]! @derivedFrom(field: "voting")
 }
 
 type Vote @entity {
@@ -374,6 +375,14 @@ type Vote @entity {
   voting: Voting!
   voter: Bytes!
   supports: Boolean!
+  stake: BigInt!
+}
+
+type VotingObjection @entity {
+  id: ID!
+
+  voting: Voting!
+  voter: Bytes!
   stake: BigInt!
 }
 
@@ -387,6 +396,18 @@ type ChangedMinQuorum @entity {
   id: ID!
 
   minAcceptQuorumPct: BigInt!
+}
+
+type ChangedVoteTime @entity {
+  id: ID!
+
+  voteTime: BigInt!
+}
+
+type ChangedObjectionPhaseTime @entity {
+  id: ID!
+
+  objectionPhaseTime: BigInt!
 }
 
 """

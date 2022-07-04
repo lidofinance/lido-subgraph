@@ -1,15 +1,21 @@
 import {
   StartVote,
   CastVote,
+  CastObjection,
   ExecuteVote,
   ChangeSupportRequired,
   ChangeMinQuorum,
+  ChangeVoteTime,
+  ChangeObjectionPhaseTime,
 } from '../generated/Voting/Voting'
 import {
   Voting,
   Vote,
+  VotingObjection,
   ChangedSupportRequired,
   ChangedMinQuorum,
+  ChangedVoteTime,
+  ChangedObjectionPhaseTime,
 } from '../generated/schema'
 
 export function handleStartVote(event: StartVote): void {
@@ -31,6 +37,18 @@ export function handleCastVote(event: CastVote): void {
   entity.voting = event.params.voteId.toString()
   entity.voter = event.params.voter
   entity.supports = event.params.supports
+  entity.stake = event.params.stake
+
+  entity.save()
+}
+
+export function handleCastObjection(event: CastObjection): void {
+  let entity = new VotingObjection(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.voting = event.params.voteId.toString()
+  entity.voter = event.params.voter
   entity.stake = event.params.stake
 
   entity.save()
@@ -68,6 +86,28 @@ export function handleChangeMinQuorum(event: ChangeMinQuorum): void {
   )
 
   entity.minAcceptQuorumPct = event.params.minAcceptQuorumPct
+
+  entity.save()
+}
+
+export function handleChangeVoteTime(event: ChangeVoteTime): void {
+  let entity = new ChangedVoteTime(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.voteTime = event.params.voteTime
+
+  entity.save()
+}
+
+export function handleChangeObjectionPhaseTime(
+  event: ChangeObjectionPhaseTime
+): void {
+  let entity = new ChangedObjectionPhaseTime(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.objectionPhaseTime = event.params.objectionPhaseTime
 
   entity.save()
 }

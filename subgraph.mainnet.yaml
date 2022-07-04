@@ -172,12 +172,18 @@ dataSources:
           handler: handleStartVote
         - event: CastVote(indexed uint256,indexed address,bool,uint256)
           handler: handleCastVote
+        - event: CastObjection(indexed uint256,indexed address,uint256)
+          handler: handleCastObjection
         - event: ExecuteVote(indexed uint256)
           handler: handleExecuteVote
         - event: ChangeSupportRequired(uint64)
           handler: handleChangeSupportRequired
         - event: ChangeMinQuorum(uint64)
           handler: handleChangeMinQuorum
+        - event: ChangeVoteTime(uint64)
+          handler: handleChangeVoteTime
+        - event: ChangeObjectionPhaseTime(uint64)
+          handler: handleChangeObjectionPhaseTime
       file: ./src/Voting.ts
   - kind: ethereum/contract
     name: Easytrack
