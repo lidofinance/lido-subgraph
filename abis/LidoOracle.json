@@ -116,6 +116,26 @@
     "type": "function"
   },
   {
+    "constant": false,
+    "inputs": [
+      { "name": "_lido", "type": "address" },
+      { "name": "_epochsPerFrame", "type": "uint64" },
+      { "name": "_slotsPerEpoch", "type": "uint64" },
+      { "name": "_secondsPerSlot", "type": "uint64" },
+      { "name": "_genesisTime", "type": "uint64" },
+      {
+        "name": "_allowedBeaconBalanceAnnualRelativeIncrease",
+        "type": "uint256"
+      },
+      { "name": "_allowedBeaconBalanceRelativeDecrease", "type": "uint256" }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "constant": true,
     "inputs": [],
     "name": "getLido",
@@ -131,6 +151,15 @@
     "outputs": [{ "name": "", "type": "bytes32" }],
     "payable": false,
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "finalizeUpgrade_v3",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -202,21 +231,6 @@
     "outputs": [{ "name": "", "type": "uint256" }],
     "payable": false,
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": false,
-    "inputs": [
-      {
-        "name": "_allowedBeaconBalanceAnnualRelativeIncrease",
-        "type": "uint256"
-      },
-      { "name": "_allowedBeaconBalanceRelativeDecrease", "type": "uint256" }
-    ],
-    "name": "initialize_v2",
-    "outputs": [],
-    "payable": false,
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
