@@ -164,6 +164,9 @@ dataSources:
         - Vote
         - ChangedSupportRequired
         - ChangedMinQuorum
+        - VotingObjection
+        - ChangedVoteTime
+        - ChangedObjectionPhaseTime
       abis:
         - name: Voting
           file: ./abis/Voting.json
