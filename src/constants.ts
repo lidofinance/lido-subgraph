@@ -47,6 +47,10 @@ export const getOraclePeriod = (): BigInt =>
 Addresses
 **/
 
+export const ZERO_ADDRESS = Address.fromString(
+  '0x0000000000000000000000000000000000000000'
+)
+
 const LIDO_ADDRESSES = new TypedMap<string, string>()
 LIDO_ADDRESSES.set('mainnet', '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84')
 LIDO_ADDRESSES.set('goerli', '0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F')

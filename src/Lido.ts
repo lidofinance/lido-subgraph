@@ -1,4 +1,4 @@
-import { Address, BigInt } from '@graphprotocol/graph-ts'
+import { BigInt } from '@graphprotocol/graph-ts'
 import { store } from '@graphprotocol/graph-ts'
 import {
   Stopped,
@@ -37,7 +37,13 @@ import {
 
 import { loadLidoContract, loadNosContract } from './contracts'
 
-import { ZERO, getAddress, ONE, CALCULATION_UNIT } from './constants'
+import {
+  ZERO,
+  getAddress,
+  ONE,
+  CALCULATION_UNIT,
+  ZERO_ADDRESS,
+} from './constants'
 
 import { wcKeyCrops } from './wcKeyCrops'
 
@@ -79,9 +85,7 @@ export function handleTransfer(event: Transfer): void {
   entity.logIndex = event.logIndex
   entity.transactionLogIndex = event.transactionLogIndex
 
-  let fromZeros =
-    event.params.from ==
-    Address.fromString('0x0000000000000000000000000000000000000000')
+  let fromZeros = event.params.from == ZERO_ADDRESS
 
   let totalRewardsEntity = TotalReward.load(event.transaction.hash)
 
