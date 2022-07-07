@@ -32,6 +32,15 @@
     "type": "function"
   },
   {
+    "constant": false,
+    "inputs": [{ "name": "_id", "type": "uint256" }],
+    "name": "disableNodeOperator",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "constant": true,
     "inputs": [],
     "name": "getRecoveryVault",
@@ -422,6 +431,15 @@
     "inputs": [],
     "name": "isPetrified",
     "outputs": [{ "name": "", "type": "bool" }],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "MAX_NODE_OPERATORS_COUNT",
+    "outputs": [{ "name": "", "type": "uint256" }],
     "payable": false,
     "stateMutability": "view",
     "type": "function"
