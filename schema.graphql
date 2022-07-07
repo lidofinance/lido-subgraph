@@ -67,7 +67,7 @@ type LidoFeeDistribution @entity {
 }
 
 type LidoWithdrawalCredential @entity {
-  id: ID!
+  id: Bytes!
 
   withdrawalCredentials: Bytes!
 
@@ -148,13 +148,13 @@ type Stats @entity {
 }
 
 type Shares @entity {
-  id: ID!
+  id: Bytes!
 
   shares: BigInt!
 }
 
 type Holder @entity {
-  id: ID!
+  id: Bytes!
 
   address: Bytes!
 }
@@ -187,7 +187,7 @@ type OracleCompleted @entity {
 Main entity for daily rewards
 """
 type TotalReward @entity {
-  id: ID!
+  id: Bytes!
 
   "Total user rewards"
   totalRewards: BigInt!
@@ -247,7 +247,7 @@ type TotalReward @entity {
 }
 
 type OracleMember @entity {
-  id: ID!
+  id: Bytes!
 
   member: Bytes!
   removed: Boolean!
@@ -314,7 +314,7 @@ type BeaconReportReceiver @entity {
 NodeOperatorsRegistry
 """
 type NodeOperatorSigningKey @entity {
-  id: ID!
+  id: Bytes!
 
   operatorId: BigInt!
   pubkey: Bytes!

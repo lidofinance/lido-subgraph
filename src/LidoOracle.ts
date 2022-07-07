@@ -126,7 +126,7 @@ export function handleCompleted(event: Completed): void {
 
   // Create an empty TotalReward entity that will be filled on Transfer events
   // We know that in this transaction there will be Transfer events which we can identify by existence of TotalReward entity with transaction hash as its id
-  let totalRewardsEntity = new TotalReward(event.transaction.hash.toHex())
+  let totalRewardsEntity = new TotalReward(event.transaction.hash)
 
   // Saving meta values
   totalRewardsEntity.block = event.block.number
@@ -218,7 +218,7 @@ export function handleCompleted(event: Completed): void {
     let nodeOperatorsShares = new NodeOperatorsShares(
       event.transaction.hash.toHex() + '-' + addr.toHexString()
     )
-    nodeOperatorsShares.totalReward = event.transaction.hash.toHex()
+    nodeOperatorsShares.totalReward = event.transaction.hash
 
     nodeOperatorsShares.address = addr
     nodeOperatorsShares.shares = shares
@@ -282,7 +282,7 @@ export function handleCompleted(event: Completed): void {
 }
 
 export function handleMemberAdded(event: MemberAdded): void {
-  let entity = new OracleMember(event.params.member.toHexString())
+  let entity = new OracleMember(event.params.member)
 
   entity.member = event.params.member
   entity.removed = false
@@ -291,10 +291,10 @@ export function handleMemberAdded(event: MemberAdded): void {
 }
 
 export function handleMemberRemoved(event: MemberRemoved): void {
-  let entity = OracleMember.load(event.params.member.toHexString())
+  let entity = OracleMember.load(event.params.member)
 
   if (entity == null) {
-    entity = new OracleMember(event.params.member.toHexString())
+    entity = new OracleMember(event.params.member)
   }
 
   entity.removed = true
@@ -326,7 +326,7 @@ export function handleContractVersionSet(event: ContractVersionSet): void {
 }
 
 export function handlePostTotalShares(event: PostTotalShares): void {
-  let entity = TotalReward.load(event.transaction.hash.toHex())
+  let entity = TotalReward.load(event.transaction.hash)
 
   if (!entity) {
     return

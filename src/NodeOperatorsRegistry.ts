@@ -18,7 +18,7 @@ import {
 } from '../generated/schema'
 
 export function handleSigningKeyAdded(event: SigningKeyAdded): void {
-  let entity = new NodeOperatorSigningKey(event.params.pubkey.toHexString())
+  let entity = new NodeOperatorSigningKey(event.params.pubkey)
 
   entity.operatorId = event.params.operatorId
   entity.pubkey = event.params.pubkey
@@ -30,10 +30,10 @@ export function handleSigningKeyAdded(event: SigningKeyAdded): void {
 }
 
 export function handleSigningKeyRemoved(event: SigningKeyRemoved): void {
-  let entity = NodeOperatorSigningKey.load(event.params.pubkey.toHexString())
+  let entity = NodeOperatorSigningKey.load(event.params.pubkey)
 
   if (entity == null) {
-    entity = new NodeOperatorSigningKey(event.params.pubkey.toHexString())
+    entity = new NodeOperatorSigningKey(event.params.pubkey)
     entity.pubkey = event.params.pubkey
   }
 

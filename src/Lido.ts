@@ -83,7 +83,7 @@ export function handleTransfer(event: Transfer): void {
     event.params.from ==
     Address.fromString('0x0000000000000000000000000000000000000000')
 
-  let totalRewardsEntity = TotalReward.load(event.transaction.hash.toHex())
+  let totalRewardsEntity = TotalReward.load(event.transaction.hash)
 
   // We know that for rewards distribution shares are minted with same from 0x0 address as staking
   // We can save this indicator which helps us distinguish such mints from staking events
@@ -159,7 +159,7 @@ export function handleTransfer(event: Transfer): void {
     )
 
     // Reference to TotalReward entity
-    nodeOperatorFees.totalReward = event.transaction.hash.toHex()
+    nodeOperatorFees.totalReward = event.transaction.hash
 
     nodeOperatorFees.address = event.params.to
     nodeOperatorFees.fee = event.params.value
@@ -179,11 +179,11 @@ export function handleTransfer(event: Transfer): void {
     // Decreasing from address shares
     // No point in changing 0x0 shares
     if (!fromZeros) {
-      let sharesFromEntity = Shares.load(event.params.from.toHexString())
+      let sharesFromEntity = Shares.load(event.params.from)
       // Address must already have shares, HOWEVER:
       // Someone can and managed to produce events of 0 to 0 transfers
       if (!sharesFromEntity) {
-        sharesFromEntity = new Shares(event.params.from.toHexString())
+        sharesFromEntity = new Shares(event.params.from)
         sharesFromEntity.shares = ZERO
       }
 
@@ -200,10 +200,10 @@ export function handleTransfer(event: Transfer): void {
     }
 
     // Increasing to address shares
-    let sharesToEntity = Shares.load(event.params.to.toHexString())
+    let sharesToEntity = Shares.load(event.params.to)
 
     if (!sharesToEntity) {
-      sharesToEntity = new Shares(event.params.to.toHexString())
+      sharesToEntity = new Shares(event.params.to)
       sharesToEntity.shares = ZERO
     }
 
@@ -223,12 +223,12 @@ export function handleTransfer(event: Transfer): void {
 
   // Saving recipient address as a unique stETH holder
   if (event.params.value.gt(ZERO)) {
-    let holder = Holder.load(event.params.to.toHexString())
+    let holder = Holder.load(event.params.to)
 
     let holderExists = !!holder
 
     if (!holder) {
-      holder = new Holder(event.params.to.toHexString())
+      holder = new Holder(event.params.to)
       holder.address = event.params.to
       holder.save()
     }
@@ -309,9 +309,7 @@ export function handleFeeDistributionSet(event: FeeDistributionSet): void {
 export function handleWithdrawalCredentialsSet(
   event: WithdrawalCredentialsSet
 ): void {
-  let entity = new LidoWithdrawalCredential(
-    event.params.withdrawalCredentials.toHexString()
-  )
+  let entity = new LidoWithdrawalCredential(event.params.withdrawalCredentials)
 
   entity.withdrawalCredentials = event.params.withdrawalCredentials
 
@@ -382,10 +380,10 @@ export function handleSubmit(event: Submitted): void {
   entity.shares = shares
 
   // Increasing address shares
-  let sharesEntity = Shares.load(event.params.sender.toHexString())
+  let sharesEntity = Shares.load(event.params.sender)
 
   if (!sharesEntity) {
-    sharesEntity = new Shares(event.params.sender.toHexString())
+    sharesEntity = new Shares(event.params.sender)
     sharesEntity.shares = ZERO
   }
 
@@ -462,7 +460,7 @@ export function handleBurnShares(call: BurnSharesCall): void {
   let sharesAmount = call.inputs._sharesAmount
   let newTotalShares = call.outputs.newTotalShares
 
-  let shares = Shares.load(address.toHexString())!
+  let shares = Shares.load(address)!
   shares.shares = shares.shares.minus(sharesAmount)
   shares.save()
 
@@ -491,11 +489,11 @@ Order of events:
 BeaconReported -> Completed -> MevTxFeeReceived
 **/
 export function handleMevTxFeeReceived(event: MevTxFeeReceived): void {
-  let totalRewardsEntity = TotalReward.load(event.transaction.hash.toHex())
+  let totalRewardsEntity = TotalReward.load(event.transaction.hash)
 
   // Construct TotalReward if there were no basic rewards but there are MEV rewards
   if (!totalRewardsEntity) {
-    totalRewardsEntity = new TotalReward(event.transaction.hash.toHex())
+    totalRewardsEntity = new TotalReward(event.transaction.hash)
 
     totalRewardsEntity.totalRewardsWithFees = ZERO
     totalRewardsEntity.totalRewards = ZERO
@@ -590,7 +588,7 @@ export function handleMevTxFeeReceived(event: MevTxFeeReceived): void {
     let nodeOperatorsShares = new NodeOperatorsShares(
       event.transaction.hash.toHex() + '-' + addr.toHexString()
     )
-    nodeOperatorsShares.totalReward = event.transaction.hash.toHex()
+    nodeOperatorsShares.totalReward = event.transaction.hash
 
     nodeOperatorsShares.address = addr
     nodeOperatorsShares.shares = shares
