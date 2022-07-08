@@ -35,4 +35,4 @@ jobs:
       - run: yarn install --immutable
       - run: graph codegen subgraph.mainnet.yaml
       - run: graph build subgraph.mainnet.yaml
-      - run: graph deploy --studio --deploy-key ${{ secrets.THEGRAPH_DECENTRALIZED_TOKEN }} --version-label ${{ github.event.inputs.version }} lidofinance/lido subgraph.mainnet.yaml
+      - run: graph deploy --studio --deploy-key ${{ secrets.THEGRAPH_DECENTRALIZED_TOKEN }} --version-label ${{ github.event.inputs.version }} lido subgraph.mainnet.yaml
