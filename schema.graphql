@@ -168,6 +168,62 @@ type CurrentFees @entity {
   operatorsFeeBasisPoints: BigInt
 }
 
+type ELRewardsVaultSet @entity(immutable: true) {
+  id: ID!
+
+  executionLayerRewardsVault: Bytes!
+}
+
+type ELRewardsWithdrawalLimitSet @entity(immutable: true) {
+  id: ID!
+
+  limitPoints: BigInt!
+}
+
+type ProtocolContactsSet @entity(immutable: true) {
+  id: ID!
+
+  insuranceFund: Bytes!
+  oracle: Bytes!
+  treasury: Bytes!
+}
+
+type StakingLimitRemove @entity(immutable: true) {
+  id: ID!
+}
+
+type StakingLimitSet @entity(immutable: true) {
+  id: ID!
+
+  maxStakeLimit: BigInt!
+  stakeLimitIncreasePerBlock: BigInt!
+}
+
+type StakingResume @entity(immutable: true) {
+  id: ID!
+}
+
+type StakingPause @entity(immutable: true) {
+  id: ID!
+}
+
+type SharesTransfer @entity(immutable: true) {
+  id: ID!
+
+  from: Bytes!
+  sharesValue: BigInt!
+  to: Bytes!
+}
+
+type SharesBurn @entity(immutable: true) {
+  id: ID!
+
+  account: Bytes!
+  postRebaseTokenAmount: BigInt!
+  preRebaseTokenAmount: BigInt!
+  sharesAmount: BigInt!
+}
+
 """
 LidoOracle
 """

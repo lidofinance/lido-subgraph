@@ -24,6 +24,15 @@ dataSources:
         - LidoSubmission
         - LidoUnbuffered
         - LidoWithdrawal
+        - ELRewardsVaultSet
+        - ELRewardsWithdrawalLimitSet
+        - ProtocolContactsSet
+        - StakingLimitRemove
+        - StakingLimitSet
+        - StakingResume
+        - StakingPause
+        - SharesTransfer
+        - SharesBurn
       abis:
         - name: Lido
           file: ./abis/Lido.json
@@ -48,6 +57,26 @@ dataSources:
           handler: handleUnbuffered
         - event: Withdrawal(indexed address,uint256,uint256,indexed bytes32,uint256)
           handler: handleWithdrawal
+        - event: ELRewardsVaultSet(address)
+          handler: handleELRewardsVaultSet
+        - event: ELRewardsReceived(uint256)
+          handler: handleELRewardsReceived
+        - event: ELRewardsWithdrawalLimitSet(uint256)
+          handler: handleELRewardsWithdrawalLimitSet
+        - event: ProtocolContactsSet(address,address,address)
+          handler: handleProtocolContactsSet
+        - event: StakingLimitRemoved()
+          handler: handleStakingLimitRemoved
+        - event: StakingLimitSet(uint256,uint256)
+          handler: handleStakingLimitSet
+        - event: StakingResumed()
+          handler: handleStakingResumed
+        - event: StakingPaused()
+          handler: handleStakingPaused
+        - event: TransferShares(indexed address,indexed address,uint256)
+          handler: handleTransferShares
+        - event: SharesBurnt(indexed address,uint256,uint256,uint256)
+          handler: handleSharesBurnt
       file: ./src/Lido.ts
   - kind: ethereum/contract
     name: LidoOracle

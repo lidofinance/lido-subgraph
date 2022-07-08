@@ -11,7 +11,17 @@ import {
   Submitted,
   Unbuffered,
   Withdrawal,
-  MevTxFeeReceived,
+  ELRewardsReceived,
+  ELRewardsVaultSet as ELRewardsVaultSetEvent,
+  ELRewardsWithdrawalLimitSet as ELRewardsWithdrawalLimitSetEvent,
+  ProtocolContactsSet as ProtocolContactsSetEvent,
+  StakingLimitRemoved,
+  StakingLimitSet as StakingLimitSetEvent,
+  StakingResumed,
+  StakingPaused,
+  TransferShares,
+  SharesBurnt,
+  BeaconValidatorsUpdated,
 } from '../generated/Lido/Lido'
 import {
   LidoStopped,
@@ -32,6 +42,15 @@ import {
   Holder,
   Stats,
   CurrentFees,
+  ELRewardsVaultSet,
+  ELRewardsWithdrawalLimitSet,
+  ProtocolContactsSet,
+  StakingLimitRemove,
+  StakingLimitSet,
+  StakingResume,
+  StakingPause,
+  SharesTransfer,
+  SharesBurn,
 } from '../generated/schema'
 
 import { loadLidoContract, loadNosContract } from './contracts'
@@ -478,9 +497,9 @@ Most logic is the same as in Oracle's handleCompleted.
 TODO: We should not skip TotalReward creation when there are no basic rewards but there are MEV rewards. 
 
 Order of events:
-BeaconReported -> Completed -> MevTxFeeReceived
+BeaconReported -> Completed -> ELRewardsReceived
 **/
-export function handleMevTxFeeReceived(event: MevTxFeeReceived): void {
+export function handleELRewardsReceived(event: ELRewardsReceived): void {
   let totalRewardsEntity = TotalReward.load(event.transaction.hash)
 
   // Construct TotalReward if there were no basic rewards but there are MEV rewards
@@ -598,6 +617,113 @@ export function handleMevTxFeeReceived(event: MevTxFeeReceived): void {
   totalRewardsEntity.dustSharesToTreasury = dustSharesToTreasury
 
   totalRewardsEntity.save()
+}
+
+export function handleELRewardsVaultSet(event: ELRewardsVaultSetEvent): void {
+  let entity = new ELRewardsVaultSet(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.executionLayerRewardsVault = event.params.executionLayerRewardsVault
+
+  entity.save()
+}
+
+export function handleELRewardsWithdrawalLimitSet(
+  event: ELRewardsWithdrawalLimitSetEvent
+): void {
+  let entity = new ELRewardsWithdrawalLimitSet(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.limitPoints = event.params.limitPoints
+
+  entity.save()
+}
+
+export function handleProtocolContactsSet(
+  event: ProtocolContactsSetEvent
+): void {
+  let entity = new ProtocolContactsSet(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.insuranceFund = event.params.insuranceFund
+  entity.oracle = event.params.oracle
+  entity.treasury = event.params.treasury
+
+  entity.save()
+}
+
+export function handleStakingLimitRemoved(event: StakingLimitRemoved): void {
+  let entity = new StakingLimitRemove(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+  entity.save()
+}
+
+export function handleStakingLimitSet(event: StakingLimitSetEvent): void {
+  let entity = new StakingLimitSet(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.maxStakeLimit = event.params.maxStakeLimit
+  entity.stakeLimitIncreasePerBlock = event.params.stakeLimitIncreasePerBlock
+
+  entity.save()
+}
+
+export function handleStakingResumed(event: StakingResumed): void {
+  let entity = new StakingResume(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+  entity.save()
+}
+
+export function handleStakingPaused(event: StakingPaused): void {
+  let entity = new StakingPause(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+  entity.save()
+}
+
+/**
+Not modifying user's shares here as we are doing it when handling transfers.
+**/
+export function handleTransferShares(event: TransferShares): void {
+  let entity = new SharesTransfer(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.from = event.params.from
+  entity.sharesValue = event.params.sharesValue
+  entity.to = event.params.to
+
+  entity.save()
+}
+
+export function handleSharesBurnt(event: SharesBurnt): void {
+  let entity = new SharesBurn(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+
+  entity.account = event.params.account
+  entity.postRebaseTokenAmount = event.params.postRebaseTokenAmount
+  entity.preRebaseTokenAmount = event.params.preRebaseTokenAmount
+  entity.sharesAmount = event.params.sharesAmount
+
+  entity.save()
+
+  let address = event.params.account
+  let sharesAmount = event.params.sharesAmount
+
+  let shares = Shares.load(address)!
+  shares.shares = shares.shares.minus(sharesAmount)
+  shares.save()
+
+  let totals = Totals.load('')!
+  totals.totalShares = totals.totalShares.minus(sharesAmount)
+  totals.save()
 }
 
 /**
