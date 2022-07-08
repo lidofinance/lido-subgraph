@@ -1,5 +1,22 @@
 [
   {
+    "constant": false,
+    "inputs": [{ "name": "_validators", "type": "uint256" }],
+    "name": "setValidatorsNumber",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "name": "beaconValidators", "type": "uint256" }
+    ],
+    "name": "BeaconValidatorsUpdated",
+    "type": "event"
+  },
+  {
     "anonymous": false,
     "inputs": [{ "indexed": false, "name": "amount", "type": "uint256" }],
     "name": "MevTxFeeReceived",

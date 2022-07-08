@@ -35,7 +35,7 @@ dataSources:
         - SharesBurn
       abis:
         - name: Lido
-          file: ./abis/LidoTestnet.json
+          file: ./abis/Lido.json
         - name: NodeOperatorsRegistry
           file: ./abis/NodeOperatorsRegistry.json
       eventHandlers:
@@ -116,7 +116,7 @@ dataSources:
         - name: LidoOracle
           file: ./abis/LidoOracle.json
         - name: Lido
-          file: ./abis/LidoTestnet.json
+          file: ./abis/Lido.json
         - name: NodeOperatorsRegistry
           file: ./abis/NodeOperatorsRegistry.json
       eventHandlers:
