@@ -1,3 +1,4 @@
+import { BigInt, Address } from '@graphprotocol/graph-ts'
 import {
   StartVote,
   CastVote,
@@ -16,7 +17,9 @@ import {
   ChangedMinQuorum,
   ChangedVoteTime,
   ChangedObjectionPhaseTime,
+  Shares,
 } from '../generated/schema'
+import { Totals } from '../generated/schema'
 
 export function handleStartVote(event: StartVote): void {
   let entity = new Voting(event.params.voteId.toString())
@@ -62,6 +65,28 @@ export function handleExecuteVote(event: ExecuteVote): void {
   }
 
   entity.executed = true
+
+  /**
+  Accounting for calling burnShares() on Mainnet as we didn't yet have a proper event.
+  This one-off operation allows us not to enable tracing.
+   **/
+  if (
+    event.transaction.hash.toHexString() ==
+    '0x55eb29bda8d96a9a92295c358edbcef087d09f24bd684e6b4e88b166c99ea6a7'
+  ) {
+    let accToBurn = Address.fromString(
+      '0x3e40d73eb977dc6a537af587d48316fee66e9c8c'
+    )
+    let sharesToSubtract = BigInt.fromString('32145684728326685744')
+
+    let shares = Shares.load(accToBurn)!
+    shares.shares = shares.shares.minus(sharesToSubtract)
+    shares.save()
+
+    let totals = Totals.load('')!
+    totals.totalShares = totals.totalShares.minus(sharesToSubtract)
+    totals.save()
+  }
 
   entity.save()
 }

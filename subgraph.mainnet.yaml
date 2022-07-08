@@ -48,9 +48,6 @@ dataSources:
           handler: handleUnbuffered
         - event: Withdrawal(indexed address,uint256,uint256,indexed bytes32,uint256)
           handler: handleWithdrawal
-      callHandlers:
-        - function: burnShares(address,uint256)
-          handler: handleBurnShares
       file: ./src/Lido.ts
   - kind: ethereum/contract
     name: LidoOracle
@@ -170,6 +167,8 @@ dataSources:
       abis:
         - name: Voting
           file: ./abis/Voting.json
+        - name: Lido
+          file: ./abis/Lido.json
       eventHandlers:
         - event: StartVote(indexed uint256,indexed address,string)
           handler: handleStartVote
