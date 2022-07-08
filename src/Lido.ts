@@ -1,5 +1,5 @@
 import { BigInt } from '@graphprotocol/graph-ts'
-import { store } from '@graphprotocol/graph-ts'
+import { store, ethereum } from '@graphprotocol/graph-ts'
 import {
   Stopped,
   Resumed,
@@ -11,7 +11,6 @@ import {
   Submitted,
   Unbuffered,
   Withdrawal,
-  BurnSharesCall,
   MevTxFeeReceived,
 } from '../generated/Lido/Lido'
 import {
@@ -459,21 +458,10 @@ export function handleWithdrawal(event: Withdrawal): void {
   totals.save()
 }
 
-export function handleBurnShares(call: BurnSharesCall): void {
-  let address = call.inputs._account
-  let sharesAmount = call.inputs._sharesAmount
-  let newTotalShares = call.outputs.newTotalShares
-
-  let shares = Shares.load(address)!
-  shares.shares = shares.shares.minus(sharesAmount)
-  shares.save()
-
-  let totals = Totals.load('')!
-  totals.totalShares = newTotalShares
-  totals.save()
-}
-
-export function resetTotalPooledEther(): void {
+export function handleBeaconValidatorsUpdated(
+  // WARNING: Will break handler without event!
+  _event: BeaconValidatorsUpdated
+): void {
   let contract = loadLidoContract()
   let realPooledEther = contract.getTotalPooledEther()
 
@@ -610,4 +598,26 @@ export function handleMevTxFeeReceived(event: MevTxFeeReceived): void {
   totalRewardsEntity.dustSharesToTreasury = dustSharesToTreasury
 
   totalRewardsEntity.save()
+}
+
+/**
+Handling manual NOs removal on Testnet in txs:
+6014681 0x45b83117a28ba9f6aed3a865004e85aea1e8611998eaef52ca81d47ac43e98d5
+6014696 0x5d37899cce4086d7cdf8590f90761e49cd5dcc5c32aebbf2d9a6b2a1c00152c7
+
+This allows us not to enable tracing.
+**/
+
+export function handleTestnetBlock(block: ethereum.Block): void {
+  if (
+    block.number.toString() == '6014681' ||
+    block.number.toString() == '6014696'
+  ) {
+    let contract = loadLidoContract()
+    let realPooledEther = contract.getTotalPooledEther()
+
+    let totals = Totals.load('')!
+    totals.totalPooledEther = realPooledEther
+    totals.save()
+  }
 }
