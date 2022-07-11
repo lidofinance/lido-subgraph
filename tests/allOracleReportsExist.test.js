@@ -5,4 +5,4 @@ test('allOracleReportsExist', async () => {
   const subgraphNumber = await getEntityCount('oracleCompleteds')
 
   expect(subgraphNumber).toEqual(ethNumber)
-}, 10000)
+}, 20000)
