@@ -103,11 +103,11 @@ export function handleCompleted(event: Completed): void {
   let totalPooledEtherBefore = totals.totalPooledEther
   let totalSharesBefore = totals.totalShares
 
-  let newTotalRewards = newBeaconBalance.minus(rewardBase)
+  let rewards = newBeaconBalance.minus(rewardBase)
 
   // Increasing or decreasing totals
   // newTotalRewards can be negative, can decrease totalPooledEther here
-  let totalPooledEtherAfter = totals.totalPooledEther.plus(newTotalRewards)
+  let totalPooledEtherAfter = totals.totalPooledEther.plus(rewards)
 
   // Special non-contract logic override to handle validator removal
   if (newBeaconValidators.lt(oldBeaconValidators)) {
@@ -117,7 +117,7 @@ export function handleCompleted(event: Completed): void {
   }
 
   // There are no rewards, exit early
-  if (newTotalRewards.le(ZERO)) {
+  if (rewards.le(ZERO)) {
     totals.totalPooledEther = totalPooledEtherAfter
     totals.save()
 
@@ -135,9 +135,9 @@ export function handleCompleted(event: Completed): void {
   totalRewardsEntity.logIndex = event.logIndex
   totalRewardsEntity.transactionLogIndex = event.transactionLogIndex
 
-  totalRewardsEntity.totalRewardsWithFees = newTotalRewards
+  totalRewardsEntity.totalRewardsWithFees = rewards
   // Setting totalRewards to totalRewardsWithFees so we can subtract fees from it
-  totalRewardsEntity.totalRewards = newTotalRewards
+  totalRewardsEntity.totalRewards = rewards
   // Setting initial 0 values so we can add fees to it
   totalRewardsEntity.totalFee = ZERO
   totalRewardsEntity.operatorsFee = ZERO
@@ -148,13 +148,13 @@ export function handleCompleted(event: Completed): void {
   let feeBasis = currentFees.feeBasisPoints! // 1000
 
   // Overall shares for all rewards cut
-  let shares2mint = newTotalRewards
+  let shares2mint = rewards
     .times(feeBasis)
     .times(totals.totalShares)
     .div(
       totalPooledEtherAfter
         .times(CALCULATION_UNIT)
-        .minus(feeBasis.times(newTotalRewards))
+        .minus(feeBasis.times(rewards))
     )
 
   let totalSharesAfter = totals.totalShares.plus(shares2mint)
