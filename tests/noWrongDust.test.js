@@ -15,20 +15,20 @@ const dustNullQuery = gql`
   }
 `
 
-test('there is no rewards with null dust', async () => {
+test('there are no rewards with null dust', async () => {
   const totalRewards = (await subgraphFetch(dustNullQuery)).totalRewards
 
   expect(totalRewards).toEqual([])
 })
 
-// If we chose a wrong dust boundary, dust can be mistaken as treasury fee
-const dustBoundaryQuery = gql`
+// Dust should be 0 when there are treasuryFees
+const simultaneousQuery = gql`
   query ($first: Int, $skip: Int, $block: Block_height) {
     totalRewards(
       first: $first
       skip: $skip
       block: $block
-      where: { dust: 0, treasuryFee_not: null }
+      where: { dust_not: 0, treasuryFee_not: 0 }
     ) {
       id
       block
@@ -36,8 +36,8 @@ const dustBoundaryQuery = gql`
   }
 `
 
-test('there is no mismatched dust transactions', async () => {
-  const totalRewards = (await subgraphFetch(dustBoundaryQuery)).totalRewards
+test('there are no txs with both dust and treasuryFee', async () => {
+  const totalRewards = (await subgraphFetch(simultaneousQuery)).totalRewards
 
   expect(totalRewards).toEqual([])
 })
