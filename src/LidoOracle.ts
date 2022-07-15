@@ -138,8 +138,9 @@ export function handleCompleted(event: Completed): void {
   totalRewardsEntity.totalRewardsWithFees = newTotalRewards
   // Setting totalRewards to totalRewardsWithFees so we can subtract fees from it
   totalRewardsEntity.totalRewards = newTotalRewards
-  // Setting initial 0 value so we can add fees to it
+  // Setting initial 0 values so we can add fees to it
   totalRewardsEntity.totalFee = ZERO
+  totalRewardsEntity.operatorsFee = ZERO
 
   let currentFees = CurrentFees.load('')!
 
@@ -175,10 +176,6 @@ export function handleCompleted(event: Completed): void {
   totalRewardsEntity.insuranceFeeBasisPoints = insuranceFeeBasisPoints
   totalRewardsEntity.operatorsFeeBasisPoints = operatorsFeeBasisPoints
 
-  let sharesToTreasury = shares2mint
-    .times(treasuryFeeBasisPoints)
-    .div(CALCULATION_UNIT)
-
   let sharesToInsuranceFund = shares2mint
     .times(insuranceFeeBasisPoints)
     .div(CALCULATION_UNIT)
@@ -187,11 +184,15 @@ export function handleCompleted(event: Completed): void {
     .times(operatorsFeeBasisPoints)
     .div(CALCULATION_UNIT)
 
+  let sharesToTreasury = shares2mint
+    .minus(sharesToInsuranceFund)
+    .minus(sharesToOperators)
+
   totalRewardsEntity.shares2mint = shares2mint
 
-  totalRewardsEntity.sharesToTreasury = sharesToTreasury
   totalRewardsEntity.sharesToInsuranceFund = sharesToInsuranceFund
   totalRewardsEntity.sharesToOperators = sharesToOperators
+  totalRewardsEntity.sharesToTreasury = sharesToTreasury
 
   totalRewardsEntity.totalPooledEtherBefore = totalPooledEtherBefore
   totalRewardsEntity.totalPooledEtherAfter = totalPooledEtherAfter
@@ -227,11 +228,16 @@ export function handleCompleted(event: Completed): void {
   }
 
   // Handling dust (rounding leftovers)
+  //
   // sharesToInsuranceFund are exact
-  // sharesToOperators are with leftovers which we need to account for
-  let dustSharesToTreasury = shares2mint
-    .minus(sharesToInsuranceFund)
-    .minus(sharesToOperatorsActual)
+  // sharesToOperators are exact
+  // sharesToTreasury either:
+  // - contain dust already and dustSharesToTreasury is 0
+  // or
+  // - 0 and there's dust
+  let dustSharesToTreasury = treasuryFeeBasisPoints.equals(ZERO)
+    ? shares2mint.minus(sharesToInsuranceFund).minus(sharesToOperatorsActual)
+    : ZERO
 
   totalRewardsEntity.dustSharesToTreasury = dustSharesToTreasury
 

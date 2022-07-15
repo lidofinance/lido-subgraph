@@ -127,15 +127,22 @@ export function handleTransfer(event: Transfer): void {
 
   // We'll save the entity later
 
+  /**
+  Handling fees, in order:
+  
+  1. Insurance Fund Transfer
+  2. Node Operator Reward Transfers
+  3. Treasury Fund Transfer with remaining dust or just rounding dust
+  **/
+
   let isMintToTreasury = fromZeros && event.params.to == getAddress('Treasury')
 
   // If insuranceFee on totalRewards exists, then next transfer is of dust to treasury
   let insuranceFeeExists =
-    !!totalRewardsEntity && !!totalRewardsEntity.insuranceFee
-  let isDust = isMintToTreasury && insuranceFeeExists
+    !!totalRewardsEntity && totalRewardsEntity.insuranceFee !== null
 
-  if (totalRewardsEntity && isMintToTreasury && !isDust) {
-    // Handling the Insurance Fee transfer event to treasury
+  if (totalRewardsEntity && isMintToTreasury && !insuranceFeeExists) {
+    // Handling the Insurance Fee transfer event
 
     entity.shares = totalRewardsEntity.sharesToInsuranceFund
 
@@ -149,12 +156,22 @@ export function handleTransfer(event: Transfer): void {
     )
 
     totalRewardsEntity.save()
-  } else if (totalRewardsEntity && isMintToTreasury && isDust) {
-    // Handling dust transfer event
+  } else if (totalRewardsEntity && isMintToTreasury && insuranceFeeExists) {
+    // Handling the Treasury Fund transfer event
 
-    entity.shares = totalRewardsEntity.dustSharesToTreasury
+    // Dust exists only when treasuryFeeBasisPoints is 0
+    let currentFees = CurrentFees.load('')!
+    let isDust = currentFees.treasuryFeeBasisPoints!.equals(ZERO)
 
-    totalRewardsEntity.dust = event.params.value
+    if (isDust) {
+      entity.shares = totalRewardsEntity.dustSharesToTreasury
+      totalRewardsEntity.dust = event.params.value
+      totalRewardsEntity.treasuryFee = ZERO
+    } else {
+      entity.shares = totalRewardsEntity.sharesToTreasury
+      totalRewardsEntity.treasuryFee = event.params.value
+      totalRewardsEntity.dust = ZERO
+    }
 
     totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
       event.params.value
@@ -187,6 +204,9 @@ export function handleTransfer(event: Transfer): void {
     nodeOperatorFees.fee = event.params.value
 
     totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
+      event.params.value
+    )
+    totalRewardsEntity.operatorsFee = totalRewardsEntity.operatorsFee.plus(
       event.params.value
     )
     totalRewardsEntity.totalFee = totalRewardsEntity.totalFee.plus(
@@ -496,8 +516,10 @@ Most logic is the same as in Oracle's handleCompleted.
 
 TODO: We should not skip TotalReward creation when there are no basic rewards but there are MEV rewards. 
 
-Order of events:
+Usual order of events:
 BeaconReported -> Completed -> ELRewardsReceived
+
+Accounting for ELRewardsReceived before Completed too for edge cases.
 **/
 export function handleELRewardsReceived(event: ELRewardsReceived): void {
   let totalRewardsEntity = TotalReward.load(event.transaction.hash)
@@ -509,6 +531,7 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
     totalRewardsEntity.totalRewardsWithFees = ZERO
     totalRewardsEntity.totalRewards = ZERO
     totalRewardsEntity.totalFee = ZERO
+    totalRewardsEntity.operatorsFee = ZERO
 
     let currentFees = CurrentFees.load('')!
     totalRewardsEntity.feeBasis = currentFees.feeBasisPoints!
@@ -558,10 +581,6 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
   totals.totalShares = totalSharesAfter
   totals.save()
 
-  let sharesToTreasury = shares2mint
-    .times(totalRewardsEntity.treasuryFeeBasisPoints)
-    .div(CALCULATION_UNIT)
-
   let sharesToInsuranceFund = shares2mint
     .times(totalRewardsEntity.insuranceFeeBasisPoints)
     .div(CALCULATION_UNIT)
@@ -570,11 +589,15 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
     .times(totalRewardsEntity.operatorsFeeBasisPoints)
     .div(CALCULATION_UNIT)
 
+  let sharesToTreasury = shares2mint
+    .minus(sharesToInsuranceFund)
+    .minus(sharesToOperators)
+
   totalRewardsEntity.shares2mint = shares2mint
 
-  totalRewardsEntity.sharesToTreasury = sharesToTreasury
   totalRewardsEntity.sharesToInsuranceFund = sharesToInsuranceFund
   totalRewardsEntity.sharesToOperators = sharesToOperators
+  totalRewardsEntity.sharesToTreasury = sharesToTreasury
 
   totalRewardsEntity.totalPooledEtherAfter = totalPooledEtherAfter
   totalRewardsEntity.totalSharesAfter = totalSharesAfter
@@ -608,11 +631,19 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
   }
 
   // Handling dust (rounding leftovers)
+  //
   // sharesToInsuranceFund are exact
-  // sharesToOperators are with leftovers which we need to account for
-  let dustSharesToTreasury = shares2mint
-    .minus(sharesToInsuranceFund)
-    .minus(sharesToOperatorsActual)
+  // sharesToOperators are exact
+  // sharesToTreasury either:
+  // - contain dust already and dustSharesToTreasury is 0
+  // or
+  // - 0 and there's dust
+
+  let dustSharesToTreasury = totalRewardsEntity.treasuryFeeBasisPoints.equals(
+    ZERO
+  )
+    ? shares2mint.minus(sharesToInsuranceFund).minus(sharesToOperatorsActual)
+    : ZERO
 
   totalRewardsEntity.dustSharesToTreasury = dustSharesToTreasury
 
