@@ -524,6 +524,8 @@ Accounting for ELRewardsReceived before Completed too for edge cases.
 export function handleELRewardsReceived(event: ELRewardsReceived): void {
   let totalRewardsEntity = TotalReward.load(event.transaction.hash)
 
+  let currentFees = CurrentFees.load('')!
+
   // Construct TotalReward if there were no basic rewards but there are MEV rewards
   if (!totalRewardsEntity) {
     totalRewardsEntity = new TotalReward(event.transaction.hash)
@@ -533,7 +535,6 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
     totalRewardsEntity.totalFee = ZERO
     totalRewardsEntity.operatorsFee = ZERO
 
-    let currentFees = CurrentFees.load('')!
     totalRewardsEntity.feeBasis = currentFees.feeBasisPoints!
     totalRewardsEntity.treasuryFeeBasisPoints =
       currentFees.treasuryFeeBasisPoints!
@@ -589,15 +590,10 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
     .times(totalRewardsEntity.operatorsFeeBasisPoints)
     .div(CALCULATION_UNIT)
 
-  let sharesToTreasury = shares2mint
-    .minus(sharesToInsuranceFund)
-    .minus(sharesToOperators)
-
   totalRewardsEntity.shares2mint = shares2mint
 
   totalRewardsEntity.sharesToInsuranceFund = sharesToInsuranceFund
   totalRewardsEntity.sharesToOperators = sharesToOperators
-  totalRewardsEntity.sharesToTreasury = sharesToTreasury
 
   totalRewardsEntity.totalPooledEtherAfter = totalPooledEtherAfter
   totalRewardsEntity.totalSharesAfter = totalSharesAfter
@@ -630,21 +626,23 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
     nodeOperatorsShares.save()
   }
 
-  // Handling dust (rounding leftovers)
-  //
-  // sharesToInsuranceFund are exact
-  // sharesToOperators are exact
   // sharesToTreasury either:
   // - contain dust already and dustSharesToTreasury is 0
   // or
   // - 0 and there's dust
 
-  let dustSharesToTreasury = totalRewardsEntity.treasuryFeeBasisPoints.equals(
-    ZERO
-  )
-    ? shares2mint.minus(sharesToInsuranceFund).minus(sharesToOperatorsActual)
-    : ZERO
+  let treasuryShares = shares2mint
+    .minus(sharesToInsuranceFund)
+    .minus(sharesToOperatorsActual)
 
+  let sharesToTreasury = currentFees.treasuryFeeBasisPoints!.notEqual(ZERO)
+    ? treasuryShares
+    : ZERO
+  totalRewardsEntity.sharesToTreasury = sharesToTreasury
+
+  let dustSharesToTreasury = currentFees.treasuryFeeBasisPoints!.equals(ZERO)
+    ? treasuryShares
+    : ZERO
   totalRewardsEntity.dustSharesToTreasury = dustSharesToTreasury
 
   totalRewardsEntity.save()
@@ -763,6 +761,9 @@ Handling manual NOs removal on Testnet in txs:
 6014696 0x5d37899cce4086d7cdf8590f90761e49cd5dcc5c32aebbf2d9a6b2a1c00152c7
 
 This allows us not to enable tracing.
+
+WARNING:
+If Totals are wrong just before these blocks, then graph-node tracing filter broke again.
 **/
 
 export function handleTestnetBlock(block: ethereum.Block): void {

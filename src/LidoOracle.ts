@@ -90,11 +90,11 @@ export function handleCompleted(event: Completed): void {
    Here we can adjust back totalPooledEther by checking if validator number is going down.
   **/
 
-  // Can become negative and decrease reward base
-  let appearedValidatorsDeposits = appearedValidators.times(DEPOSIT_AMOUNT)
+  let appearedValidatorsDeposits = appearedValidators.gt(ZERO)
+    ? appearedValidators.times(DEPOSIT_AMOUNT)
+    : ZERO
 
-  // appearedValidatorsDeposits can be negative, account for that
-  let rewardBase = appearedValidatorsDeposits.abs().plus(oldBeaconBalance)
+  let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
 
   // Totals are already non-null on first oracle report
   let totals = Totals.load('') as Totals
@@ -106,21 +106,14 @@ export function handleCompleted(event: Completed): void {
   let rewards = newBeaconBalance.minus(rewardBase)
 
   // Increasing or decreasing totals
-  // newTotalRewards can be negative, can decrease totalPooledEther here
   let totalPooledEtherAfter = totals.totalPooledEther.plus(rewards)
 
-  // Special non-contract logic override to handle validator removal
-  if (newBeaconValidators.lt(oldBeaconValidators)) {
-    totalPooledEtherAfter = totalPooledEtherBefore.minus(
-      oldBeaconBalance.minus(newBeaconBalance)
-    )
-  }
-
-  // There are no rewards, exit early
-  if (rewards.le(ZERO)) {
+  // Don’t mint/distribute any protocol fee on the non-profitable Lido oracle report
+  // (when beacon chain balance delta is zero or negative).
+  // See ADR #3 for details: https://research.lido.fi/t/rewards-distribution-after-the-merge-architecture-decision-record/1535
+  if (newBeaconBalance.le(rewardBase)) {
     totals.totalPooledEther = totalPooledEtherAfter
     totals.save()
-
     return
   }
 
@@ -184,15 +177,10 @@ export function handleCompleted(event: Completed): void {
     .times(operatorsFeeBasisPoints)
     .div(CALCULATION_UNIT)
 
-  let sharesToTreasury = shares2mint
-    .minus(sharesToInsuranceFund)
-    .minus(sharesToOperators)
-
   totalRewardsEntity.shares2mint = shares2mint
 
   totalRewardsEntity.sharesToInsuranceFund = sharesToInsuranceFund
   totalRewardsEntity.sharesToOperators = sharesToOperators
-  totalRewardsEntity.sharesToTreasury = sharesToTreasury
 
   totalRewardsEntity.totalPooledEtherBefore = totalPooledEtherBefore
   totalRewardsEntity.totalPooledEtherAfter = totalPooledEtherAfter
@@ -227,18 +215,23 @@ export function handleCompleted(event: Completed): void {
     nodeOperatorsShares.save()
   }
 
-  // Handling dust (rounding leftovers)
-  //
-  // sharesToInsuranceFund are exact
-  // sharesToOperators are exact
   // sharesToTreasury either:
   // - contain dust already and dustSharesToTreasury is 0
   // or
   // - 0 and there's dust
-  let dustSharesToTreasury = treasuryFeeBasisPoints.equals(ZERO)
-    ? shares2mint.minus(sharesToInsuranceFund).minus(sharesToOperatorsActual)
-    : ZERO
 
+  let treasuryShares = shares2mint
+    .minus(sharesToInsuranceFund)
+    .minus(sharesToOperatorsActual)
+
+  let sharesToTreasury = treasuryFeeBasisPoints.notEqual(ZERO)
+    ? treasuryShares
+    : ZERO
+  totalRewardsEntity.sharesToTreasury = sharesToTreasury
+
+  let dustSharesToTreasury = treasuryFeeBasisPoints.equals(ZERO)
+    ? treasuryShares
+    : ZERO
   totalRewardsEntity.dustSharesToTreasury = dustSharesToTreasury
 
   // Calculating APR
