@@ -25,17 +25,17 @@
     "deploy-local-testnet": "env-cmd --use-shell graph deploy --node '$GRAPH_NODE' --ipfs '$GRAPH_IPFS' lidofinance/lido-testnet subgraph.testnet.yaml"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.32.0",
+    "@graphprotocol/graph-cli": "0.33.0",
     "@graphprotocol/graph-ts": "0.27.0"
   },
   "devDependencies": {
-    "@jest/types": "28.1.1",
+    "@jest/types": "28.1.3",
     "dotenv": "16.0.1",
     "env-cmd": "10.1.0",
     "ethers": "5.6.9",
     "graphql": "16.5.0",
     "graphql-request": "4.3.0",
-    "jest": "28.1.2",
+    "jest": "28.1.3",
     "matchstick-as": "0.5.0"
   }
 }
