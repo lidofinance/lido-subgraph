@@ -36,3 +36,5 @@ jobs:
         run: graph codegen subgraph.mainnet.yaml
       - name: Build the Project
         run: graph build subgraph.mainnet.yaml
+      - name: Run Unit Tests
+        run: yarn unit-test

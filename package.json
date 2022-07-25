@@ -14,6 +14,7 @@
     "test:totals": "yarn test:sync && NODE_OPTIONS=--experimental-vm-modules jest tests/totalPooledEth.test.js tests/totalShares.test.js",
     "test:dust": "NODE_OPTIONS=--experimental-vm-modules jest tests/noWrongDust.test.js",
     "test:graphBalance": "NODE_OPTIONS=--experimental-vm-modules yarn jest --testMatch='**/tests/graphBalance.test.off.js'",
+    "unit-test": "graph test",
     "deploy": "graph deploy --product hosted-service --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido subgraph.mainnet.yaml",
     "deploy-testnet": "graph deploy --product hosted-service --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido-testnet subgraph.testnet.yaml",
     "create-local": "env-cmd --use-shell graph create --node '$GRAPH_NODE' lidofinance/lido",
@@ -34,6 +35,7 @@
     "ethers": "5.6.9",
     "graphql": "16.5.0",
     "graphql-request": "4.3.0",
-    "jest": "28.1.2"
+    "jest": "28.1.2",
+    "matchstick-as": "0.5.0"
   }
 }
