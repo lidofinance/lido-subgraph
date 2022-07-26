@@ -72,7 +72,13 @@ export function handleCompleted(event: Completed): void {
   let appearedValidators = newBeaconValidators.minus(oldBeaconValidators)
 
   /**
-   Appeared validators can be negative if active keys are deleted, however at the moment this would require a contract upgrade.
+   Appeared validators can be negative if active keys are deleted, which can happen on Testnet.
+   As we are comparing previous Oracle report, by the time of a new report validator removal can happen.
+   
+   In such cases, we override appearedValidatorsDeposits to ZERO as:
+   Our Subgraph 10 - 20 = -10 validatorsAmount math is 10 - 10 = 0 validatorsAmount in contract.
+   
+   Context:
    
    totalPooledEther = bufferedBalance (in the contract) + beaconBalance (validator balances) + transientBalance (sent to validators, but not yet there)
    
@@ -87,7 +93,6 @@ export function handleCompleted(event: Completed): void {
    BEACON_VALIDATORS_POSITION was decreased
    
    This would increase totalPooledEther until an oracle report is made.
-   Here we can adjust back totalPooledEther by checking if validator number is going down.
   **/
 
   let appearedValidatorsDeposits = appearedValidators.gt(ZERO)
