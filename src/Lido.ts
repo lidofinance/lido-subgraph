@@ -764,12 +764,18 @@ This allows us not to enable tracing.
 
 WARNING:
 If Totals are wrong just before these blocks, then graph-node tracing filter broke again.
+
+Broken Oracle report after long broken state:
+First val number went down, but then went up all when reports were not happening.
+7225143 0xde2667f834746bdbe0872163d632ce79c4930a82ec7c3c11cb015373b691643b
+
 **/
 
 export function handleTestnetBlock(block: ethereum.Block): void {
   if (
     block.number.toString() == '6014681' ||
-    block.number.toString() == '6014696'
+    block.number.toString() == '6014696' ||
+    block.number.toString() == '7225143'
   ) {
     let contract = loadLidoContract()
     let realPooledEther = contract.getTotalPooledEther()
