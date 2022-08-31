@@ -18,14 +18,6 @@ const lastIndexedQuery = gql`
   }
 `
 
-const startBlock = parseInt(
-  (await subgraphFetch(firstSubmitQuery)).lidoSubmissions[0].block
-)
-const endBlock = parseInt(
-  (await subgraphFetch(lastIndexedQuery))._meta.block.number
-)
-const steps = [100000, 1000, 10, 1]
-
 const genQuery = (block) => gql`
   query {
     totals(id: "", block: { number: ${block} }) {
@@ -35,57 +27,66 @@ const genQuery = (block) => gql`
   }
 `
 
-let currentMin = startBlock
-let currentMax = endBlock
+const startBlock = parseInt(
+  (await subgraphFetch(firstSubmitQuery)).lidoSubmissions[0].block
+)
+const endBlock = parseInt(
+  (await subgraphFetch(lastIndexedQuery))._meta.block.number
+)
 
-for (const step of steps) {
-  for (let block = currentMin; block <= currentMax; block = block + step) {
-    const ethEther = Big(
-      await lidoFuncCall('getTotalPooledEther', {
-        blockTag: block,
-      })
-    )
-    const ethShares = Big(
-      await lidoFuncCall('getTotalShares', {
-        blockTag: block,
-      })
-    )
+let min = startBlock
+let max = endBlock
 
-    const query = genQuery(block)
-    const subgraphData = await subgraphFetch(query)
-    const subEther = Big(subgraphData.totals.totalPooledEther)
-    const subShares = Big(subgraphData.totals.totalShares)
+while (min <= max) {
+  const mid = Math.floor((min + max) / 2)
 
-    if (!ethEther.eq(subEther) || !ethShares.eq(subShares)) {
-      if (step !== 1) {
-        currentMin = block - step
-        currentMax = block
-        break
-      }
+  const ethEther = Big(
+    await lidoFuncCall('getTotalPooledEther', {
+      blockTag: mid,
+    })
+  )
+  const ethShares = Big(
+    await lidoFuncCall('getTotalShares', {
+      blockTag: mid,
+    })
+  )
 
-      if (!ethEther.eq(subEther)) {
-        console.log(
-          'Ether mismatch @',
-          block,
-          ethEther.toString(),
-          '<->',
-          subEther.toString()
-        )
-      }
-      if (!ethShares.eq(subShares)) {
-        console.log(
-          'Shares mismatch @',
-          block,
-          ethShares.toString(),
-          '<->',
-          subShares.toString()
-        )
-      }
-      process.exit()
+  const subgraphData = await subgraphFetch(genQuery(mid))
+  const subEther = Big(subgraphData.totals.totalPooledEther)
+  const subShares = Big(subgraphData.totals.totalShares)
+
+  const isGood = ethEther.eq(subEther) && ethShares.eq(subShares)
+
+  if (isGood) {
+    // Check doesn't fail yet, going up
+    min = mid + 1
+  } else {
+    // Check already fails, need to go down
+    max = mid
+  }
+
+  if (min === max && !isGood) {
+    // Found it
+    if (!ethEther.eq(subEther)) {
+      console.log(
+        'Ether mismatch @',
+        mid,
+        ethEther.toString(),
+        '<->',
+        subEther.toString()
+      )
     }
-    if (block > currentMax - step) {
-      console.log('No mismatches found!')
-      process.exit()
+    if (!ethShares.eq(subShares)) {
+      console.log(
+        'Shares mismatch @',
+        mid,
+        ethShares.toString(),
+        '<->',
+        subShares.toString()
+      )
     }
+    process.exit()
   }
 }
+
+console.log('No mismatches found!')
