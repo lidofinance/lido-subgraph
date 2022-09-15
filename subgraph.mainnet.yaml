@@ -36,6 +36,8 @@ dataSources:
       abis:
         - name: Lido
           file: ./abis/Lido.json
+        - name: NodeOperatorsRegistry
+          file: ./abis/NodeOperatorsRegistry.json
       eventHandlers:
         - event: Stopped()
           handler: handleStopped
