@@ -198,8 +198,6 @@ dataSources:
       abis:
         - name: Voting
           file: ./abis/Voting.json
-        - name: Lido
-          file: ./abis/Lido.json
       eventHandlers:
         - event: StartVote(indexed uint256,indexed address,string)
           handler: handleStartVote
