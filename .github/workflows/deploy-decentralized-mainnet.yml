@@ -14,15 +14,15 @@ jobs:
       - uses: lidofinance/check-user-permission@v3
         with:
           require: 'admin'
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install Graph cli and deploy
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 'lts/*'
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
