@@ -33,6 +33,7 @@ dataSources:
         - StakingPause
         - SharesTransfer
         - SharesBurn
+        - Settings
       abis:
         - name: Lido
           file: ./abis/Lido.json

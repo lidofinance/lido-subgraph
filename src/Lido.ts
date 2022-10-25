@@ -51,6 +51,7 @@ import {
   StakingPause,
   SharesTransfer,
   SharesBurn,
+  Settings,
 } from '../generated/schema'
 
 import { loadLidoContract, loadNosContract } from './contracts'
@@ -135,13 +136,16 @@ export function handleTransfer(event: Transfer): void {
   3. Treasury Fund Transfer with remaining dust or just rounding dust
   **/
 
+  let isInsuranceFee =
+    fromZeros && event.params.to == getAddress('Insurance Fund')
   let isMintToTreasury = fromZeros && event.params.to == getAddress('Treasury')
 
   // If insuranceFee on totalRewards exists, then next transfer is of dust to treasury
+  // We need this if treasury and insurance fund is the same address
   let insuranceFeeExists =
     !!totalRewardsEntity && totalRewardsEntity.insuranceFee !== null
 
-  if (totalRewardsEntity && isMintToTreasury && !insuranceFeeExists) {
+  if (totalRewardsEntity && isInsuranceFee && !insuranceFeeExists) {
     // Handling the Insurance Fee transfer event
 
     entity.shares = totalRewardsEntity.sharesToInsuranceFund
@@ -682,6 +686,13 @@ export function handleProtocolContactsSet(
   entity.treasury = event.params.treasury
 
   entity.save()
+
+  let settings = Settings.load('')
+  if (!settings) settings = new Settings('')
+  settings.insuranceFund = event.params.insuranceFund
+  settings.oracle = event.params.oracle
+  settings.treasury = event.params.treasury
+  settings.save()
 }
 
 export function handleStakingLimitRemoved(event: StakingLimitRemoved): void {

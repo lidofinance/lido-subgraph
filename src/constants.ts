@@ -1,6 +1,8 @@
 import { BigInt, Address, TypedMap } from '@graphprotocol/graph-ts'
 import { dataSource } from '@graphprotocol/graph-ts'
 
+import { Settings } from '../generated/schema'
+
 const network = dataSource.network()
 const isMainnet = network == 'mainnet'
 
@@ -63,12 +65,20 @@ const TREASURY_ADDRESSES = new TypedMap<string, string>()
 TREASURY_ADDRESSES.set('mainnet', '0x3e40D73EB977Dc6a537aF587D48316feE66E9C8c')
 TREASURY_ADDRESSES.set('goerli', '0x4333218072D5d7008546737786663c38B4D561A4')
 
+// We presume here that initially insurance fund was the treasury
+const getInsuranceFund = (): string =>
+  Settings.load('')
+    ? Settings.load('')!.insuranceFund.toHex()
+    : TREASURY_ADDRESSES.get(network)!
+
 export const getAddress = (contract: string): Address =>
   Address.fromString(
     (contract == 'Lido'
       ? LIDO_ADDRESSES.get(network)
       : contract == 'NodeOperatorsRegistry'
       ? NOS_ADDRESSES.get(network)
+      : contract == 'Insurance Fund'
+      ? getInsuranceFund()
       : contract == 'Treasury'
       ? TREASURY_ADDRESSES.get(network)
       : null)!

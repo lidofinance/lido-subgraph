@@ -1,6 +1,14 @@
 """
 Lido
 """
+type Settings @entity {
+  id: ID!
+
+  insuranceFund: Bytes!
+  oracle: Bytes!
+  treasury: Bytes!
+}
+
 type LidoStopped @entity(immutable: true) {
   id: ID!
 
