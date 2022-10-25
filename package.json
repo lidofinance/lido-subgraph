@@ -25,8 +25,8 @@
     "deploy-local-testnet": "env-cmd --use-shell graph deploy --node '$GRAPH_NODE' --ipfs '$GRAPH_IPFS' lidofinance/lido-testnet subgraph.testnet.yaml"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.33.1",
-    "@graphprotocol/graph-ts": "0.27.0"
+    "@graphprotocol/graph-cli": "0.35.0",
+    "@graphprotocol/graph-ts": "0.28.1"
   },
   "devDependencies": {
     "@jest/types": "29.0.3",
