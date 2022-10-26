@@ -33,3 +33,13 @@ jobs:
           GRAPH_MONITORING: https://api.thegraph.com/index-node/graphql
           RPC: ${{ secrets.RPC_MAINNET }}
           LIDO_ADDRESS: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
+        id: test
+      - name: notify via Discord
+        uses: lidofinance/action-discord@0.3.2
+        with:
+          args: |
+            Lido SubGraph on mainnet is out of sync now!
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ failure() && steps.test.conclusion == 'failure' }}
