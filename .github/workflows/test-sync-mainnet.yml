@@ -26,6 +26,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn install --immutable
+      - name: notify about environment preparation failure
+        uses: lidofinance/action-discord@0.3.2
+        with:
+          args: |
+            Unable to run sync test workflow.
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ failure() }}
       - run: yarn test:sync
         env:
           SUBGRAPH_NAME: lidofinance/lido
@@ -34,7 +43,7 @@ jobs:
           RPC: ${{ secrets.RPC_MAINNET }}
           LIDO_ADDRESS: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
         id: test
-      - name: notify via Discord
+      - name: notify about failed test run
         uses: lidofinance/action-discord@0.3.2
         with:
           args: |
