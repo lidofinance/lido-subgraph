@@ -1,9 +1,34 @@
 import { subgraphFetch, gql, lidoFuncCall, Big } from './utils.js'
 
 const TREASURY_ADDRESS = '0x3e40d73eb977dc6a537af587d48316fee66e9c8c'
-const START_BLOCK = 12345
-const END_BLOCK = 12345
-const STEP = 1
+
+const firstSubmitQuery = gql`
+  query {
+    lidoSubmissions(orderBy: block, orderDirection: asc, limit: 1) {
+      block
+    }
+  }
+`
+
+const lastIndexedQuery = gql`
+  query {
+    _meta {
+      block {
+        number
+      }
+    }
+  }
+`
+
+const startBlock = parseInt(
+  (await subgraphFetch(firstSubmitQuery)).lidoSubmissions[0].block
+)
+const endBlock = parseInt(
+  (await subgraphFetch(lastIndexedQuery))._meta.block.number
+)
+
+let min = startBlock
+let max = endBlock
 
 const genQuery = (block) => gql`
   query {
@@ -13,29 +38,41 @@ const genQuery = (block) => gql`
   }
 `
 
-for (let block = START_BLOCK; block <= END_BLOCK; block = block + STEP) {
-  const rpcValue = Big(
+while (min <= max) {
+  const mid = Math.floor((min + max) / 2)
+
+  const ethShares = Big(
     await lidoFuncCall('sharesOf', TREASURY_ADDRESS, {
-      blockTag: block,
+      blockTag: mid,
     })
   )
 
-  const query = genQuery(block)
-  const subgraphData = await subgraphFetch(query)
-  const subgraphValue = Big(subgraphData.shares.shares)
+  const subgraphData = await subgraphFetch(genQuery(mid))
+  const subShares = Big(subgraphData.shares.shares)
 
-  let error = false
+  const isGood = ethShares.eq(subShares)
 
-  if (!rpcValue.eq(subgraphValue)) {
-    console.log(
-      'mismatch @',
-      block,
-      rpcValue.toString(),
-      '<->',
-      subgraphValue.toString()
-    )
-    error = true
+  if (isGood) {
+    // Check doesn't fail yet, going up
+    min = mid + 1
+  } else {
+    // Check already fails, need to go down
+    max = mid
   }
 
-  if (error) process.exit()
+  if (min === max && !isGood) {
+    // Found it
+    if (!ethShares.eq(subShares)) {
+      console.log(
+        'Mismatch @',
+        mid,
+        ethShares.toString(),
+        '<->',
+        subShares.toString()
+      )
+    }
+    process.exit()
+  }
 }
+
+console.log('No mismatches found!')
