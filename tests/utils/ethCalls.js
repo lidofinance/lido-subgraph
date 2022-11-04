@@ -1,7 +1,15 @@
 import { ethers } from 'ethers'
 import fs from 'fs'
 
-import { RPC, LIDO_ADDRESS, getBlock } from '../config.js'
+import {
+  ARAGON_ADDRESS,
+  DSM_ADDRESS,
+  EASYTRACK_ADDRESS,
+  LIDO_ADDRESS,
+  NOP_ADDRESS,
+  RPC,
+  getBlock
+} from '../config.js'
 
 const provider = new ethers.providers.JsonRpcProvider(RPC)
 
@@ -12,8 +20,30 @@ const oracleAddress = await lidoContract.getOracle()
 const oracleAbi = JSON.parse(fs.readFileSync('abis/LidoOracle.json'))
 const oracleContract = new ethers.Contract(oracleAddress, oracleAbi, provider)
 
-const mbAddBlock = async (args) => {
-  const blockIsOverriden = args.find((x) => x.blockTag)
+const nopRegistryAbi = JSON.parse(
+  fs.readFileSync('abis/NodeOperatorsRegistry.json')
+)
+const nopRegistryContract = new ethers.Contract(
+  NOP_ADDRESS,
+  nopRegistryAbi,
+  provider
+)
+
+const aragonAbi = JSON.parse(fs.readFileSync('abis/Voting.json'))
+const aragonContract = new ethers.Contract(ARAGON_ADDRESS, aragonAbi, provider)
+
+const easyTrackAbi = JSON.parse(fs.readFileSync('abis/Easytrack.json'))
+const easyTrackContract = new ethers.Contract(
+  EASYTRACK_ADDRESS,
+  easyTrackAbi,
+  provider
+)
+
+const dsmAbi = JSON.parse(fs.readFileSync('abis/DepositSecurityModule.json'))
+const dsmContract = new ethers.Contract(DSM_ADDRESS, dsmAbi, provider)
+
+const mbAddBlock = async args => {
+  const blockIsOverriden = args.find(x => x.blockTag)
 
   if (blockIsOverriden) {
     return args
@@ -44,18 +74,45 @@ export const getAddressBalance = async (address, ...args) =>
 export const getBalanceFromShares = async (address, ...args) =>
   await lidoFuncCall('getPooledEthByShares', address, ...args)
 
-export const getLidoEventNumber = async (eventName) => {
-  const filter = lidoContract.filters[eventName]()
-  const logs = lidoContract.queryFilter(filter, 0, getBlock())
-
-  return (await logs).length
+export const getEvents = async (contract, eventName, startBlock, endBlock) => {
+  const filter = contract.filters[eventName]()
+  return await contract.queryFilter(
+    filter,
+    startBlock ?? 0,
+    endBlock ?? getBlock()
+  )
 }
 
-export const getOracleEventNumber = async (eventName) => {
-  const filter = oracleContract.filters[eventName]()
-  const logs = oracleContract.queryFilter(filter, 0, getBlock())
+export const getLidoEvents = async (eventName, startBlock) => {
+  return await getEvents(lidoContract, eventName, startBlock)
+}
 
-  return (await logs).length
+export const getLidoEventNumber = async eventName => {
+  return await getLidoEvents(eventName).length
+}
+
+export const getLidoOracleEvents = async (eventName, startBlock) => {
+  return await getEvents(oracleContract, eventName, startBlock)
+}
+
+export const getOracleEventNumber = async (eventName, startBlock) => {
+  return (await getLidoOracleEvents(eventName, startBlock)).length
+}
+
+export const getNopRegistryEvents = async (eventName, startBlock) => {
+  return await getEvents(nopRegistryContract, eventName, startBlock)
+}
+
+export const getAragonEvents = async (eventName, startBlock) => {
+  return await getEvents(aragonContract, eventName, startBlock)
+}
+
+export const getEasyTrackEvents = async (eventName, startBlock) => {
+  return await getEvents(easyTrackContract, eventName, startBlock)
+}
+
+export const getDSMEvents = async (eventName, startBlock) => {
+  return await getEvents(dsmContract, eventName, startBlock)
 }
 
 export const getRpcNetwork = async () => await provider.getNetwork()

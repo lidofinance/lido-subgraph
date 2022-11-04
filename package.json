@@ -14,6 +14,7 @@
     "test:totals": "yarn test:sync && NODE_OPTIONS=--experimental-vm-modules jest tests/totalPooledEth.test.js tests/totalShares.test.js",
     "test:dust": "NODE_OPTIONS=--experimental-vm-modules jest tests/noWrongDust.test.js",
     "test:graphBalance": "NODE_OPTIONS=--experimental-vm-modules yarn jest --testMatch='**/tests/graphBalance.test.off.js'",
+    "test:smoke": "NODE_OPTIONS=--experimental-vm-modules yarn jest --testMatch='**/tests/smoke.test.js'",
     "unit-test": "graph test",
     "deploy": "graph deploy --product hosted-service --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido subgraph.mainnet.yaml",
     "deploy-testnet": "graph deploy --product hosted-service --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ lidofinance/lido-testnet subgraph.testnet.yaml",
