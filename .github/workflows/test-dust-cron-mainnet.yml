@@ -27,6 +27,25 @@ jobs:
             ${{ runner.os }}-yarn-
       - run: cp .env.mainnet.example .env
       - run: yarn install --immutable
+      - name: Notify about environment preparation failure
+        uses: lidofinance/action-discord@0.3.2
+        with:
+          args: |
+            Unable to run `${{ github.workflow }}` workflow.
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ failure() }}
       - run: yarn test:dust
         env:
           RPC: ${{ secrets.RPC_MAINNET }}
+        id: test
+      - name: Notify about failed test run
+        uses: lidofinance/action-discord@0.3.2
+        with:
+          args: |
+            ${{ github.workflow }} has been failed!
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ failure() && steps.test.conclusion == 'failure' }}
