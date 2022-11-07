@@ -25,9 +25,9 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+      - run: cp .env.mainnet.example .env
       - run: yarn install --immutable
       - run: yarn test:dust
         env:
           GRAPH: ${{ secrets.THEGRAPH_DECENTRALIZED_ENDPOINT }}
           RPC: ${{ secrets.RPC_MAINNET }}
-          LIDO_ADDRESS: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'

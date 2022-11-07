@@ -1,8 +1,8 @@
-name: Test Sync Mainnet
+name: Test Smoke Mainnet
 
 on:
   schedule:
-    - cron: '*/20 * * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -27,8 +27,27 @@ jobs:
             ${{ runner.os }}-yarn-
       - run: cp .env.mainnet.example .env
       - run: yarn install --immutable
-      - run: yarn test:sync
+      - name: notify about environment preparation failure
+        uses: lidofinance/action-discord@0.3.2
+        with:
+          args: |
+            Unable to run smoke tests workflow.
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ failure() }}
+      - run: yarn test:smoke
         env:
           SUBGRAPH_NAME: lidofinance/lido
           GRAPH_MONITORING: https://api.thegraph.com/index-node/graphql
           RPC: ${{ secrets.RPC_MAINNET }}
+        id: test
+      - name: notify about failed test run
+        uses: lidofinance/action-discord@0.3.2
+        with:
+          args: |
+            Lido SubGraph on mainnet smoke tests failed.
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ failure() && steps.test.conclusion == 'failure' }}
