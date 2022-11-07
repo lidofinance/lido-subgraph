@@ -1,4 +1,4 @@
-import { DefaultReporter } from '@jest/reporters'
+import { VerboseReporter } from '@jest/reporters'
 
 /**
 This reporter will output console.log only when a test fails.
@@ -6,7 +6,7 @@ For example, when shares test fails, we will see the address with wrong shares.
 Also very useful for tests debugging.
 **/
 
-class Reporter extends DefaultReporter {
+class Reporter extends VerboseReporter {
   constructor() {
     super(...arguments)
   }
