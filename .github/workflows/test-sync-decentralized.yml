@@ -17,7 +17,7 @@ jobs:
           node-version: 'lts/*'
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
       - uses: actions/cache@v3
         id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
@@ -27,11 +27,11 @@ jobs:
             ${{ runner.os }}-yarn-
       - run: yarn install --immutable
       - run: cp .env.mainnet.example .env
-      - name: notify about environment preparation failure
+      - name: Notify about environment preparation failure
         uses: lidofinance/action-discord@0.3.2
         with:
           args: |
-            Unable to run sync test workflow.
+            Unable to run `${{ github.workflow }}` workflow.
             ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
