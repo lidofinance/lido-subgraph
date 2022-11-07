@@ -26,6 +26,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn install --immutable
+      - run: cp .env.mainnet.example .env
       - name: notify about environment preparation failure
         uses: lidofinance/action-discord@0.3.2
         with:
@@ -41,7 +42,6 @@ jobs:
           GRAPH: ${{ secrets.THEGRAPH_DECENTRALIZED_ENDPOINT }}
           GRAPH_MONITORING: https://api.thegraph.com/index-node/graphql
           RPC: ${{ secrets.RPC_MAINNET }}
-          LIDO_ADDRESS: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
         id: test
       - name: notify about failed test run
         uses: lidofinance/action-discord@0.3.2
