@@ -1,5 +1,5 @@
 import { subgraphFetch } from './index.js'
-import { getIsMainnet, getLimited } from '../config.js'
+import { getIsMainnet, getIsLimited } from '../config.js'
 
 import { gql } from 'graphql-request'
 
@@ -32,7 +32,7 @@ const genQuery = (first, skip) => gql`
 `
 
 export const getTestAddresses = async (amount = 30, skipImportant = false) => {
-  const max = getLimited() ? MAX_LIMITED : MAX_UNLIMITED
+  const max = getIsLimited() ? MAX_LIMITED : MAX_UNLIMITED
   const maxSkip = max - amount
   const randomSkip = Math.floor(Math.random() * maxSkip)
 

@@ -1,5 +1,5 @@
 import { request } from 'graphql-request'
-import { GRAPH, getBlock, getLimited } from '../config.js'
+import { GRAPH, getBlock, getIsLimited } from '../config.js'
 
 const FETCH_STEP = 1000
 const SKIP_STEP = 1000
@@ -53,7 +53,7 @@ export const subgraphFetch = async (query, vars = {}) => {
 
     skip += SKIP_STEP
 
-    if (getLimited() && skip >= HOSTED_LIMIT) {
+    if (getIsLimited() && skip >= HOSTED_LIMIT) {
       break
     }
   } while (

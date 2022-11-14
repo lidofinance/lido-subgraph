@@ -9,4 +9,4 @@ export const DSM_ADDRESS = process.env.DSM_ADDRESS
 export const getBlock = () => parseInt(process.env.BLOCK)
 export const getNetwork = () => process.env.NETWORK
 export const getIsMainnet = () => getNetwork() === 'mainnet'
-export const getLimited = () => process.env.LIMITED === 'true'
+export const getIsLimited = () => process.env.LIMITED === 'true'
