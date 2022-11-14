@@ -37,6 +37,9 @@ export const subgraphFetch = async (query, vars = {}) => {
       ...mbAddFixedBlock(vars),
     })
 
+    // Super small delay not to DOS the indexing node
+    await new Promise((resolve) => setTimeout(resolve, 10))
+
     results = results ? mergeObjects([results, res]) : res
 
     // Breaking if there is exactly SKIP_STEP items and new results are now empty
