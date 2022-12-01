@@ -6,7 +6,7 @@ import {
 } from './utils/index.js'
 
 if (GRAPH) {
-  process.env.BLOCK = await getLastIndexedBlock()
+  process.env.BLOCK = parseInt(await getLastIndexedBlock()) - 10 // small buffer (2 mins)
   process.env.LIMITED = await checkIfLimited()
 } else {
   console.info(
