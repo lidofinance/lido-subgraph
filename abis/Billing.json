@@ -1,13 +1,18 @@
 [
   {
     "inputs": [
-      { "internalType": "address", "name": "_gateway", "type": "address" },
+      { "internalType": "address", "name": "_collector", "type": "address" },
       {
         "internalType": "contract IERC20",
         "name": "_token",
         "type": "address"
       },
-      { "internalType": "address", "name": "_governor", "type": "address" }
+      { "internalType": "address", "name": "_governor", "type": "address" },
+      {
+        "internalType": "address",
+        "name": "_l2TokenGateway",
+        "type": "address"
+      }
     ],
     "stateMutability": "nonpayable",
     "type": "constructor"
@@ -18,11 +23,68 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "newGateway",
+        "name": "collector",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "enabled",
+        "type": "bool"
+      }
+    ],
+    "name": "CollectorUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "InsufficientBalanceForRemoval",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "l1BillingConnector",
         "type": "address"
       }
     ],
-    "name": "GatewayUpdated",
+    "name": "L1BillingConnectorUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "l2TokenGateway",
+        "type": "address"
+      }
+    ],
+    "name": "L2TokenGatewayUpdated",
     "type": "event"
   },
   {
@@ -107,7 +169,7 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "user",
+        "name": "from",
         "type": "address"
       },
       {
@@ -189,16 +251,41 @@
   },
   {
     "inputs": [],
-    "name": "gateway",
+    "name": "governor",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "isCollector",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "l1BillingConnector",
     "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
     "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "governor",
+    "name": "l2TokenGateway",
     "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_from", "type": "address" },
+      { "internalType": "uint256", "name": "_amount", "type": "uint256" },
+      { "internalType": "bytes", "name": "_data", "type": "bytes" }
+    ],
+    "name": "onTokenTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -232,10 +319,21 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "_user", "type": "address" },
+      { "internalType": "address", "name": "_to", "type": "address" },
       { "internalType": "uint256", "name": "_amount", "type": "uint256" }
     ],
     "name": "remove",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_from", "type": "address" },
+      { "internalType": "address", "name": "_to", "type": "address" },
+      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+    ],
+    "name": "removeFromL1",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -253,9 +351,36 @@
   },
   {
     "inputs": [
-      { "internalType": "address", "name": "_newGateway", "type": "address" }
+      { "internalType": "address", "name": "_collector", "type": "address" },
+      { "internalType": "bool", "name": "_enabled", "type": "bool" }
     ],
-    "name": "setGateway",
+    "name": "setCollector",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_l1BillingConnector",
+        "type": "address"
+      }
+    ],
+    "name": "setL1BillingConnector",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_l2TokenGateway",
+        "type": "address"
+      }
+    ],
+    "name": "setL2TokenGateway",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

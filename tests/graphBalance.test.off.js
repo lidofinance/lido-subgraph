@@ -5,18 +5,17 @@ import { jest } from '@jest/globals'
 const LIDO_ADDRESS = process.env.THEGRAPH_BILLING_ADDRESS
 const THRESHOLD_ETH = 1 * 1000 // 1k GRT
 const BILLING_SUBGRAPH =
-  'https://api.thegraph.com/subgraphs/name/graphprotocol/billing'
+  'https://api.thegraph.com/subgraphs/name/graphprotocol/graph-network-mainnet'
 
 jest.setTimeout(10000)
 
 jest.retryTimes(3)
 
 const balanceQuery = gql`
-  query billingAccount($id: ID!, $block: Block_height) {
-    user(id: $id, block: $block) {
+  query basicAccount($id: ID!, $block: Block_height) {
+    graphAccount(id: $id, block: $block) {
       id
-      billingBalance
-      polygonGRTBalance
+      balance
     }
   }
 `
@@ -27,7 +26,7 @@ test('The Graph balance check', async () => {
     id: LIDO_ADDRESS.toLowerCase(),
   })
 
-  const rawBalance = ethers.BigNumber.from(res.user.billingBalance)
+  const rawBalance = ethers.BigNumber.from(res.graphAccount.balance)
   const balance = rawBalance.div(ethers.constants.WeiPerEther).toNumber()
 
   expect(balance).toBeGreaterThan(THRESHOLD_ETH)

@@ -2,7 +2,7 @@ import fs from 'fs'
 import ethers from 'ethers'
 import { jest } from '@jest/globals'
 
-const BILLING_CONTRACT_ADDRESS = '0x10829DB618E6F520Fa3A01c75bC6dDf8722fA9fE'
+const BILLING_CONTRACT_ADDRESS = '0x1B07D3344188908Fb6DEcEac381f3eE63C48477a'
 const LIDO_ADDRESS = process.env.THEGRAPH_BILLING_ADDRESS
 const THRESHOLD_ETH = 1 * 1000 // 1k GRT
 
@@ -12,7 +12,7 @@ jest.retryTimes(3)
 
 test('The Graph balance check', async () => {
   const provider = new ethers.providers.JsonRpcProvider(
-    'https://polygon-rpc.com'
+    'https://arb1.arbitrum.io/rpc'
   )
   const abi = JSON.parse(fs.readFileSync('abis/Billing.json'))
   const contract = new ethers.Contract(BILLING_CONTRACT_ADDRESS, abi, provider)
