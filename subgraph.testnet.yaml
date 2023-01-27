@@ -1,4 +1,4 @@
-specVersion: 0.0.4
+specVersion: 0.0.5
 schema:
   file: ./schema.graphql
 dataSources:
@@ -11,7 +11,7 @@ dataSources:
       startBlock: 4533286
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - LidoStopped
@@ -46,6 +46,7 @@ dataSources:
           handler: handleResumed
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+          receipt: true
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval
         - event: FeeSet(uint16)
@@ -82,6 +83,7 @@ dataSources:
           handler: handleStakingPaused
         - event: TransferShares(indexed address,indexed address,uint256)
           handler: handleTransferShares
+          receipt: true
         - event: SharesBurnt(indexed address,uint256,uint256,uint256)
           handler: handleSharesBurnt
       blockHandlers:
@@ -98,7 +100,7 @@ dataSources:
       startBlock: 4533286
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - OracleCompleted
@@ -155,7 +157,7 @@ dataSources:
       startBlock: 4533286
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - NodeOperatorSigningKey
@@ -194,7 +196,7 @@ dataSources:
       startBlock: 4533286
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - Voting
@@ -234,7 +236,7 @@ dataSources:
       startBlock: 5574270
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - Motion
@@ -288,7 +290,7 @@ dataSources:
       startBlock: 5692116
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - DepositSecurityModuleSettings
