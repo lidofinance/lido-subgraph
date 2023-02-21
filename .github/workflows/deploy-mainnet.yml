@@ -26,10 +26,7 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-      - run: |
-          yarn global add @graphprotocol/graph-cli
-          echo "$(yarn global bin)" >> $GITHUB_PATH
       - run: yarn install --immutable
-      - run: graph codegen subgraph.mainnet.yaml
-      - run: graph build subgraph.mainnet.yaml
-      - run: graph deploy --product hosted-service --access-token ${{ secrets.THEGRAPH_TOKEN }} --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ lidofinance/lido subgraph.mainnet.yaml
+      - run: yarn codegen
+      - run: yarn build
+      - run: yarn graph deploy --product hosted-service --access-token ${{ secrets.THEGRAPH_TOKEN }} --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ lidofinance/lido subgraph.mainnet.yaml
