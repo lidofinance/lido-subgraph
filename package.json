@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.35.0",
-    "@graphprotocol/graph-ts": "0.29.0"
+    "@graphprotocol/graph-ts": "0.29.3"
   },
   "devDependencies": {
     "@jest/types": "29.3.1",
