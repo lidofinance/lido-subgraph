@@ -7,7 +7,7 @@ import {
   getLidoEvents,
   getLidoOracleEvents,
   getNopRegistryEvents,
-  subgraphFetch
+  subgraphFetch,
 } from './utils'
 
 const SECS_PER_BLOCK = 12
@@ -22,7 +22,7 @@ test('LidoTransfer', async () => {
 
   const id = event.transactionHash + '-' + event.logIndex
   const query = gql`
-    query($id: ID!) {
+    query ($id: ID!) {
       lidoTransfer(id: $id) {
         block
       }
@@ -39,7 +39,7 @@ test('OracleMember', async () => {
 
   const id = event.args.member
   const query = gql`
-    query($id: ID!) {
+    query ($id: ID!) {
       oracleMember(id: $id) {
         member
       }
@@ -57,7 +57,7 @@ test('NodeOperator', async () => {
   const id = event.args.id.toString()
 
   const query = gql`
-    query($id: ID!) {
+    query ($id: ID!) {
       nodeOperator(id: $id) {
         name
       }
@@ -77,7 +77,7 @@ test('AragonVoting', async () => {
   const id = event.args.voteId.toString()
 
   const query = gql`
-    query($id: ID!) {
+    query ($id: ID!) {
       voting(id: $id) {
         creator
       }
@@ -97,7 +97,7 @@ test('EasyTrack', async () => {
   const id = event.args._motionId.toString()
 
   const query = gql`
-    query($id: ID!) {
+    query ($id: ID!) {
       motion(id: $id) {
         creator
       }
@@ -115,7 +115,7 @@ test('DepositSecurityModule Guardian', async () => {
   const id = event.args.guardian.toLowerCase()
 
   const query = gql`
-    query($id: ID!) {
+    query ($id: ID!) {
       guardian(id: $id) {
         block
       }
