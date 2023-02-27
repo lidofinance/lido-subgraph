@@ -4,7 +4,7 @@ import { jest } from '@jest/globals'
 
 const BILLING_CONTRACT_ADDRESS = '0x1B07D3344188908Fb6DEcEac381f3eE63C48477a'
 const LIDO_ADDRESS = process.env.THEGRAPH_BILLING_ADDRESS
-const THRESHOLD_ETH = 1 * 1000 // 1k GRT
+const THRESHOLD_ETH = ethers.constants.WeiPerEther.mul(1 * 1000) // 1k GRT
 
 jest.setTimeout(10000)
 
@@ -17,7 +17,7 @@ test('The Graph balance check', async () => {
   const abi = JSON.parse(fs.readFileSync('abis/Billing.json'))
   const contract = new ethers.Contract(BILLING_CONTRACT_ADDRESS, abi, provider)
   const balanceWei = await contract.userBalances(LIDO_ADDRESS)
-  const balanceEth = balanceWei.div(ethers.constants.WeiPerEther).toNumber()
+  const balanceEth = balanceWei.div(ethers.constants.WeiPerEther)
 
-  expect(balanceEth).toBeGreaterThan(THRESHOLD_ETH)
+  expect(balanceEth.gte(THRESHOLD_ETH)).toBe(true)
 })
