@@ -16,8 +16,7 @@ test('The Graph balance check', async () => {
   )
   const abi = JSON.parse(fs.readFileSync('abis/Billing.json'))
   const contract = new ethers.Contract(BILLING_CONTRACT_ADDRESS, abi, provider)
-  const balanceWei = await contract.userBalances(LIDO_ADDRESS)
-  const balanceEth = balanceWei.div(ethers.constants.WeiPerEther)
+  const balance = await contract.userBalances(LIDO_ADDRESS)
 
-  expect(balanceEth.gte(THRESHOLD_ETH)).toBe(true)
+  expect(balance.gte(THRESHOLD_ETH)).toBe(true)
 })

@@ -1,9 +1,8 @@
 import { gql, request } from 'graphql-request'
-import ethers from 'ethers'
 import { jest } from '@jest/globals'
 
 const LIDO_ADDRESS = process.env.THEGRAPH_BILLING_ADDRESS
-const THRESHOLD_ETH = ethers.constants.WeiPerEther.mul(1 * 1000) // 1k GRT
+const THRESHOLD_ETH = BigInt(1e18) * BigInt(1 * 1000) // 1k GRT
 const BILLING_SUBGRAPH =
   'https://api.thegraph.com/subgraphs/name/graphprotocol/graph-network-mainnet'
 
@@ -26,8 +25,7 @@ test('The Graph balance check', async () => {
     id: LIDO_ADDRESS.toLowerCase(),
   })
 
-  const rawBalance = ethers.BigNumber.from(res.graphAccount.balance)
-  const balance = rawBalance.div(ethers.constants.WeiPerEther)
+  const balance = BigInt(res.graphAccount.balance)
 
-  expect(balance.gte(THRESHOLD_ETH)).toBe(true)
+  expect(balance).toBeGreaterThan(THRESHOLD_ETH)
 })
