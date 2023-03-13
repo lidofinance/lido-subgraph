@@ -31,15 +31,11 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-      - name: Install Graph CLI
-        run: |
-          yarn global add @graphprotocol/graph-cli
-          echo "$(yarn global bin)" >> $GITHUB_PATH
       - name: Install Dependencies
         run: yarn install --immutable
       - name: Generate Types
         run: graph codegen subgraph.mainnet.yaml
       - name: Build the Project
-        run: graph build subgraph.mainnet.yaml
+        run: yarn graph build subgraph.mainnet.yaml
       - name: Run Unit Tests
         run: yarn unit-test
