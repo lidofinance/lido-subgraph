@@ -14,6 +14,8 @@ https://gateway.thegraph.com/api/[api-key]/subgraphs/id/HXfMc1jPHfFQoccWd7VMv66k
 
 ### The Graph Hosted
 
+WARNING: Hosted Service is [going to be sunset](https://thegraph.com/blog/sunsetting-hosted-service/). We highly recommend using the Decentralized Network version instead.
+
 #### Mainnet
 
 Explorer page with playground:
