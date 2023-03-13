@@ -34,8 +34,8 @@ jobs:
       - name: Install Dependencies
         run: yarn install --immutable
       - name: Generate Types
-        run: graph codegen subgraph.mainnet.yaml
+        run: yarn codegen
       - name: Build the Project
-        run: yarn graph build subgraph.mainnet.yaml
+        run: yarn build
       - name: Run Unit Tests
         run: yarn unit-test
