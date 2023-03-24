@@ -12,7 +12,9 @@ import {
 
 const SECS_PER_BLOCK = 12
 const BLOCKS_RANGE_3HOURS = Math.floor((3 * 60 * 60) / SECS_PER_BLOCK)
-const BLOCKS_RANGE_1MONTH = Math.floor((30 * 24 * 60 * 60) / SECS_PER_BLOCK)
+const BLOCKS_RANGE_3MONTHS = Math.floor(
+  (30 * 24 * 60 * 60 * 3) / SECS_PER_BLOCK
+)
 
 test('LidoTransfer', async () => {
   const startBlock = getBlock() - BLOCKS_RANGE_3HOURS
@@ -69,7 +71,7 @@ test('NodeOperator', async () => {
 })
 
 test('AragonVoting', async () => {
-  const startBlock = getBlock() - BLOCKS_RANGE_1MONTH
+  const startBlock = getBlock() - BLOCKS_RANGE_3MONTHS
   const events = await getAragonEvents('StartVote', startBlock)
   const event = events.pop()
   expect(event).toBeDefined()
@@ -89,7 +91,7 @@ test('AragonVoting', async () => {
 })
 
 test('EasyTrack', async () => {
-  const startBlock = getBlock() - BLOCKS_RANGE_1MONTH
+  const startBlock = getBlock() - BLOCKS_RANGE_3MONTHS
   const events = await getEasyTrackEvents('MotionCreated', startBlock)
   const event = events.pop()
   expect(event).toBeDefined()
