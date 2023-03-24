@@ -33,7 +33,7 @@ test('LidoTransfer', async () => {
   const response = await subgraphFetch(query, { id })
 
   expect(response?.lidoTransfer?.block).toEqual(String(event.blockNumber))
-}, 10000)
+}, 30000)
 
 test('OracleMember', async () => {
   const events = await getLidoOracleEvents('MemberAdded')
