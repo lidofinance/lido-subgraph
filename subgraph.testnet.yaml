@@ -47,32 +47,20 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
           receipt: true
+        - event: TransferShares(indexed address,indexed address,uint256)
+          handler: handleTransferShares
+        - event: SharesBurnt(indexed address,uint256,uint256,uint256)
+          handler: handleSharesBurnt
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval
-        - event: FeeSet(uint16)
-          handler: handleFeeSet
-        - event: FeeDistributionSet(uint16,uint16,uint16)
-          handler: handleFeeDistributionSet
-        - event: WithdrawalCredentialsSet(bytes32)
-          handler: handleWithdrawalCredentialsSet
         - event: Submitted(indexed address,uint256,address)
           handler: handleSubmit
+          receipt: true
         - event: Unbuffered(uint256)
           handler: handleUnbuffered
-        - event: Withdrawal(indexed address,uint256,uint256,indexed bytes32,uint256)
-          handler: handleWithdrawal
-        - event: MevTxFeeReceived(uint256)
-          handler: handleELRewardsReceived
-        - event: BeaconValidatorsUpdated(uint256)
-          handler: handleBeaconValidatorsUpdated
-        - event: ELRewardsVaultSet(address)
-          handler: handleELRewardsVaultSet
         - event: ELRewardsReceived(uint256)
           handler: handleELRewardsReceived
-        - event: ELRewardsWithdrawalLimitSet(uint256)
-          handler: handleELRewardsWithdrawalLimitSet
-        - event: ProtocolContactsSet(address,address,address)
-          handler: handleProtocolContactsSet
+          receipt: true
         - event: StakingLimitRemoved()
           handler: handleStakingLimitRemoved
         - event: StakingLimitSet(uint256,uint256)
@@ -81,11 +69,40 @@ dataSources:
           handler: handleStakingResumed
         - event: StakingPaused()
           handler: handleStakingPaused
-        - event: TransferShares(indexed address,indexed address,uint256)
-          handler: handleTransferShares
-          receipt: true
-        - event: SharesBurnt(indexed address,uint256,uint256,uint256)
-          handler: handleSharesBurnt
+# lido v2 new events
+        # - event: WithdrawalsReceived(uint256)
+        #   handler: handleWithdrawalsReceived
+        # - event: LidoLocatorSet(address)
+        #   handler: handleLidoLocatorSet
+        # - event: CLValidatorsUpdated(uint256 indexed,uint256,uint256)
+        #   handler: handleCLValidatorsUpdated
+        # - event: DepositedValidatorsChanged(uint256)
+        #   handler: handleDepositedValidatorsChanged
+        # - event: event TokenRebased(uint256 indexed,uint256,uint256,uint256,uint256,uint256,uint256)
+        #   handler: handleTokenRebase
+        # - event: event ETHDistributed(uint256 indexed,uint256,uint256,uint256,uint256,uint256)
+        #   handler: handleETHDistributed
+
+# lido v2 deprecated
+        - event: FeeSet(uint16)
+          handler: handleFeeSet
+        - event: FeeDistributionSet(uint16,uint16,uint16)
+          handler: handleFeeDistributionSet
+        - event: WithdrawalCredentialsSet(bytes32)
+          handler: handleWithdrawalCredentialsSet
+        - event: Withdrawal(indexed address,uint256,uint256,indexed bytes32,uint256)
+          handler: handleWithdrawal
+        - event: ProtocolContactsSet(address,address,address)
+          handler: handleProtocolContractsSet
+        - event: ELRewardsWithdrawalLimitSet(uint256)
+          handler: handleELRewardsWithdrawalLimitSet
+        - event: ELRewardsVaultSet(address)
+          handler: handleELRewardsVaultSet
+        - event: BeaconValidatorsUpdated(uint256)
+          handler: handleBeaconValidatorsUpdated
+        - event: MevTxFeeReceived(uint256)
+          handler: handleELRewardsReceived
+
       blockHandlers:
         - handler: handleTestnetBlock
           filter:
@@ -125,16 +142,19 @@ dataSources:
       eventHandlers:
         - event: Completed(uint256,uint128,uint128)
           handler: handleCompleted
+          receipt: true
+        - event: PostTotalShares(uint256,uint256,uint256,uint256)
+          handler: handlePostTotalShares
+          receipt: true
+        - event: ContractVersionSet(uint256)
+          handler: handleContractVersionSet
+# lido v2 deprecated
         - event: MemberAdded(address)
           handler: handleMemberAdded
         - event: MemberRemoved(address)
           handler: handleMemberRemoved
         - event: QuorumChanged(uint256)
           handler: handleQuorumChanged
-        - event: ContractVersionSet(uint256)
-          handler: handleContractVersionSet
-        - event: PostTotalShares(uint256,uint256,uint256,uint256)
-          handler: handlePostTotalShares
         - event: BeaconReported(uint256,uint128,uint128,address)
           handler: handleBeaconReported
         - event: BeaconSpecSet(uint64,uint64,uint64,uint64)
@@ -174,10 +194,6 @@ dataSources:
           handler: handleNodeOperatorNameSet
         - event: NodeOperatorRewardAddressSet(indexed uint256,address)
           handler: handleNodeOperatorRewardAddressSet
-        - event: NodeOperatorStakingLimitSet(indexed uint256,uint64)
-          handler: handleNodeOperatorStakingLimitSet
-        - event: NodeOperatorTotalStoppedValidatorsReported(indexed uint256,uint64)
-          handler: handleNodeOperatorTotalStoppedValidatorsReported
         - event: SigningKeyAdded(indexed uint256,bytes)
           handler: handleSigningKeyAdded
         - event: SigningKeyRemoved(indexed uint256,bytes)
@@ -186,6 +202,12 @@ dataSources:
           handler: handleNodeOperatorTotalKeysTrimmed
         - event: KeysOpIndexSet(uint256)
           handler: handleKeysOpIndexSet
+
+# lido v2 deprecated
+        - event: NodeOperatorStakingLimitSet(indexed uint256,uint64)
+          handler: handleNodeOperatorStakingLimitSet
+        - event: NodeOperatorTotalStoppedValidatorsReported(indexed uint256,uint64)
+          handler: handleNodeOperatorTotalStoppedValidatorsReported
       file: ./src/NodeOperatorsRegistry.ts
   - kind: ethereum/contract
     name: Voting
@@ -328,3 +350,30 @@ dataSources:
         - event: PauseIntentValidityPeriodBlocksChanged(uint256)
           handler: handlePauseIntentValidityPeriodBlocksChanged
       file: ./src/DepositSecurityModule.ts
+  - kind: ethereum/contract
+    name: StakingRouter
+    network: goerli
+    source:
+      address: '0xa3Dbd317E53D363176359E10948BA0b1c0A4c820'
+      abi: StakingRouter
+      startBlock: 8710746
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - LidoWithdrawalCredential
+        - StakingModule
+      abis:
+        - name: StakingRouter
+          file: ./abis/StakingRouter.json
+      eventHandlers:
+        - event: WithdrawalCredentialsSet(bytes32,address)
+          handler: handleWithdrawalCredentialsSet
+      file: ./src/StakingRouter.ts
+
+# event StakingModuleAdded(uint256 indexed stakingModuleId, address stakingModule, string name, address createdBy);
+# event StakingModuleTargetShareSet(uint256 indexed stakingModuleId, uint256 targetShare, address setBy);
+# event StakingModuleFeesSet(uint256 indexed stakingModuleId, uint256 stakingModuleFee, uint256 treasuryFee, address setBy);
+# event StakingModuleStatusSet(uint256 indexed stakingModuleId, StakingModuleStatus status, address setBy);
+# event StakingRouterETHDeposited(uint256 indexed stakingModuleId, uint256 amount);

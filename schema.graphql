@@ -36,7 +36,7 @@ type LidoTransfer @entity(immutable: true) {
   sharesBeforeIncrease: BigInt
   sharesAfterIncrease: BigInt
 
-  mintWithoutSubmission: Boolean!
+  mintWithoutSubmission: Boolean
 
   totalPooledEther: BigInt!
   totalShares: BigInt!
@@ -78,6 +78,7 @@ type LidoWithdrawalCredential @entity(immutable: true) {
   id: Bytes!
 
   withdrawalCredentials: Bytes!
+  setBy: Bytes
 
   block: BigInt!
   blockTime: BigInt!
