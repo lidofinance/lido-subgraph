@@ -3,19 +3,22 @@ import {
   NodeOperatorActiveSet,
   NodeOperatorNameSet,
   NodeOperatorRewardAddressSet,
-  NodeOperatorStakingLimitSet,
-  NodeOperatorTotalStoppedValidatorsReported,
   SigningKeyAdded,
   SigningKeyRemoved,
   NodeOperatorTotalKeysTrimmed,
-  KeysOpIndexSet,
+  KeysOpIndexSet
 } from '../generated/NodeOperatorsRegistry/NodeOperatorsRegistry'
 import {
   NodeOperatorSigningKey,
   NodeOperator,
   NodeOperatorTotalKeysTrim,
-  handleKeysOpIndexChange,
+  handleKeysOpIndexChange
 } from '../generated/schema'
+
+import {
+  handleNodeOperatorStakingLimitSet,
+  handleNodeOperatorTotalStoppedValidatorsReported
+} from './v1/NodeOperatorsRegistry'
 
 export function handleSigningKeyAdded(event: SigningKeyAdded): void {
   let entity = new NodeOperatorSigningKey(event.params.pubkey)
@@ -92,34 +95,6 @@ export function handleNodeOperatorRewardAddressSet(
   entity.save()
 }
 
-export function handleNodeOperatorStakingLimitSet(
-  event: NodeOperatorStakingLimitSet
-): void {
-  let entity = NodeOperator.load(event.params.id.toString())
-
-  if (entity == null) {
-    entity = new NodeOperator(event.params.id.toString())
-  }
-
-  entity.stakingLimit = event.params.stakingLimit
-
-  entity.save()
-}
-
-export function handleNodeOperatorTotalStoppedValidatorsReported(
-  event: NodeOperatorTotalStoppedValidatorsReported
-): void {
-  let entity = NodeOperator.load(event.params.id.toString())
-
-  if (entity == null) {
-    entity = new NodeOperator(event.params.id.toString())
-  }
-
-  entity.totalStoppedValidators = event.params.totalStopped
-
-  entity.save()
-}
-
 export function handleNodeOperatorTotalKeysTrimmed(
   event: NodeOperatorTotalKeysTrimmed
 ): void {
@@ -149,4 +124,10 @@ export function handleKeysOpIndexSet(event: KeysOpIndexSet): void {
   entity.blockTime = event.block.timestamp
 
   entity.save()
+}
+
+/// lido v1 events
+export {
+  handleNodeOperatorStakingLimitSet,
+  handleNodeOperatorTotalStoppedValidatorsReported
 }
