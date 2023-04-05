@@ -68,7 +68,7 @@ dataSources:
         - event: ELRewardsWithdrawalLimitSet(uint256)
           handler: handleELRewardsWithdrawalLimitSet
         - event: ProtocolContactsSet(address,address,address)
-          handler: handleProtocolContactsSet
+          handler: handleProtocolContractsSet
         - event: StakingLimitRemoved()
           handler: handleStakingLimitRemoved
         - event: StakingLimitSet(uint256,uint256)

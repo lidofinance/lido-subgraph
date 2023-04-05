@@ -69,19 +69,6 @@ dataSources:
           handler: handleStakingResumed
         - event: StakingPaused()
           handler: handleStakingPaused
-# lido v2 new events
-        # - event: WithdrawalsReceived(uint256)
-        #   handler: handleWithdrawalsReceived
-        # - event: LidoLocatorSet(address)
-        #   handler: handleLidoLocatorSet
-        # - event: CLValidatorsUpdated(uint256 indexed,uint256,uint256)
-        #   handler: handleCLValidatorsUpdated
-        # - event: DepositedValidatorsChanged(uint256)
-        #   handler: handleDepositedValidatorsChanged
-        # - event: event TokenRebased(uint256 indexed,uint256,uint256,uint256,uint256,uint256,uint256)
-        #   handler: handleTokenRebase
-        # - event: event ETHDistributed(uint256 indexed,uint256,uint256,uint256,uint256,uint256)
-        #   handler: handleETHDistributed
 
 # lido v2 deprecated
         - event: FeeSet(uint16)
@@ -102,6 +89,21 @@ dataSources:
           handler: handleBeaconValidatorsUpdated
         - event: MevTxFeeReceived(uint256)
           handler: handleELRewardsReceived
+
+# lido v2 new events, should be added to ABI
+        # - event: WithdrawalsReceived(uint256)
+        #   handler: handleWithdrawalsReceived
+        # - event: LidoLocatorSet(address)
+        #   handler: handleLidoLocatorSet
+        # - event: CLValidatorsUpdated(uint256 indexed,uint256,uint256)
+        #   handler: handleCLValidatorsUpdated
+        # - event: DepositedValidatorsChanged(uint256)
+        #   handler: handleDepositedValidatorsChanged
+        - event: TokenRebased(indexed uint256,uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleTokenRebase
+          receipt: true
+        - event: ETHDistributed(indexed uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleETHDistributed
 
       blockHandlers:
         - handler: handleTestnetBlock

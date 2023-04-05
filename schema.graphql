@@ -30,7 +30,7 @@ type LidoTransfer @entity(immutable: true) {
   to: Bytes!
   value: BigInt!
 
-  shares: BigInt
+  shares: BigInt!
   sharesBeforeDecrease: BigInt
   sharesAfterDecrease: BigInt
   sharesBeforeIncrease: BigInt
