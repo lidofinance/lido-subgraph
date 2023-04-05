@@ -1,37 +1,24 @@
 import { ethereum, store, Address, BigInt } from '@graphprotocol/graph-ts'
 import {
-  Stopped,
-  Resumed,
   Transfer,
-  Approval,
   FeeSet,
   FeeDistributionSet,
   WithdrawalCredentialsSet,
   Submitted,
-  Unbuffered,
   Withdrawal,
   ELRewardsReceived,
   ELRewardsVaultSet as ELRewardsVaultSetEvent,
   ELRewardsWithdrawalLimitSet as ELRewardsWithdrawalLimitSetEvent,
   ProtocolContactsSet as ProtocolContactsSetEvent,
-  StakingLimitRemoved,
-  StakingLimitSet as StakingLimitSetEvent,
-  StakingResumed,
-  StakingPaused,
-  TransferShares,
   SharesBurnt,
   BeaconValidatorsUpdated
 } from '../../generated/Lido/Lido'
 import {
-  LidoStopped,
-  LidoResumed,
   LidoTransfer,
-  LidoApproval,
   LidoFee,
   LidoFeeDistribution,
   LidoWithdrawalCredential,
   LidoSubmission,
-  LidoUnbuffered,
   LidoWithdrawal,
   TotalReward,
   NodeOperatorFees,
@@ -44,11 +31,6 @@ import {
   ELRewardsVaultSet,
   ELRewardsWithdrawalLimitSet,
   ProtocolContactsSet,
-  StakingLimitRemove,
-  StakingLimitSet,
-  StakingResume,
-  StakingPause,
-  SharesTransfer,
   SharesBurn,
   Settings
 } from '../../generated/schema'
@@ -65,28 +47,6 @@ import {
 } from '../constants'
 
 import { wcKeyCrops } from '../wcKeyCrops'
-
-export function handleStopped(event: Stopped): void {
-  let entity = new LidoStopped(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-
-  entity.save()
-}
-
-export function handleResumed(event: Resumed): void {
-  let entity = new LidoResumed(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-
-  entity.save()
-}
 
 export function handleTransfer(event: Transfer): void {
   let entity = new LidoTransfer(
@@ -301,19 +261,6 @@ export function handleTransfer(event: Transfer): void {
   }
 }
 
-
-export function handleApproval(event: Approval): void {
-  let entity = new LidoApproval(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.owner = event.params.owner
-  entity.spender = event.params.spender
-  entity.value = event.params.value
-
-  entity.save()
-}
-
 export function handleFeeSet(event: FeeSet): void {
   let entity = new LidoFee(
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
@@ -464,16 +411,6 @@ export function handleSubmit(event: Submitted): void {
   entity.save()
   sharesEntity.save()
   totals.save()
-}
-
-export function handleUnbuffered(event: Unbuffered): void {
-  let entity = new LidoUnbuffered(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.amount = event.params.amount
-
-  entity.save()
 }
 
 export function handleWithdrawal(event: Withdrawal): void {
@@ -695,53 +632,6 @@ export function handleProtocolContractsSet(
   settings.oracle = event.params.oracle
   settings.treasury = event.params.treasury
   settings.save()
-}
-
-export function handleStakingLimitRemoved(event: StakingLimitRemoved): void {
-  let entity = new StakingLimitRemove(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-  entity.save()
-}
-
-export function handleStakingLimitSet(event: StakingLimitSetEvent): void {
-  let entity = new StakingLimitSet(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.maxStakeLimit = event.params.maxStakeLimit
-  entity.stakeLimitIncreasePerBlock = event.params.stakeLimitIncreasePerBlock
-
-  entity.save()
-}
-
-export function handleStakingResumed(event: StakingResumed): void {
-  let entity = new StakingResume(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-  entity.save()
-}
-
-export function handleStakingPaused(event: StakingPaused): void {
-  let entity = new StakingPause(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-  entity.save()
-}
-
-/**
-Not modifying user's shares here as we are doing it when handling transfers.
-**/
-export function handleTransferShares(event: TransferShares): void {
-  let entity = new SharesTransfer(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.from = event.params.from
-  entity.sharesValue = event.params.sharesValue
-  entity.to = event.params.to
-
-  entity.save()
 }
 
 export function handleSharesBurnt(event: SharesBurnt): void {

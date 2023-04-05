@@ -30,15 +30,11 @@ import {
   LidoApproval,
   LidoSubmission,
   LidoUnbuffered,
-  LidoWithdrawal,
   TotalReward,
   NodeOperatorFees,
   Totals,
   NodeOperatorsShares,
   Shares,
-  Holder,
-  Stats,
-  CurrentFees,
   StakingLimitRemove,
   StakingLimitSet,
   StakingResume,
@@ -84,11 +80,41 @@ import {
 import {
   _loadOrCreateSharesEntity,
   _loadOrCreateStatsEntity,
-  _loadOrCreateTotalsEntity
+  _loadOrCreateTotalsEntity,
+  _updateHolders,
+  _updateTransferShares
 } from './helpers'
 
-export function handleTransferShares(event: TransferShares): void {
-  // just skip direct handling due to event will be processed as part of handleTransfer
+export function handleTokenRebase(event: TokenRebased): void {
+  // parse all events from tx receipt
+  const parsedEvents = parseEventLogs(event, event.logIndex)
+
+  // find ETHDistributed logIndex
+  const ethDistributedEvent = findParsedEventByName(
+    parsedEvents,
+    'ETHDistributed'
+  )
+  if (!ethDistributedEvent) {
+    throw new Error('EVENT NOT FOUND: ethDistributedEvent')
+  }
+
+  // extracting only 'Transfer' and 'TransferShares' pairs between ETHDistributed to TokenRebased
+  // assuming the ETHDistributed and TokenRebased events are presented in tx only once
+  const transferEvents = extractPairedEvent(
+    filterParsedEventsByLogIndexRange(
+      parsedEvents,
+      ethDistributedEvent.event.logIndex,
+      event.logIndex
+    ),
+    ['Transfer', 'TransferShares']
+  )
+
+  // - filter events between ETHDistributed to TokenRebased
+  // - extract transfers
+  // filter from=ZERO_ADDR
+  // upd totalrewards before/after
+  // loop transfers: calc fees
+  // loop transfers: op rewards
 }
 
 export function handleTransfer(event: Transfer): void {
@@ -155,71 +181,6 @@ export function handleTransfer(event: Transfer): void {
   _updateHolders(entity)
 
   entity.save()
-}
-
-export function handleETHDistributed(event: ETHDistributed): void {
-  // just skip direct handling due to event will be processed as part of handleTokenRebase
-}
-
-export function handleTokenRebase(event: TokenRebased): void {
-  // parse all events from tx receipt
-  const parsedEvents = parseEventLogs(event, event.logIndex)
-
-  // find ETHDistributed logIndex
-  const ethDistributedEvent = findParsedEventByName(
-    parsedEvents,
-    'ETHDistributed'
-  )
-  if (!ethDistributedEvent) {
-    throw new Error('EVENT NOT FOUND: ethDistributedEvent')
-  }
-
-  // extracting only 'Transfer' and 'TransferShares' pairs between ETHDistributed to TokenRebased
-  // assuming the ETHDistributed and TokenRebased events are presented in tx only once
-  const transferEvents = extractPairedEvent(
-    filterParsedEventsByLogIndexRange(
-      parsedEvents,
-      ethDistributedEvent.event.logIndex,
-      event.logIndex
-    ),
-    ['Transfer', 'TransferShares']
-  )
-
-
-  // - filter events between ETHDistributed to TokenRebased
-  // - extract transfers
-  // filter from=ZERO_ADDR
-  // upd totalrewards before/after
-  // loop transfers: calc fees
-  // loop transfers: op rewards
-}
-
-export function handleSharesBurnt(event: SharesBurnt): void {
-  if (!isLidoV2Upgrade(event)) {
-    return handleSharesBurnt_v1(event)
-  }
-
-  let entity = new SharesBurn(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.account = event.params.account
-  entity.postRebaseTokenAmount = event.params.postRebaseTokenAmount
-  entity.preRebaseTokenAmount = event.params.preRebaseTokenAmount
-  entity.sharesAmount = event.params.sharesAmount
-
-  entity.save()
-
-  // let address = event.params.account
-  // let sharesAmount = event.params.sharesAmount
-
-  let shares = _loadOrCreateSharesEntity(event.params.account)
-  shares.shares = shares.shares.minus(event.params.sharesAmount)
-  shares.save()
-
-  let totals = _loadOrCreateTotalsEntity()
-  totals.totalShares = totals.totalShares.minus(event.params.sharesAmount)
-  totals.save()
 }
 
 export function handleSubmit(event: Submitted): void {
@@ -348,91 +309,45 @@ export function handleSubmit(event: Submitted): void {
   totals.save()
 }
 
-function _updateTransferShares(entity: LidoTransfer): void {
-  // No point in changing 0x0 shares
-  if (!entity.shares.isZero()) {
-    // Decreasing from address shares
-    if (entity.from != ZERO_ADDRESS) {
-      // Address must already have shares, HOWEVER:
-      // Someone can and managed to produce events of 0 to 0 transfers
-      let sharesFromEntity = _loadOrCreateSharesEntity(entity.from)
-
-      entity.sharesBeforeDecrease = sharesFromEntity.shares
-      sharesFromEntity.shares = sharesFromEntity.shares.minus(entity.shares)
-      entity.sharesAfterDecrease = sharesFromEntity.shares
-
-      sharesFromEntity.save()
-
-      // Calculating new balance
-      entity.balanceAfterDecrease = entity
-        .sharesAfterDecrease!.times(entity.totalPooledEther)
-        .div(entity.totalShares)
-    }
-
-    // Increasing to address shares
-    if (entity.to != ZERO_ADDRESS) {
-      let sharesToEntity = _loadOrCreateSharesEntity(entity.to)
-
-      entity.sharesBeforeIncrease = sharesToEntity.shares
-      sharesToEntity.shares = sharesToEntity.shares.plus(entity.shares)
-      entity.sharesAfterIncrease = sharesToEntity.shares
-
-      sharesToEntity.save()
-
-      // Calculating new balance
-      entity.balanceAfterIncrease = entity
-        .sharesAfterIncrease!.times(entity.totalPooledEther)
-        .div(entity.totalShares)
-    }
-  }
+export function handleETHDistributed(event: ETHDistributed): void {
+  // skip direct handling due to event will be processed as part of handleTokenRebase
 }
 
-function _updateHolders(entity: LidoTransfer): void {
-  // Saving recipient address as a unique stETH holder
-  if (!entity.shares.isZero()) {
-    let stats = _loadOrCreateStatsEntity()
-    let isNewHolder = false
-    let holder: Holder | null
-    // skip zero destination for any case
-    if (entity.to != ZERO_ADDRESS) {
-      holder = Holder.load(entity.to)
-      isNewHolder = !holder
-      if (isNewHolder) {
-        holder = new Holder(entity.to)
-        holder.address = entity.to
-        holder.save()
-      }
-    }
+export function handleTransferShares(event: TransferShares): void {
+  // skip direct handling due to event will be processed as part of handleTransfer
+  // keep v1 scheme compatibility
+  let entity = new SharesTransfer(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
 
-    if (isNewHolder) {
-      stats.uniqueHolders = stats.uniqueHolders!.plus(ONE)
-      stats.uniqueAnytimeHolders = stats.uniqueAnytimeHolders!.plus(ONE)
-    } else if (
-      entity.from != ZERO_ADDRESS &&
-      entity.sharesAfterDecrease!.isZero()
-    ) {
-      // Mints don't have balanceAfterDecrease
-      stats.uniqueHolders = stats.uniqueHolders!.minus(ONE)
-      // delete holder
-      // @todo check id correctness
-      store.remove('Holder', entity.from.toString())
-    }
-    stats.save()
-  }
+  entity.from = event.params.from
+  entity.sharesValue = event.params.sharesValue
+  entity.to = event.params.to
+  entity.save()
 }
 
-/**
-We need to recalculate total rewards when there are MEV rewards.
-This event is emitted only when there was something taken from MEV vault.
-Most logic is the same as in Oracle's handleCompleted.
+export function handleSharesBurnt(event: SharesBurnt): void {
+  if (!isLidoV2Upgrade(event)) {
+    return handleSharesBurnt_v1(event)
+  }
 
-TODO: We should not skip TotalReward creation when there are no basic rewards but there are MEV rewards.
+  // shares are burned only during oracle report from LidoBurner contract
+  let entity = new SharesBurn(
+    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+  )
+  entity.account = event.params.account
+  entity.postRebaseTokenAmount = event.params.postRebaseTokenAmount
+  entity.preRebaseTokenAmount = event.params.preRebaseTokenAmount
+  entity.sharesAmount = event.params.sharesAmount
+  entity.save()
 
-Usual order of events:
-BeaconReported -> Completed -> ELRewardsReceived
+  let shares = _loadOrCreateSharesEntity(event.params.account)
+  shares.shares = shares.shares.minus(event.params.sharesAmount)
+  shares.save()
 
-Accounting for ELRewardsReceived before Completed too for edge cases.
-**/
+  // skip totals processing in favor of the handleTokenRebase method
+}
+
 export function handleELRewardsReceived(event: ELRewardsReceived): void {
   if (!isLidoV2Upgrade(event)) {
     return handleELRewardsReceived_v1(event)
@@ -444,10 +359,8 @@ export function handleStopped(event: Stopped): void {
   let entity = new LidoStopped(
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
-
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
-
   entity.save()
 }
 
@@ -455,10 +368,8 @@ export function handleResumed(event: Resumed): void {
   let entity = new LidoResumed(
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
-
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
-
   entity.save()
 }
 
@@ -466,11 +377,9 @@ export function handleApproval(event: Approval): void {
   let entity = new LidoApproval(
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
-
   entity.owner = event.params.owner
   entity.spender = event.params.spender
   entity.value = event.params.value
-
   entity.save()
 }
 
@@ -478,9 +387,7 @@ export function handleUnbuffered(event: Unbuffered): void {
   let entity = new LidoUnbuffered(
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
-
   entity.amount = event.params.amount
-
   entity.save()
 }
 
@@ -495,10 +402,8 @@ export function handleStakingLimitSet(event: StakingLimitSetEvent): void {
   let entity = new StakingLimitSet(
     event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   )
-
   entity.maxStakeLimit = event.params.maxStakeLimit
   entity.stakeLimitIncreasePerBlock = event.params.stakeLimitIncreasePerBlock
-
   entity.save()
 }
 
