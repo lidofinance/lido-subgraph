@@ -1,5 +1,10 @@
-import { BigInt, Address, TypedMap, Bytes } from '@graphprotocol/graph-ts'
-import { dataSource } from '@graphprotocol/graph-ts'
+import {
+  BigInt,
+  Address,
+  TypedMap,
+  Bytes,
+  dataSource
+} from '@graphprotocol/graph-ts'
 
 import { Settings } from '../generated/schema'
 
@@ -104,3 +109,93 @@ export const getRepoAddr = (appId: Bytes): string | null =>
     : appId == ORACLE_APP_ID
     ? ORACLE_REPO.get(network)
     : null
+
+/**
+ * upgrades definition
+ **/
+
+// Upgrade Id's (upgrade iterations with breaking changes )
+
+// initial deploy
+export const UPG_V1_INIT = 0
+// added TransferShares event
+// https://etherscan.io/tx/0x11a48020ae69cf08bd063f1fbc8ecf65bd057015aaa991bf507dbc598aadb68e
+// https://goerli.etherscan.io/tx/0x61fdb6110874916557acdc51b039d0b12570675693375e8dfb4a24929d0bea45
+export const UPG_V1_SHARES = 1
+// Lido v2 deploy, beta
+// https://goerli.etherscan.io/tx/0x75dae29ccd81f0b93c2207935e6c0e484ee6ad5307455015c962c9206ce7e8d6
+export const UPG_V2_BETA = 2
+// v2 RC deploy
+export const UPG_V2_RC = 3
+
+// list of app's upgrade ids and corresponding min contract version
+
+const LIDO_UPG_VERS = new TypedMap<string, i32[]>()
+const NOR_UPG_VERS = new TypedMap<string, i32[]>()
+const ORACLE_UPG_VERS = new TypedMap<string, i32[]>()
+
+// mainnet app versions
+LIDO_UPG_VERS.set('mainnet', [
+  1, // V1_INIT, v1.0.0
+  3, // V1_SHARES, v3.0.0,
+  999, // V2_BETA, TBD
+  999 // V2_RC, TBD
+])
+NOR_UPG_VERS.set('mainnet', [
+  1, // V1_INIT, v1.0.0
+  3, // V1_SHARES, v3.0.0
+  999, // V2_BETA, TBD
+  999 // V2_RC, TBD
+])
+ORACLE_UPG_VERS.set('mainnet', [
+  1, // V1_INIT, v1.0.0
+  3, // V1_SHARES, v3.0.0
+  999, // V2_BETA, TBD
+  999 // V2_RC, TBD
+])
+
+// goerli app versions
+LIDO_UPG_VERS.set('goerli', [
+  1, // V1_INIT, v1.0.0
+  8, // V1_SHARES, v8.0.0
+  10, // V2_BETA, v10.0.0
+  999 // V2_RC, TBD
+])
+NOR_UPG_VERS.set('goerli', [
+  1, // V1_INIT, v1.0.0
+  6, // V1_SHARES, v6.0.0,
+  8, // V2_BETA, 8.0.0
+  999 // V2_RC, TBD
+])
+ORACLE_UPG_VERS.set('goerli', [
+  1, // V1_INIT, v1.0.0
+  4, // V1_SHARES, v4.0.0
+  5, // V2_BETA, v5.0.0
+  999 // V2_RC, TBD
+])
+
+export const checkUpgVer = (
+  curVer: i32,
+  minUpgId: i32,
+  appVers: TypedMap<string, i32[]>
+): bool => {
+  const upgVers = appVers.get(network)
+  // if no upgrades defined assuming subgraph code fully compatible with deployed contracts
+  if (!upgVers || upgVers.length == 0) return true
+
+  // check requested minUpgId is defined and it's contract version is below requested curVer
+  return minUpgId < upgVers.length && upgVers[minUpgId] <= curVer
+}
+
+export const checkUpgVerCompatible = (
+  app: String,
+  curVer: i32,
+  minUpgId: i32
+): bool =>
+  app == 'LIDO'
+    ? checkUpgVer(curVer, minUpgId, LIDO_UPG_VERS)
+    : app == 'NOR'
+    ? checkUpgVer(curVer, minUpgId, NOR_UPG_VERS)
+    : app == 'ORACLE'
+    ? checkUpgVer(curVer, minUpgId, ORACLE_UPG_VERS)
+    : false

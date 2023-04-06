@@ -302,7 +302,7 @@ type TotalReward @entity {
   "Time-compensated APR eg account for a missed day of rewards between reports"
   aprBeforeFees: BigDecimal
   "User APR after fees and time correction"
-  apr: BigDecimal!
+  apr: BigDecimal
 
   block: BigInt!
   blockTime: BigInt!
