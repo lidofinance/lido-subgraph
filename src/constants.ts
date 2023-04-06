@@ -1,4 +1,4 @@
-import { BigInt, Address, TypedMap } from '@graphprotocol/graph-ts'
+import { BigInt, Address, TypedMap, Bytes } from '@graphprotocol/graph-ts'
 import { dataSource } from '@graphprotocol/graph-ts'
 
 import { Settings } from '../generated/schema'
@@ -63,3 +63,44 @@ export const getAddress = (contract: string): Address =>
       ? TREASURY_ADDRESSES.get(network)
       : null)!
   )
+
+/**
+ * Aragon Apps
+ **/
+
+export const KERNEL_APP_BASES_NAMESPACE = Bytes.fromHexString(
+  '0xf1f3eb40f5bc1ad1344716ced8b8a0431d840b5783aea1fd01786bc26f35ac0f'
+)
+
+// Lido App
+export const LIDO_APP_ID = Bytes.fromHexString(
+  '0x79ac01111b462384f1b7fba84a17b9ec1f5d2fddcfcb99487d71b443832556ea'
+)
+const LIDO_REPO = new TypedMap<string, string>()
+LIDO_REPO.set('mainnet', '0xF5Dc67E54FC96F993CD06073f71ca732C1E654B1')
+LIDO_REPO.set('goerli', '0xE9eDe497d2417fd980D8B5338232666641B9B9aC')
+
+// NOR App
+export const NOR_APP_ID = Bytes.fromHexString(
+  '0x57384c8fcaf2c1c2144974769a6ea4e5cf69090d47f5327f8fc93827f8c0001a'
+)
+const NOR_REPO = new TypedMap<string, string>()
+NOR_REPO.set('mainnet', '0x0D97E876ad14DB2b183CFeEB8aa1A5C788eB1831')
+NOR_REPO.set('goerli', '0x5F867429616b380f1Ca7a7283Ff18C53a0033073')
+
+// Oracle App
+export const ORACLE_APP_ID = Bytes.fromHexString(
+  '0xb2977cfc13b000b6807b9ae3cf4d938f4cc8ba98e1d68ad911c58924d6aa4f11'
+)
+const ORACLE_REPO = new TypedMap<string, string>()
+ORACLE_REPO.set('mainnet', '0xF9339DE629973c60c4d2b76749c81E6F40960E3A')
+ORACLE_REPO.set('goerli', '0x9234e37Adeb44022A078557D9943b72AB89bF36a')
+
+export const getRepoAddr = (appId: Bytes): string | null =>
+  appId == LIDO_APP_ID
+    ? LIDO_REPO.get(network)
+    : appId == NOR_APP_ID
+    ? NOR_REPO.get(network)
+    : appId == ORACLE_APP_ID
+    ? ORACLE_REPO.get(network)
+    : null

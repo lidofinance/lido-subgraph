@@ -646,11 +646,11 @@ type Counters @entity {
 }
 
 type AppVersion @entity {
-  id: ID!
+  id: Bytes!
   major: Int!
   minor: Int!
   patch: Int!
-  impl: String!
+  impl: Bytes!
 
   block: BigInt!
   transactionHash: Bytes!
