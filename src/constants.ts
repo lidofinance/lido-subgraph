@@ -14,6 +14,9 @@ export const ZERO = BigInt.fromI32(0)
 export const ONE = BigInt.fromI32(1)
 
 export const CALCULATION_UNIT = BigInt.fromI32(10000)
+export const E27_PRECISION_BASE = BigInt.fromString(
+  '1000000000000000000000000000'
+).toBigDecimal()
 
 // 1 ETH in WEI
 export const ETHER = BigInt.fromString('1000000000000000000')
@@ -48,6 +51,7 @@ export const TESTNET_TRANSFER_SHARES_TX_INDEX = BigInt.fromI32(2)
 // upgrade to Lido v2, block
 // mainnet: 14860268 (https://etherscan.io/tx/)
 // "transactionIndex": ""
+// todo change
 export const MAINNET_LIDO_V2_BLOCK = BigInt.fromI32(0)
 export const MAINNET_LIDO_V2_TX_INDEX = BigInt.fromI32(0)
 // goerli: 8710746 (https://goerli.etherscan.io/tx/0x75dae29ccd81f0b93c2207935e6c0e484ee6ad5307455015c962c9206ce7e8d6)
@@ -99,6 +103,16 @@ const TREASURY_ADDRESSES = new TypedMap<string, string>()
 TREASURY_ADDRESSES.set('mainnet', '0x3e40D73EB977Dc6a537aF587D48316feE66E9C8c')
 TREASURY_ADDRESSES.set('goerli', '0x4333218072D5d7008546737786663c38B4D561A4')
 
+const SR_ADDRESSES = new TypedMap<string, string>()
+// todo change
+SR_ADDRESSES.set('mainnet', '0xa3Dbd317E53D363176359E10948BA0b1c0A4c820')
+SR_ADDRESSES.set('goerli', '0xa3Dbd317E53D363176359E10948BA0b1c0A4c820')
+
+const BURNER_ADDRESSES = new TypedMap<string, string>()
+// todo change
+BURNER_ADDRESSES.set('mainnet', '0x20c61C07C2E2FAb04BF5b4E12ce45a459a18f3B1')
+BURNER_ADDRESSES.set('goerli', '0x20c61C07C2E2FAb04BF5b4E12ce45a459a18f3B1')
+
 // We presume here that initially insurance fund was the treasury
 const getInsuranceFund = (): string =>
   Settings.load('')
@@ -109,11 +123,15 @@ export const getAddress = (contract: string): Address =>
   Address.fromString(
     (contract == 'Lido'
       ? LIDO_ADDRESSES.get(network)
-      : contract == 'NodeOperatorsRegistry'
+      : contract == 'STAKING_ROUTER'
+      ? SR_ADDRESSES.get(network)
+      : contract == 'NO_REGISTRY'
       ? NOS_ADDRESSES.get(network)
-      : contract == 'Insurance Fund'
+      : contract == 'BURNER'
+      ? BURNER_ADDRESSES.get(network)
+      : contract == 'INSURANCE_FUND'
       ? getInsuranceFund()
-      : contract == 'Treasury'
+      : contract == 'TREASURE'
       ? TREASURY_ADDRESSES.get(network)
       : null)!
   )

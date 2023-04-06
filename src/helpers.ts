@@ -1,6 +1,94 @@
-import { store, Bytes } from '@graphprotocol/graph-ts'
-import { Totals, Shares, Stats, LidoTransfer, Holder } from '../generated/schema'
+import { store, Bytes, ethereum, BigInt } from '@graphprotocol/graph-ts'
+import {
+  Totals,
+  Shares,
+  Stats,
+  LidoTransfer,
+  TotalReward,
+  Holder,
+  OracleReport
+} from '../generated/schema'
 import { ONE, ZERO, ZERO_ADDRESS } from './constants'
+import { Transfer, TransferShares } from '../generated/Lido/Lido'
+
+export function _loadOrCreateLidoTransferEntity(
+  eventTransfer: Transfer,
+  eventTransferShares: TransferShares
+): LidoTransfer {
+  let id =
+    eventTransfer.transaction.hash.toHex() +
+    '-' +
+    eventTransfer.logIndex.toString()
+  let entity = LidoTransfer.load(id)
+  if (!entity) {
+    entity = new LidoTransfer(id)
+    entity.from = eventTransfer.params.from
+    entity.to = eventTransfer.params.to
+    entity.block = eventTransfer.block.number
+    entity.blockTime = eventTransfer.block.timestamp
+    entity.transactionHash = eventTransfer.transaction.hash
+    entity.transactionIndex = eventTransfer.transaction.index
+    entity.logIndex = eventTransfer.logIndex
+    entity.transactionLogIndex = eventTransfer.transactionLogIndex
+
+    entity.value = eventTransfer.params.value
+    entity.shares = eventTransferShares.params.sharesValue
+  }
+  return entity
+}
+
+export function _loadOrCreateOracleReport(refSLot: BigInt): OracleReport {
+  let entity = OracleReport.load(refSLot.toString())
+  if (!entity) {
+    entity = new OracleReport(refSLot.toString())
+  }
+  entity.itemsProcessed = ZERO
+  entity.itemsCount = ZERO
+
+  return entity
+}
+
+export function _loadOrCreateTotalRewardEntity(
+  event: ethereum.Event
+): TotalReward {
+  let entity = TotalReward.load(event.transaction.hash)
+  if (!entity) {
+    entity = new TotalReward(event.transaction.hash)
+
+    entity.block = event.block.number
+    entity.blockTime = event.block.timestamp
+    entity.transactionIndex = event.transaction.index
+    entity.logIndex = event.logIndex
+    entity.transactionLogIndex = event.transactionLogIndex
+
+    entity.feeBasis = ZERO
+    entity.treasuryFeeBasisPoints = ZERO
+    entity.insuranceFeeBasisPoints = ZERO
+    entity.operatorsFeeBasisPoints = ZERO
+
+    entity.totalRewardsWithFees = ZERO
+    entity.totalRewards = ZERO
+    entity.totalFee = ZERO
+    entity.operatorsFee = ZERO
+
+    entity.totalPooledEtherAfter = ZERO
+    entity.totalSharesAfter = ZERO
+
+    entity.totalRewardsWithFees = ZERO
+    entity.totalRewards = ZERO
+    entity.totalFee = ZERO
+    entity.operatorsFee = ZERO
+
+    entity.shares2mint = ZERO
+
+    entity.sharesToOperators = ZERO
+    entity.sharesToTreasury = ZERO
+    entity.sharesToInsuranceFund = ZERO
+    entity.dustSharesToTreasury = ZERO
+  }
+
+  return entity
+}
 
 export function _loadOrCreateStatsEntity(): Stats {
   let stats = Stats.load('')
