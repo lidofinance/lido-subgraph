@@ -12,7 +12,7 @@ import {
   BeaconReportReceiverSet,
   AllowedBeaconBalanceRelativeDecreaseSet,
   AllowedBeaconBalanceAnnualRelativeIncreaseSet
-} from '../../generated/LidoOracle/LidoOracle'
+} from '../../generated/LegacyOracle/LegacyOracle'
 import {
   OracleCompleted,
   OracleMember,
@@ -32,7 +32,7 @@ import {
 
 import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ZERO, ONE } from '../constants'
 
-import { loadNosContract } from '../contracts'
+import { loadNORContract } from '../contracts'
 
 import { lastIncrementalId, guessOracleRunsTotal } from '../utils'
 
@@ -194,7 +194,7 @@ export function handleCompleted(event: Completed): void {
 
   // We will save the entity later
 
-  let registry = loadNosContract()
+  let registry = loadNORContract()
   let distr = registry.getRewardsDistribution(sharesToOperators)
 
   let opAddresses = distr.value0

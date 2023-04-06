@@ -35,7 +35,7 @@ import {
   Settings
 } from '../../generated/schema'
 
-import { loadLidoContract, loadNosContract } from '../contracts'
+import { loadLidoContract, loadNORContract } from '../contracts'
 
 
 import {
@@ -98,8 +98,8 @@ export function handleTransfer(event: Transfer): void {
   **/
 
   let isInsuranceFee =
-    fromZeros && event.params.to == getAddress('Insurance Fund')
-  let isMintToTreasury = fromZeros && event.params.to == getAddress('Treasury')
+    fromZeros && event.params.to == getAddress('INSURANCE_FUND')
+  let isMintToTreasury = fromZeros && event.params.to == getAddress('TREASURE')
 
   // If insuranceFee on totalRewards exists, then next transfer is of dust to treasury
   // We need this if treasury and insurance fund is the same address
@@ -543,7 +543,7 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
 
   // We will save the entity later
 
-  let registry = loadNosContract()
+  let registry = loadNORContract()
   let distr = registry.getRewardsDistribution(sharesToOperators)
 
   let opAddresses = distr.value0
