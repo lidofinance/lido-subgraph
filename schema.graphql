@@ -234,7 +234,7 @@ type SharesBurn @entity(immutable: true) {
 }
 
 """
-LidoOracle
+LegacyOracle
 """
 type OracleCompleted @entity(immutable: true) {
   id: ID!
@@ -638,4 +638,17 @@ type PauseIntentValidityPeriodBlocksChange @entity(immutable: true) {
   block: BigInt!
   blockTime: BigInt!
   transactionHash: Bytes!
+}
+
+type OracleReport @entity(immutable: true) {
+  id: ID!
+
+  totalReward: TotalReward!
+
+  "v2 oracle report refSlot"
+  refSlot: BigInt!
+  hash: Bytes!
+
+  itemsProcessed: BigInt!
+  itemsCount: BigInt!
 }
