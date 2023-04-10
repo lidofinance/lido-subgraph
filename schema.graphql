@@ -299,11 +299,11 @@ type TotalReward @entity {
   totalShares: BigInt
 
   "Raw APR from validator balances"
-  aprRaw: BigDecimal!
+  aprRaw: BigDecimal
   "Time-compensated APR eg account for a missed day of rewards between reports"
   aprBeforeFees: BigDecimal
   "User APR after fees and time correction"
-  apr: BigDecimal!
+  apr: BigDecimal
 
   block: BigInt!
   blockTime: BigInt!
@@ -651,4 +651,21 @@ type OracleReport @entity(immutable: true) {
 
   itemsProcessed: BigInt!
   itemsCount: BigInt!
+
+type Counters @entity {
+  id: ID!
+
+  lastOracleCompletedId: BigInt!
+}
+
+type AppVersion @entity {
+  id: Bytes!
+  major: Int!
+  minor: Int!
+  patch: Int!
+  impl: Bytes!
+
+  block: BigInt!
+  transactionHash: Bytes!
+  transactionIndex: BigInt!
 }

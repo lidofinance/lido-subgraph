@@ -1,5 +1,10 @@
-import { BigInt, Address, TypedMap, ethereum } from '@graphprotocol/graph-ts'
-import { dataSource } from '@graphprotocol/graph-ts'
+import {
+  BigInt,
+  Address,
+  TypedMap,
+  Bytes,
+  dataSource
+} from '@graphprotocol/graph-ts'
 
 import { Settings } from '../generated/schema'
 
@@ -27,61 +32,6 @@ Deposits
 
 export const DEPOSIT_SIZE = BigInt.fromI32(32)
 export const DEPOSIT_AMOUNT = DEPOSIT_SIZE.times(ETHER) // in Wei
-
-/**
-Oracle
-**/
-
-// Buffer of oracle runs if we underestimated the number
-export const ORACLE_RUNS_BUFFER = BigInt.fromI32(50)
-
-export const MAINNET_FIRST_ORACLE_REPORT = BigInt.fromI32(1610016625) // block 11607098
-export const TESTNET_FIRST_ORACLE_REPORT = BigInt.fromI32(1617282681) // block 4543056
-
-// upgrade to TransferShares event, block
-// mainnet: 14860268 (https://etherscan.io/tx/0x11a48020ae69cf08bd063f1fbc8ecf65bd057015aaa991bf507dbc598aadb68e)
-// "transactionIndex": "0x10b"
-export const MAINNET_TRANSFER_SHARES_BLOCK = BigInt.fromI32(14860268)
-export const MAINNET_TRANSFER_SHARES_TX_INDEX = BigInt.fromI32(267)
-// goerli: 6912872 (https://goerli.etherscan.io/tx/0x61fdb6110874916557acdc51b039d0b12570675693375e8dfb4a24929d0bea45)
-// "transactionIndex": "0x2"
-export const TESTNET_TRANSFER_SHARES_BLOCK = BigInt.fromI32(6912872)
-export const TESTNET_TRANSFER_SHARES_TX_INDEX = BigInt.fromI32(2)
-
-// upgrade to Lido v2, block
-// mainnet: 14860268 (https://etherscan.io/tx/)
-// "transactionIndex": ""
-// todo change
-export const MAINNET_LIDO_V2_BLOCK = BigInt.fromI32(0)
-export const MAINNET_LIDO_V2_TX_INDEX = BigInt.fromI32(0)
-// goerli: 8710746 (https://goerli.etherscan.io/tx/0x75dae29ccd81f0b93c2207935e6c0e484ee6ad5307455015c962c9206ce7e8d6)
-// "transactionIndex": "0x48"
-export const TESTNET_LIDO_V2_BLOCK = BigInt.fromI32(8710746)
-export const TESTNET_LIDO_V2_TX_INDEX = BigInt.fromI32(72)
-
-// Oracle report period is dependent on network (eg much often on testnet)
-export const MAINNET_ORACLE_PERIOD = BigInt.fromI32(86400) // 1 day
-export const TESTNET_ORACLE_PERIOD = BigInt.fromI32(3840) // 10 epochs by ~6.4 minutes
-
-export const getFirstOracleReport = (): BigInt =>
-  isMainnet ? MAINNET_FIRST_ORACLE_REPORT : TESTNET_FIRST_ORACLE_REPORT
-
-export const getOraclePeriod = (): BigInt =>
-  isMainnet ? MAINNET_ORACLE_PERIOD : TESTNET_ORACLE_PERIOD
-
-export const isTransferSharesUpgrade = (event: ethereum.Event): boolean =>
-  isMainnet
-    ? event.block.number >= MAINNET_TRANSFER_SHARES_BLOCK &&
-      event.transaction.index >= MAINNET_TRANSFER_SHARES_TX_INDEX
-    : event.block.number >= TESTNET_TRANSFER_SHARES_BLOCK &&
-      event.transaction.index > TESTNET_TRANSFER_SHARES_TX_INDEX
-
-export const isLidoV2Upgrade = (event: ethereum.Event): boolean =>
-  isMainnet
-    ? event.block.number >= MAINNET_LIDO_V2_BLOCK &&
-      event.transaction.index >= MAINNET_LIDO_V2_TX_INDEX
-    : event.block.number >= TESTNET_LIDO_V2_BLOCK &&
-      event.transaction.index > TESTNET_LIDO_V2_TX_INDEX
 
 /**
 Addresses
@@ -135,3 +85,134 @@ export const getAddress = (contract: string): Address =>
       ? TREASURY_ADDRESSES.get(network)
       : null)!
   )
+
+/**
+ * Aragon Apps
+ **/
+
+export const KERNEL_APP_BASES_NAMESPACE = Bytes.fromHexString(
+  '0xf1f3eb40f5bc1ad1344716ced8b8a0431d840b5783aea1fd01786bc26f35ac0f'
+)
+
+// Lido App
+export const LIDO_APP_ID = Bytes.fromHexString(
+  '0x79ac01111b462384f1b7fba84a17b9ec1f5d2fddcfcb99487d71b443832556ea'
+)
+const LIDO_REPO = new TypedMap<string, string>()
+LIDO_REPO.set('mainnet', '0xF5Dc67E54FC96F993CD06073f71ca732C1E654B1')
+LIDO_REPO.set('goerli', '0xE9eDe497d2417fd980D8B5338232666641B9B9aC')
+
+// NOR App
+export const NOR_APP_ID = Bytes.fromHexString(
+  '0x57384c8fcaf2c1c2144974769a6ea4e5cf69090d47f5327f8fc93827f8c0001a'
+)
+const NOR_REPO = new TypedMap<string, string>()
+NOR_REPO.set('mainnet', '0x0D97E876ad14DB2b183CFeEB8aa1A5C788eB1831')
+NOR_REPO.set('goerli', '0x5F867429616b380f1Ca7a7283Ff18C53a0033073')
+
+// Oracle App
+export const ORACLE_APP_ID = Bytes.fromHexString(
+  '0xb2977cfc13b000b6807b9ae3cf4d938f4cc8ba98e1d68ad911c58924d6aa4f11'
+)
+const ORACLE_REPO = new TypedMap<string, string>()
+ORACLE_REPO.set('mainnet', '0xF9339DE629973c60c4d2b76749c81E6F40960E3A')
+ORACLE_REPO.set('goerli', '0x9234e37Adeb44022A078557D9943b72AB89bF36a')
+
+export const getRepoAddr = (appId: Bytes): string | null =>
+  appId == LIDO_APP_ID
+    ? LIDO_REPO.get(network)
+    : appId == NOR_APP_ID
+    ? NOR_REPO.get(network)
+    : appId == ORACLE_APP_ID
+    ? ORACLE_REPO.get(network)
+    : null
+
+/**
+ * upgrades definition
+ **/
+
+// Upgrade Id's (upgrade iterations with breaking changes )
+
+// initial deploy
+export const UPG_V1_INIT = 0
+// added TransferShares event
+// https://etherscan.io/tx/0x11a48020ae69cf08bd063f1fbc8ecf65bd057015aaa991bf507dbc598aadb68e
+// https://goerli.etherscan.io/tx/0x61fdb6110874916557acdc51b039d0b12570675693375e8dfb4a24929d0bea45
+export const UPG_V1_SHARES = 1
+// Lido v2 deploy, beta
+// https://goerli.etherscan.io/tx/0x75dae29ccd81f0b93c2207935e6c0e484ee6ad5307455015c962c9206ce7e8d6
+export const UPG_V2_BETA = 2
+// v2 RC deploy
+export const UPG_V2_RC = 3
+
+// list of app's upgrade ids and corresponding min contract version
+
+const LIDO_UPG_VERS = new TypedMap<string, i32[]>()
+const NOR_UPG_VERS = new TypedMap<string, i32[]>()
+const ORACLE_UPG_VERS = new TypedMap<string, i32[]>()
+
+// mainnet app versions
+LIDO_UPG_VERS.set('mainnet', [
+  1, // V1_INIT, v1.0.0
+  3, // V1_SHARES, v3.0.0,
+  999, // V2_BETA, TBD
+  999 // V2_RC, TBD
+])
+NOR_UPG_VERS.set('mainnet', [
+  1, // V1_INIT, v1.0.0
+  3, // V1_SHARES, v3.0.0
+  999, // V2_BETA, TBD
+  999 // V2_RC, TBD
+])
+ORACLE_UPG_VERS.set('mainnet', [
+  1, // V1_INIT, v1.0.0
+  3, // V1_SHARES, v3.0.0
+  999, // V2_BETA, TBD
+  999 // V2_RC, TBD
+])
+
+// goerli app versions
+LIDO_UPG_VERS.set('goerli', [
+  1, // V1_INIT, v1.0.0
+  8, // V1_SHARES, v8.0.0
+  10, // V2_BETA, v10.0.0
+  999 // V2_RC, TBD
+])
+NOR_UPG_VERS.set('goerli', [
+  1, // V1_INIT, v1.0.0
+  6, // V1_SHARES, v6.0.0,
+  8, // V2_BETA, 8.0.0
+  999 // V2_RC, TBD
+])
+ORACLE_UPG_VERS.set('goerli', [
+  1, // V1_INIT, v1.0.0
+  4, // V1_SHARES, v4.0.0
+  5, // V2_BETA, v5.0.0
+  999 // V2_RC, TBD
+])
+
+export const checkUpgVer = (
+  curVer: i32,
+  minUpgId: i32,
+  appVers: TypedMap<string, i32[]>
+): bool => {
+  const upgVers = appVers.get(network)
+  // if no upgrades defined assuming subgraph code fully compatible with deployed contracts
+  if (!upgVers || upgVers.length == 0) return true
+
+  // check requested minUpgId is defined and it's contract version is below requested curVer
+  return minUpgId < upgVers.length && upgVers[minUpgId] <= curVer
+}
+
+export const checkUpgVerCompatible = (
+  app: String,
+  curVer: i32,
+  minUpgId: i32
+): bool =>
+  app == 'LIDO'
+    ? checkUpgVer(curVer, minUpgId, LIDO_UPG_VERS)
+    : app == 'NOR'
+    ? checkUpgVer(curVer, minUpgId, NOR_UPG_VERS)
+    : app == 'ORACLE'
+    ? checkUpgVer(curVer, minUpgId, ORACLE_UPG_VERS)
+    : false

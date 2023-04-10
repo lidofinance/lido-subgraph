@@ -27,26 +27,32 @@ import {
   BeaconReportReceiver,
   Totals,
   NodeOperatorsShares,
-  CurrentFees
+  CurrentFees,
+  Counters
 } from '../../generated/schema'
 
 import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ZERO, ONE } from '../constants'
 
 import { loadNORContract } from '../contracts'
 
-import { lastIncrementalId, guessOracleRunsTotal } from '../utils'
+function _loadOrCreateCounters(): Counters {
+  let counters = Counters.load('')
+  if (!counters) {
+    counters = new Counters('')
+    counters.lastOracleCompletedId = ZERO
+    counters.save()
+  }
+  return counters
+}
+
 
 export function handleCompleted(event: Completed): void {
-  let previousCompletedId = lastIncrementalId(
-    'OracleCompleted',
-    guessOracleRunsTotal(event.block.timestamp)
-  )
-  let nextCompletedId = BigInt.fromString(previousCompletedId)
-    .plus(ONE)
-    .toString()
+  let counters = _loadOrCreateCounters()
+  let previousCompleted = OracleCompleted.load(counters.lastOracleCompletedId.toString())
 
-  let previousCompleted = OracleCompleted.load(previousCompletedId)
-  let newCompleted = new OracleCompleted(nextCompletedId)
+  counters.lastOracleCompletedId = counters.lastOracleCompletedId.plus(ONE)
+
+  let newCompleted = new OracleCompleted(counters.lastOracleCompletedId.toString())
 
   newCompleted.epochId = event.params.epochId
   newCompleted.beaconBalance = event.params.beaconBalance

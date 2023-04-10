@@ -31,7 +31,6 @@ import {
 
 import { ONE, isLidoV2Upgrade, getAddress } from './constants'
 
-import { lastIncrementalId, guessOracleRunsTotal } from './utils'
 import {
   _loadOrCreateLidoTransferEntity,
   _loadOrCreateOracleReport,
@@ -126,26 +125,7 @@ export function handleCompleted(event: Completed): void {
     return handleCompleted_v1(event)
   }
 
-  let previousCompletedId = lastIncrementalId(
-    'OracleCompleted',
-    guessOracleRunsTotal(event.block.timestamp)
-  )
-  let nextCompletedId = BigInt.fromString(previousCompletedId)
-    .plus(ONE)
-    .toString()
-
-  let previousCompleted = OracleCompleted.load(previousCompletedId)
-  let newCompleted = new OracleCompleted(nextCompletedId)
-
-  newCompleted.epochId = event.params.epochId
-  newCompleted.beaconBalance = event.params.beaconBalance
-  newCompleted.beaconValidators = event.params.beaconValidators
-
-  newCompleted.block = event.block.number
-  newCompleted.blockTime = event.block.timestamp
-  newCompleted.transactionHash = event.transaction.hash
-
-  newCompleted.save()
+  // @todo
 }
 
 export function handlePostTotalShares(event: PostTotalShares): void {
