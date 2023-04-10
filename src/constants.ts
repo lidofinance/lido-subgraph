@@ -71,7 +71,7 @@ const getInsuranceFund = (): string =>
 
 export const getAddress = (contract: string): Address =>
   Address.fromString(
-    (contract == 'Lido'
+    (contract == 'LIDO'
       ? LIDO_ADDRESSES.get(network)
       : contract == 'STAKING_ROUTER'
       ? SR_ADDRESSES.get(network)

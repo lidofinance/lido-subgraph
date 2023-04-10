@@ -4,7 +4,7 @@ import { StakingRouter } from '../generated/StakingRouter/StakingRouter'
 
 import { getAddress } from './constants'
 
-export const loadLidoContract = (): Lido => Lido.bind(getAddress('Lido'))
+export const loadLidoContract = (): Lido => Lido.bind(getAddress('LIDO'))
 
 export const loadNORContract = (): NodeOperatorsRegistry =>
   NodeOperatorsRegistry.bind(getAddress('NO_REGISTRY'))

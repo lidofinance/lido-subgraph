@@ -37,6 +37,8 @@ dataSources:
       abis:
         - name: Lido
           file: ./abis/Lido.json
+        - name: NodeOperatorsRegistry
+          file: ./abis/NodeOperatorsRegistry.json
       eventHandlers:
         - event: Stopped()
           handler: handleStopped
@@ -135,6 +137,10 @@ dataSources:
       abis:
         - name: LidoOracle
           file: ./abis/LidoOracle.json
+        - name: NodeOperatorsRegistry
+          file: ./abis/NodeOperatorsRegistry.json
+        - name: StakingRouter
+          file: ./abis/StakingRouter.json
       eventHandlers:
         - event: Completed(uint256,uint128,uint128)
           handler: handleCompleted
