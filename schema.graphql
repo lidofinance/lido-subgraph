@@ -152,8 +152,9 @@ type Totals @entity {
 type Stats @entity {
   id: ID!
 
-  uniqueHolders: BigInt
-  uniqueAnytimeHolders: BigInt
+  uniqueHolders: BigInt!
+  uniqueAnytimeHolders: BigInt!
+  lastOracleCompletedId: BigInt!
 }
 
 type Shares @entity {
@@ -651,11 +652,6 @@ type OracleReport @entity(immutable: true) {
 
   itemsProcessed: BigInt!
   itemsCount: BigInt!
-
-type Counters @entity {
-  id: ID!
-
-  lastOracleCompletedId: BigInt!
 }
 
 type AppVersion @entity {

@@ -2,8 +2,8 @@
   "name": "lido-subgraph",
   "license": "MIT",
   "scripts": {
-    "codegen": "graph codegen subgraph.mainnet.yaml && node genParserData.js",
-    "codegen-testnet": "graph codegen subgraph.testnet.yaml && node genParserData.js",
+    "codegen": "rm -rf ./generated && graph codegen subgraph.mainnet.yaml && node genParserData.js",
+    "codegen-testnet": "rm -rf ./generated && graph codegen subgraph.testnet.yaml && node genParserData.js",
     "build": "graph build subgraph.mainnet.yaml",
     "build-testnet": "graph build subgraph.testnet.yaml",
     "test": "yarn test:errors && yarn test:sync && yarn test:withoutStatus",

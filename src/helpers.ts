@@ -6,9 +6,19 @@ import {
   LidoTransfer,
   TotalReward,
   Holder,
-  OracleReport
+  OracleReport,
+  AppVersion
 } from '../generated/schema'
-import { ONE, ZERO, ZERO_ADDRESS } from './constants'
+import {
+  LIDO_APP_ID,
+  NOR_APP_ID,
+  ONE,
+  ORACLE_APP_ID,
+  UPG_V2_BETA,
+  ZERO,
+  ZERO_ADDRESS,
+  isAppVerMatch
+} from './constants'
 import { Transfer, TransferShares } from '../generated/Lido/Lido'
 
 export function _loadOrCreateLidoTransferEntity(
@@ -96,6 +106,8 @@ export function _loadOrCreateStatsEntity(): Stats {
     stats = new Stats('')
     stats.uniqueHolders = ZERO
     stats.uniqueAnytimeHolders = ZERO
+    stats.lastOracleCompletedId = ZERO
+    stats.save()
   }
   return stats
 }
@@ -176,18 +188,47 @@ export function _updateHolders(entity: LidoTransfer): void {
     }
 
     if (isNewHolder) {
-      stats.uniqueHolders = stats.uniqueHolders!.plus(ONE)
-      stats.uniqueAnytimeHolders = stats.uniqueAnytimeHolders!.plus(ONE)
+      stats.uniqueHolders = stats.uniqueHolders.plus(ONE)
+      stats.uniqueAnytimeHolders = stats.uniqueAnytimeHolders.plus(ONE)
     } else if (
       entity.from != ZERO_ADDRESS &&
       entity.sharesAfterDecrease!.isZero()
     ) {
       // Mints don't have balanceAfterDecrease
-      stats.uniqueHolders = stats.uniqueHolders!.minus(ONE)
+      stats.uniqueHolders = stats.uniqueHolders.minus(ONE)
       // @todo delete holder
       // @todo check id correctness
       // store.remove('Holder', entity.from.toString())
     }
     stats.save()
   }
+}
+
+// export function _loadOrCreateCounters(): Counters {
+//   let counters = Counters.load('')
+//   if (!counters) {
+//     counters = new Counters('')
+//     counters.lastOracleCompletedId = ZERO
+//     counters.save()
+//   }
+//   return counters
+// }
+
+
+export const checkAppVer = (appId: Bytes, minUpgId: i32): bool => {
+  const appVer = AppVersion.load(appId)
+  if (!appVer) return false
+  return isAppVerMatch(appId, appVer.major, minUpgId)
+}
+
+export function isLidoV2(): bool {
+  return checkAppVer(LIDO_APP_ID, UPG_V2_BETA)
+}
+
+export function isOracleV2(): bool {
+  return checkAppVer(ORACLE_APP_ID, UPG_V2_BETA)
+}
+
+export function isNORV2(): bool {
+  return checkAppVer(NOR_APP_ID, UPG_V2_BETA)
 }

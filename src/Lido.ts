@@ -61,8 +61,7 @@ import {
   handleSharesBurnt as handleSharesBurnt_v1
 } from './v1/Lido'
 
-import { loadLidoContract, loadNORContract } from './contracts'
-import { E27_PRECISION_BASE, isLidoV2Upgrade } from './constants'
+import { E27_PRECISION_BASE } from './constants'
 
 import {
   ZERO,
@@ -81,11 +80,11 @@ import {
 import {
   _loadOrCreateLidoTransferEntity,
   _loadOrCreateSharesEntity,
-  _loadOrCreateStatsEntity,
   _loadOrCreateTotalRewardEntity,
   _loadOrCreateTotalsEntity,
   _updateHolders,
-  _updateTransferShares
+  _updateTransferShares,
+  isLidoV2
 } from './helpers'
 
 export function handleETHDistributed(event: ETHDistributed): void {
@@ -211,7 +210,7 @@ export function handleTokenRebase(event: TokenRebased): void {
 }
 
 export function handleTransfer(event: Transfer): void {
-  if (!isLidoV2Upgrade(event)) {
+  if (!isLidoV2()) {
     return handleTransfer_v1(event)
   }
 
@@ -268,12 +267,11 @@ export function handleTransfer(event: Transfer): void {
   _updateTransferShares(entity)
   // update holders
   _updateHolders(entity)
-
   entity.save()
 }
 
 export function handleSubmit(event: Submitted): void {
-  if (!isLidoV2Upgrade(event)) {
+  if (!isLidoV2()) {
     return handleSubmit_v1(event)
   }
 
@@ -416,7 +414,7 @@ export function handleTransferShares(event: TransferShares): void {
 }
 
 export function handleSharesBurnt(event: SharesBurnt): void {
-  if (!isLidoV2Upgrade(event)) {
+  if (!isLidoV2()) {
     return handleSharesBurnt_v1(event)
   }
 
@@ -438,7 +436,7 @@ export function handleSharesBurnt(event: SharesBurnt): void {
 }
 
 export function handleELRewardsReceived(event: ELRewardsReceived): void {
-  if (!isLidoV2Upgrade(event)) {
+  if (!isLidoV2()) {
     return handleELRewardsReceived_v1(event)
   }
   // else skip in favor of the handleTokenRebase method

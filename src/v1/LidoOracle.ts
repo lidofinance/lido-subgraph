@@ -12,7 +12,7 @@ import {
   BeaconReportReceiverSet,
   AllowedBeaconBalanceRelativeDecreaseSet,
   AllowedBeaconBalanceAnnualRelativeIncreaseSet
-} from '../../generated/LegacyOracle/LegacyOracle'
+} from '../../generated/LidoOracle/LidoOracle'
 import {
   OracleCompleted,
   OracleMember,
@@ -27,32 +27,25 @@ import {
   BeaconReportReceiver,
   Totals,
   NodeOperatorsShares,
-  CurrentFees,
-  Counters
+  CurrentFees
 } from '../../generated/schema'
 
 import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ZERO, ONE } from '../constants'
 
 import { loadNORContract } from '../contracts'
-
-function _loadOrCreateCounters(): Counters {
-  let counters = Counters.load('')
-  if (!counters) {
-    counters = new Counters('')
-    counters.lastOracleCompletedId = ZERO
-    counters.save()
-  }
-  return counters
-}
-
+import { _loadOrCreateStatsEntity } from '../helpers'
 
 export function handleCompleted(event: Completed): void {
-  let counters = _loadOrCreateCounters()
-  let previousCompleted = OracleCompleted.load(counters.lastOracleCompletedId.toString())
+  let stats = _loadOrCreateStatsEntity()
+  let previousCompleted = OracleCompleted.load(
+    stats.lastOracleCompletedId.toString()
+  )
 
-  counters.lastOracleCompletedId = counters.lastOracleCompletedId.plus(ONE)
+  stats.lastOracleCompletedId = stats.lastOracleCompletedId.plus(ONE)
 
-  let newCompleted = new OracleCompleted(counters.lastOracleCompletedId.toString())
+  let newCompleted = new OracleCompleted(
+    stats.lastOracleCompletedId.toString()
+  )
 
   newCompleted.epochId = event.params.epochId
   newCompleted.beaconBalance = event.params.beaconBalance
@@ -63,6 +56,7 @@ export function handleCompleted(event: Completed): void {
   newCompleted.transactionHash = event.transaction.hash
 
   newCompleted.save()
+  stats.save()
 
   let oldBeaconValidators = previousCompleted
     ? previousCompleted.beaconValidators

@@ -25,8 +25,6 @@ import {
   Totals,
   NodeOperatorsShares,
   Shares,
-  Holder,
-  Stats,
   CurrentFees,
   ELRewardsVaultSet,
   ELRewardsWithdrawalLimitSet,
@@ -34,10 +32,7 @@ import {
   SharesBurn,
   Settings
 } from '../../generated/schema'
-
 import { loadLidoContract, loadNORContract } from '../contracts'
-
-
 import {
   ZERO,
   getAddress,
@@ -45,8 +40,8 @@ import {
   CALCULATION_UNIT,
   ZERO_ADDRESS
 } from '../constants'
-
 import { wcKeyCrops } from '../wcKeyCrops'
+import { _updateHolders, _updateTransferShares } from '../helpers'
 
 export function handleTransfer(event: Transfer): void {
   let entity = new LidoTransfer(
@@ -182,83 +177,10 @@ export function handleTransfer(event: Transfer): void {
     nodeOperatorFees.save()
   }
 
-  if (entity.shares) {
-    // Decreasing from address shares
-    // No point in changing 0x0 shares
-    if (!fromZeros) {
-      let sharesFromEntity = Shares.load(event.params.from)
-      // Address must already have shares, HOWEVER:
-      // Someone can and managed to produce events of 0 to 0 transfers
-      if (!sharesFromEntity) {
-        sharesFromEntity = new Shares(event.params.from)
-        sharesFromEntity.shares = ZERO
-      }
-
-      entity.sharesBeforeDecrease = sharesFromEntity.shares
-      sharesFromEntity.shares = sharesFromEntity.shares.minus(entity.shares)
-      entity.sharesAfterDecrease = sharesFromEntity.shares
-
-      sharesFromEntity.save()
-
-      // Calculating new balance
-      entity.balanceAfterDecrease = entity
-        .sharesAfterDecrease!.times(totals.totalPooledEther)
-        .div(totals.totalShares)
-    }
-
-    // Increasing to address shares
-    let sharesToEntity = Shares.load(event.params.to)
-
-    if (!sharesToEntity) {
-      sharesToEntity = new Shares(event.params.to)
-      sharesToEntity.shares = ZERO
-    }
-
-    entity.sharesBeforeIncrease = sharesToEntity.shares
-    sharesToEntity.shares = sharesToEntity.shares.plus(entity.shares)
-    entity.sharesAfterIncrease = sharesToEntity.shares
-
-    sharesToEntity.save()
-
-    // Calculating new balance
-    entity.balanceAfterIncrease = entity
-      .sharesAfterIncrease!.times(totals.totalPooledEther)
-      .div(totals.totalShares)
-  }
-
+  // upd account's shares and stats
+  _updateTransferShares(entity)
+  _updateHolders(entity)
   entity.save()
-
-  // Saving recipient address as a unique stETH holder
-  if (event.params.value.gt(ZERO)) {
-    let holder = Holder.load(event.params.to)
-
-    let holderExists = !!holder
-
-    if (!holder) {
-      holder = new Holder(event.params.to)
-      holder.address = event.params.to
-      holder.save()
-    }
-
-    let stats = Stats.load('')
-
-    if (!stats) {
-      stats = new Stats('')
-      stats.uniqueHolders = ZERO
-      stats.uniqueAnytimeHolders = ZERO
-    }
-
-    if (!holderExists) {
-      stats.uniqueHolders = stats.uniqueHolders!.plus(ONE)
-      stats.uniqueAnytimeHolders = stats.uniqueAnytimeHolders!.plus(ONE)
-    } else if (!fromZeros && entity.balanceAfterDecrease!.equals(ZERO)) {
-      // Mints don't have balanceAfterDecrease
-
-      stats.uniqueHolders = stats.uniqueHolders!.minus(ONE)
-    }
-
-    stats.save()
-  }
 }
 
 export function handleFeeSet(event: FeeSet): void {
@@ -479,12 +401,9 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
     totalRewardsEntity.operatorsFee = ZERO
 
     totalRewardsEntity.feeBasis = currentFees.feeBasisPoints!
-    totalRewardsEntity.treasuryFeeBasisPoints =
-      currentFees.treasuryFeeBasisPoints!
-    totalRewardsEntity.insuranceFeeBasisPoints =
-      currentFees.insuranceFeeBasisPoints!
-    totalRewardsEntity.operatorsFeeBasisPoints =
-      currentFees.operatorsFeeBasisPoints!
+    totalRewardsEntity.treasuryFeeBasisPoints = currentFees.treasuryFeeBasisPoints!
+    totalRewardsEntity.insuranceFeeBasisPoints = currentFees.insuranceFeeBasisPoints!
+    totalRewardsEntity.operatorsFeeBasisPoints = currentFees.operatorsFeeBasisPoints!
 
     let totals = Totals.load('')!
     totalRewardsEntity.totalPooledEtherBefore = totals.totalPooledEther
@@ -505,8 +424,9 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
   totalRewardsEntity.totalRewardsWithFees = newTotalRewards
   totalRewardsEntity.totalRewards = newTotalRewards
 
-  let totalPooledEtherAfter =
-    totalRewardsEntity.totalPooledEtherBefore.plus(newTotalRewards)
+  let totalPooledEtherAfter = totalRewardsEntity.totalPooledEtherBefore.plus(
+    newTotalRewards
+  )
 
   // Overall shares for all rewards cut
   let shares2mint = newTotalRewards

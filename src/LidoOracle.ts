@@ -3,7 +3,7 @@ import {
   Completed,
   ContractVersionSet,
   PostTotalShares
-} from '../generated/LegacyOracle/LegacyOracle'
+} from '../generated/LidoOracle/LidoOracle'
 import {
   ExtraDataSubmitted,
   ProcessingStarted
@@ -29,7 +29,7 @@ import {
   handleMemberAdded
 } from './v1/LidoOracle'
 
-import { ONE, isLidoV2Upgrade, getAddress } from './constants'
+import { getAddress } from './constants'
 
 import {
   _loadOrCreateLidoTransferEntity,
@@ -37,7 +37,8 @@ import {
   _loadOrCreateTotalRewardEntity,
   _loadOrCreateTotalsEntity,
   _updateHolders,
-  _updateTransferShares
+  _updateTransferShares,
+  isOracleV2
 } from './helpers'
 import { loadSRContract } from './contracts'
 import { extractPairedEvent, parseEventLogs } from './parser'
@@ -55,9 +56,7 @@ export function handleProcessingStarted(event: ProcessingStarted): void {
 
 export function handleExtraDataSubmitted(event: ExtraDataSubmitted): void {
   // OracleReport should exists at this moment
-  let oracleReportEntity = _loadOrCreateOracleReport(
-    event.params.refSlot
-  )
+  let oracleReportEntity = _loadOrCreateOracleReport(event.params.refSlot)
 
   oracleReportEntity.itemsProcessed = event.params.itemsProcessed
   oracleReportEntity.itemsCount = event.params.itemsCount
@@ -121,7 +120,7 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmitted): void {
 }
 
 export function handleCompleted(event: Completed): void {
-  if (!isLidoV2Upgrade(event)) {
+  if (!isOracleV2()) {
     return handleCompleted_v1(event)
   }
 
@@ -129,7 +128,7 @@ export function handleCompleted(event: Completed): void {
 }
 
 export function handlePostTotalShares(event: PostTotalShares): void {
-  if (!isLidoV2Upgrade(event)) {
+  if (!isOracleV2()) {
     return handlePostTotalShares_v1(event)
   }
 }
