@@ -142,14 +142,14 @@ type NodeOperatorsShares @entity(immutable: true) {
   shares: BigInt!
 }
 
-type Totals @entity {
+type Total @entity (immutable: true) {
   id: ID!
 
   totalPooledEther: BigInt!
   totalShares: BigInt!
 }
 
-type Stats @entity {
+type Stat @entity {
   id: ID!
 
   uniqueHolders: BigInt!
@@ -157,7 +157,7 @@ type Stats @entity {
   lastOracleCompletedId: BigInt!
 }
 
-type Shares @entity {
+type Share @entity (immutable: true) {
   id: Bytes!
 
   shares: BigInt!
@@ -167,6 +167,7 @@ type Holder @entity(immutable: true) {
   id: Bytes!
 
   address: Bytes!
+  balance: BigInt!
 }
 
 type CurrentFees @entity {
