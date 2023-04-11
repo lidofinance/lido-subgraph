@@ -1,4 +1,4 @@
-import { ethers } from 'ethers'
+import { JsonRpcProvider, Contract } from 'ethers'
 import fs from 'fs'
 
 import {
@@ -11,36 +11,32 @@ import {
   getBlock
 } from '../config.js'
 
-const provider = new ethers.providers.JsonRpcProvider(RPC)
+const provider = new JsonRpcProvider(RPC)
 
 const lidoAbi = JSON.parse(fs.readFileSync('abis/Lido.json'))
-const lidoContract = new ethers.Contract(LIDO_ADDRESS, lidoAbi, provider)
+const lidoContract = new Contract(LIDO_ADDRESS, lidoAbi, provider)
 
 const oracleAddress = await lidoContract.getOracle()
 const oracleAbi = JSON.parse(fs.readFileSync('abis/LidoOracle.json'))
-const oracleContract = new ethers.Contract(oracleAddress, oracleAbi, provider)
+const oracleContract = new Contract(oracleAddress, oracleAbi, provider)
 
 const nopRegistryAbi = JSON.parse(
   fs.readFileSync('abis/NodeOperatorsRegistry.json')
 )
-const nopRegistryContract = new ethers.Contract(
-  NOP_ADDRESS,
-  nopRegistryAbi,
-  provider
-)
+const nopRegistryContract = new Contract(NOP_ADDRESS, nopRegistryAbi, provider)
 
 const aragonAbi = JSON.parse(fs.readFileSync('abis/Voting.json'))
-const aragonContract = new ethers.Contract(ARAGON_ADDRESS, aragonAbi, provider)
+const aragonContract = new Contract(ARAGON_ADDRESS, aragonAbi, provider)
 
 const easyTrackAbi = JSON.parse(fs.readFileSync('abis/Easytrack.json'))
-const easyTrackContract = new ethers.Contract(
+const easyTrackContract = new Contract(
   EASYTRACK_ADDRESS,
   easyTrackAbi,
   provider
 )
 
 const dsmAbi = JSON.parse(fs.readFileSync('abis/DepositSecurityModule.json'))
-const dsmContract = new ethers.Contract(DSM_ADDRESS, dsmAbi, provider)
+const dsmContract = new Contract(DSM_ADDRESS, dsmAbi, provider)
 
 const mbAddBlock = async args => {
   const blockIsOverriden = args.find(x => x.blockTag)

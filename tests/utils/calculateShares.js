@@ -1,5 +1,6 @@
 import { gql } from 'graphql-request'
-import { subgraphFetch, BigNumber } from './index.js'
+import { BigNumber } from 'ethers'
+import { subgraphFetch } from './index.js'
 
 export const calculateShares = async (address) => {
   const submissionsQuery = gql`

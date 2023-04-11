@@ -1,4 +1,3 @@
-export * from './BigNumber.js'
 export * from './calculateAddressBalance.js'
 export * from './calculateShares.js'
 export * from './calculateSharesCeiling.js'

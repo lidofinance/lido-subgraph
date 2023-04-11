@@ -1,9 +1,6 @@
 import { gql } from 'graphql-request'
-import {
-  getBalanceFromShares,
-  subgraphFetch,
-  BigNumber,
-} from './utils/index.js'
+import { BigNumber } from 'ethers'
+import { getBalanceFromShares, subgraphFetch } from './utils/index.js'
 
 const ADDRESSES_TO_TEST = 3
 const timePerAddress = 100 // seconds
@@ -17,11 +14,11 @@ NOTE: This test takes very long time per address.
 const sharesChecks = [
   '17253336101171480', // 70usd
   '453884371982397608502', // 2mil usd
-  '22253111414175281724765', // 90mil usd
-].map((x) => BigNumber.from(x))
+  '22253111414175281724765' // 90mil usd
+].map(x => BigNumber.from(x))
 
 const ratioQuery = gql`
-  query ($first: Int, $skip: Int, $block: Block_height) {
+  query($first: Int, $skip: Int, $block: Block_height) {
     totalRewards(
       first: $first
       skip: $skip
@@ -61,10 +58,10 @@ test(
           .toString()
 
         const balanceBeforeReal = await getBalanceFromShares(shares, {
-          blockTag: parseInt(report.block) - 1,
+          blockTag: parseInt(report.block) - 1
         })
         const balanceAfterReal = await getBalanceFromShares(shares, {
-          blockTag: parseInt(report.block),
+          blockTag: parseInt(report.block)
         })
 
         const rewardsReal = BigNumber.from(balanceAfterReal)

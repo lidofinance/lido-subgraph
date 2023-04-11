@@ -1,13 +1,14 @@
 import { gql } from 'graphql-request'
-import { subgraphFetch, BigNumber } from './index.js'
+import { BigNumber } from 'ethers'
+import { subgraphFetch } from './index.js'
 
-export const calculateAddressBalance = async (address) => {
+export const calculateAddressBalance = async address => {
   const submissionsQuery = gql`
 	query ($first: Int, $skip: Int, $block: Block_height) {
 	  lidoSubmissions(first: $first, skip: $skip, block: $block, where: {sender: "${address}"}) {
 		amount
 		shares
-    
+
 		block
     transactionIndex
 	  }
@@ -20,9 +21,9 @@ export const calculateAddressBalance = async (address) => {
       value
 			shares
 			to
-      
+
       mintWithoutSubmission
-      
+
 			block
       transactionIndex
 		  }
@@ -35,7 +36,7 @@ export const calculateAddressBalance = async (address) => {
       value
 			shares
 			to
-      
+
 			block
       transactionIndex
 		  }
@@ -43,7 +44,7 @@ export const calculateAddressBalance = async (address) => {
 	`
 
   const ratioQuery = gql`
-    query ($first: Int, $skip: Int, $block: Block_height) {
+    query($first: Int, $skip: Int, $block: Block_height) {
       totalRewards(
         first: $first
         skip: $skip
@@ -78,17 +79,17 @@ export const calculateAddressBalance = async (address) => {
     a.value - b.value
 
   const transactions = [
-    ...submissions.map((x) => ({ ...x, type: 'submission' })),
-    ...transfersInbound.map((x) => ({
+    ...submissions.map(x => ({ ...x, type: 'submission' })),
+    ...transfersInbound.map(x => ({
       ...x,
       type: 'transfer',
-      direction: 'inbound',
+      direction: 'inbound'
     })),
-    ...transfersOutbound.map((x) => ({
+    ...transfersOutbound.map(x => ({
       ...x,
       type: 'transfer',
-      direction: 'outbound',
-    })),
+      direction: 'outbound'
+    }))
   ].sort(sortTxs)
 
   const reports = (await subgraphFetch(ratioQuery)).totalRewards
@@ -96,7 +97,7 @@ export const calculateAddressBalance = async (address) => {
   // Adding rewards to each day of oracle reports
   for (let report of reports) {
     // Find all transfers before this blocktime
-    const usefulTransfers = transactions.filter((transfer) =>
+    const usefulTransfers = transactions.filter(transfer =>
       transfer.block !== report.block
         ? parseInt(transfer.block) < parseInt(report.block)
         : parseInt(transfer.transactionIndex) <
@@ -129,7 +130,7 @@ export const calculateAddressBalance = async (address) => {
   // Calculating balances
   const together = [
     ...transactions,
-    ...reports.map((x) => ({ ...x, type: 'reward' })),
+    ...reports.map(x => ({ ...x, type: 'reward' }))
   ].sort(sortTxs)
 
   const balance = together.reduce((acc, item) => {

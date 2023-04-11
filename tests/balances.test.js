@@ -1,9 +1,9 @@
+import { BigNumber } from 'ethers'
 import {
   lidoFuncCall,
   getTestAddresses,
   loadAddressShares,
-  getTotals,
-  BigNumber,
+  getTotals
 } from './utils/index.js'
 
 const ADDRESSES_TO_TEST = 30
