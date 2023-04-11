@@ -207,7 +207,8 @@ export function handleTokenRebase(event: TokenRebased): void {
 
 export function handleTransfer(event: Transfer): void {
   if (!isLidoV2()) {
-    return handleTransfer_v1(event)
+    handleTransfer_v1(event)
+    return
   }
 
   // now we should parse the whole tx receipt to be sure pair extraction is accurate
@@ -222,10 +223,11 @@ export function handleTransfer(event: Transfer): void {
     throw new Error('EVENT NOT FOUND: Transfer/TransferShares')
   }
 
-  let entity = _loadOrCreateLidoTransferEntity(
-    event,
-    changetype<TransferShares>(transferEventPair[1].event)
+  let entity = _loadOrCreateLidoTransferEntity(event)
+  const eventTransferShares = changetype<TransferShares>(
+    transferEventPair[1].event
   )
+  entity.shares = eventTransferShares.params.sharesValue
 
   // Total entity should be already created at this point
   let totals = _loadOrCreateTotalsEntity()
@@ -242,7 +244,8 @@ export function handleTransfer(event: Transfer): void {
 
 export function handleSubmitted(event: Submitted): void {
   if (!isLidoV2()) {
-    return handleSubmitted_v1(event)
+    handleSubmitted_v1(event)
+    return
   }
 
   let entity = new LidoSubmission(
@@ -277,8 +280,8 @@ export function handleSubmitted(event: Submitted): void {
     throw new Error('EVENT NOT FOUND: Transfer/TransferShares')
   }
 
-  // let eventTransfer = changetype<Transfer>(transferEvents[0][0].event)
-  let eventTransferShares = changetype<TransferShares>(
+  // const eventTransfer = changetype<Transfer>(transferEvents[0][0].event)
+  const eventTransferShares = changetype<TransferShares>(
     transferEventPairs[0][1].event
   )
 
@@ -331,7 +334,8 @@ export function handleTransferShares(event: TransferShares): void {
 
 export function handleSharesBurnt(event: SharesBurnt): void {
   if (!isLidoV2()) {
-    return handleSharesBurnt_v1(event)
+    handleSharesBurnt_v1(event)
+    return
   }
 
   // shares are burned only during oracle report from LidoBurner contract
@@ -372,7 +376,8 @@ export function handleSharesBurnt(event: SharesBurnt): void {
 
 export function handleELRewardsReceived(event: ELRewardsReceived): void {
   if (!isLidoV2()) {
-    return handleELRewardsReceived_v1(event)
+    handleELRewardsReceived_v1(event)
+    return
   }
   // else skip in favor of the handleETHDistributed method
 }

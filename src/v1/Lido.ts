@@ -1,4 +1,4 @@
-import { ethereum, store, Address, BigInt } from '@graphprotocol/graph-ts'
+import { ethereum, store, Address, BigInt, log } from '@graphprotocol/graph-ts'
 import {
   Transfer,
   FeeSet,
@@ -41,25 +41,17 @@ import {
   ZERO_ADDRESS
 } from '../constants'
 import { wcKeyCrops } from '../wcKeyCrops'
-import { _loadOrCreateTotalsEntity, _updateHolders, _updateTransferBalances, _updateTransferShares } from '../helpers'
+import {
+  _loadOrCreateLidoTransferEntity,
+  _loadOrCreateSharesEntity,
+  _loadOrCreateTotalsEntity,
+  _updateHolders,
+  _updateTransferBalances,
+  _updateTransferShares
+} from '../helpers'
 
 export function handleTransfer(event: Transfer): void {
-  let entity = new LidoTransfer(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.from = event.params.from
-  entity.to = event.params.to
-  entity.value = event.params.value
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-  entity.transactionIndex = event.transaction.index
-  entity.logIndex = event.logIndex
-  entity.transactionLogIndex = event.transactionLogIndex
-  entity.shares = ZERO
-
+  const entity = _loadOrCreateLidoTransferEntity(event)
   let fromZeros = event.params.from == ZERO_ADDRESS
 
   let totalRewardsEntity = TotalReward.load(event.transaction.hash)
@@ -76,13 +68,32 @@ export function handleTransfer(event: Transfer): void {
 
   assert(!entity.totalPooledEther.isZero())
 
-  let shares = event.params.value
-    .times(totals.totalShares)
-    .div(totals.totalPooledEther)
+  if (!entity.mintWithoutSubmission && entity.from == ZERO_ADDRESS) {
+    // transfer after submit
 
-  // if (!fromZeros) {
-    entity.shares = shares
-  // }
+    // find submission, try 3 log items backward
+    let submissionEntity: LidoSubmission | null = null
+    let prevLogIndex = event.logIndex.minus(ONE)
+    for (let i = 0; i < 3; i++) {
+      submissionEntity = LidoSubmission.load(
+        event.transaction.hash.toHex() + '-' + prevLogIndex.toString()
+      )
+      if (!submissionEntity && prevLogIndex.gt(ZERO)) {
+        prevLogIndex = prevLogIndex.minus(ONE)
+      }
+    }
+    if (!submissionEntity) {
+      log.error('LidoSubmission not found for mint Transfe, tx: {}', [
+        event.transaction.hash.toHexString()
+      ])
+      throw new Error('LidoSubmission not found')
+    }
+    entity.shares = submissionEntity.shares
+  } else {
+    entity.shares = event.params.value
+      .times(totals.totalShares)
+      .div(totals.totalPooledEther)
+  }
 
   // We'll save the entity later
 
@@ -300,16 +311,10 @@ export function handleSubmitted(event: Submitted): void {
   entity.shares = shares
 
   // Increasing address shares
-  let sharesEntity = Share.load(event.params.sender)
-
-  if (!sharesEntity) {
-    sharesEntity = new Share(event.params.sender)
-    sharesEntity.shares = ZERO
-  }
+  const sharesEntity = _loadOrCreateSharesEntity(event.params.sender)
 
   entity.sharesBefore = sharesEntity.shares
-  sharesEntity.shares = sharesEntity.shares.plus(shares)
-  entity.sharesAfter = sharesEntity.shares
+  entity.sharesAfter = entity.sharesBefore.plus(shares)
 
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
@@ -321,7 +326,7 @@ export function handleSubmitted(event: Submitted): void {
   entity.totalPooledEtherBefore = totals.totalPooledEther
   entity.totalSharesBefore = totals.totalShares
 
-  // Increasing Totals
+  // Increasing Total
   totals.totalPooledEther = totals.totalPooledEther.plus(event.params.amount)
   totals.totalShares = totals.totalShares.plus(shares)
 
@@ -334,7 +339,6 @@ export function handleSubmitted(event: Submitted): void {
     .div(totals.totalShares)
 
   entity.save()
-  sharesEntity.save()
   totals.save()
 }
 

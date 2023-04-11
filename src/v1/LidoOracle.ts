@@ -33,7 +33,7 @@ import {
 import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ZERO, ONE } from '../constants'
 
 import { loadNORContract } from '../contracts'
-import { _loadOrCreateStatsEntity } from '../helpers'
+import { _loadOrCreateStatsEntity, _loadOrCreateTotalRewardEntity, _loadOrCreateTotalsEntity } from '../helpers'
 
 export function handleCompleted(event: Completed): void {
   let stats = _loadOrCreateStatsEntity()
@@ -102,7 +102,7 @@ export function handleCompleted(event: Completed): void {
   let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
 
   // Totals are already non-null on first oracle report
-  let totals = Total.load('') as Total
+  let totals = _loadOrCreateTotalsEntity()
 
   // Keeping data before increase
   let totalPooledEtherBefore = totals.totalPooledEther
@@ -124,21 +124,11 @@ export function handleCompleted(event: Completed): void {
 
   // Create an empty TotalReward entity that will be filled on Transfer events
   // We know that in this transaction there will be Transfer events which we can identify by existence of TotalReward entity with transaction hash as its id
-  let totalRewardsEntity = new TotalReward(event.transaction.hash)
-
-  // Saving meta values
-  totalRewardsEntity.block = event.block.number
-  totalRewardsEntity.blockTime = event.block.timestamp
-  totalRewardsEntity.transactionIndex = event.transaction.index
-  totalRewardsEntity.logIndex = event.logIndex
-  totalRewardsEntity.transactionLogIndex = event.transactionLogIndex
+  let totalRewardsEntity = _loadOrCreateTotalRewardEntity(event)
 
   totalRewardsEntity.totalRewardsWithFees = rewards
   // Setting totalRewards to totalRewardsWithFees so we can subtract fees from it
   totalRewardsEntity.totalRewards = rewards
-  // Setting initial 0 values so we can add fees to it
-  totalRewardsEntity.totalFee = ZERO
-  totalRewardsEntity.operatorsFee = ZERO
 
   let currentFees = CurrentFees.load('')!
 

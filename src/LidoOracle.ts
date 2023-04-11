@@ -32,7 +32,6 @@ import {
 import { getAddress } from './constants'
 
 import {
-  _loadOrCreateLidoTransferEntity,
   _loadOrCreateOracleReport,
   _loadOrCreateTotalRewardEntity,
   _updateHolders,
@@ -114,7 +113,8 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmitted): void {
 
 export function handleCompleted(event: Completed): void {
   if (!isOracleV2()) {
-    return handleCompleted_v1(event)
+    handleCompleted_v1(event)
+    return
   }
 
   // @todo
@@ -122,7 +122,8 @@ export function handleCompleted(event: Completed): void {
 
 export function handlePostTotalShares(event: PostTotalShares): void {
   if (!isOracleV2()) {
-    return handlePostTotalShares_v1(event)
+    handlePostTotalShares_v1(event)
+    return
   }
 }
 

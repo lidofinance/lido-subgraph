@@ -8,7 +8,7 @@ import {
   beforeEach,
   assert,
 } from 'matchstick-as/assembly/index'
-import { Totals, CurrentFees, OracleCompleted } from '../generated/schema'
+import { Total, CurrentFees, OracleCompleted } from '../generated/schema'
 import { Completed } from '../generated/LidoOracle/LidoOracle'
 import { BigInt, Address, ethereum } from '@graphprotocol/graph-ts'
 import { handleCompleted } from '../src/LidoOracle'
@@ -53,7 +53,7 @@ function createNewCompletedEvent(
 
 describe('handleCompleted()', () => {
   beforeEach(() => {
-    let totals = new Totals('')
+    let totals = new Total('')
     totals.totalPooledEther = INITIAL_BEACON_BALANCE
     totals.totalShares = INITIAL_BEACON_BALANCE
     totals.save()
@@ -90,7 +90,7 @@ describe('handleCompleted()', () => {
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE.plus(ETHER)
-    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
   })
 
   test('no rewards and val increase', () => {
@@ -102,7 +102,7 @@ describe('handleCompleted()', () => {
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE
-    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
   })
 
   test('positive rewards with new vals', () => {
@@ -115,7 +115,7 @@ describe('handleCompleted()', () => {
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE.plus(someRewards)
-    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
   })
 
   test('negative rewards', () => {
@@ -126,7 +126,7 @@ describe('handleCompleted()', () => {
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE.minus(someRewards)
-    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
   })
 
   test('less vals', () => {
@@ -136,7 +136,7 @@ describe('handleCompleted()', () => {
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT)
-    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
   })
 
   test('negative rewards with less vals', () => {
@@ -148,7 +148,7 @@ describe('handleCompleted()', () => {
 
     let expected =
       INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(someRewards)
-    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
   })
 
   test('more vals but negative rewards', () => {
@@ -159,7 +159,7 @@ describe('handleCompleted()', () => {
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE.minus(someRewards)
-    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
   })
 
   test('less vals but positive rewards', () => {
@@ -173,11 +173,11 @@ describe('handleCompleted()', () => {
     let expected = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT)
       .plus(DEPOSIT_AMOUNT)
       .plus(someRewards)
-    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
   })
 
   test('case block 6014700', () => {
-    let totals = new Totals('')
+    let totals = new Total('')
     totals.totalPooledEther = BigInt.fromString('7434367928985000000000')
     totals.totalShares = BigInt.fromString('7434367928985000000000')
     totals.save()
@@ -194,6 +194,6 @@ describe('handleCompleted()', () => {
 
     let delta = newBalance.minus(prevDay.beaconBalance)
     let expected = prevDay.beaconBalance.plus(delta)
-    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
   })
 })

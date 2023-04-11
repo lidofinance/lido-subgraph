@@ -1,4 +1,4 @@
-import { store, Bytes, ethereum, BigInt } from '@graphprotocol/graph-ts'
+import { store, Bytes, ethereum, BigInt, log } from '@graphprotocol/graph-ts'
 import {
   Total,
   Share,
@@ -21,11 +21,8 @@ import {
 } from './constants'
 import { Transfer, TransferShares } from '../generated/Lido/Lido'
 
-
-
 export function _loadOrCreateLidoTransferEntity(
-  eventTransfer: Transfer,
-  eventTransferShares: TransferShares
+  eventTransfer: Transfer
 ): LidoTransfer {
   let id =
     eventTransfer.transaction.hash.toHex() +
@@ -44,7 +41,7 @@ export function _loadOrCreateLidoTransferEntity(
     entity.transactionLogIndex = eventTransfer.transactionLogIndex
 
     entity.value = eventTransfer.params.value
-    entity.shares = eventTransferShares.params.sharesValue
+    entity.shares = ZERO
     entity.totalPooledEther = ZERO
     entity.totalShares = ZERO
 
@@ -158,25 +155,32 @@ export function _updateTransferBalances(entity: LidoTransfer): void {
 }
 
 export function _updateTransferShares(entity: LidoTransfer): void {
-  // Increasing to address shares
-  if (entity.to != ZERO_ADDRESS) {
-    const sharesToEntity = _loadOrCreateSharesEntity(entity.to)
-    entity.sharesBeforeIncrease = sharesToEntity.shares
-    sharesToEntity.shares = sharesToEntity.shares.plus(entity.shares)
-    entity.sharesAfterIncrease = sharesToEntity.shares
-    sharesToEntity.save()
-  }
-
   // Decreasing from address shares
   if (entity.from != ZERO_ADDRESS) {
     // Address must already have shares, HOWEVER:
     // Someone can and managed to produce events of 0 to 0 transfers
     const sharesFromEntity = _loadOrCreateSharesEntity(entity.from)
-    assert(sharesFromEntity.shares >= entity.shares)
     entity.sharesBeforeDecrease = sharesFromEntity.shares
-    sharesFromEntity.shares = sharesFromEntity.shares.minus(entity.shares)
+
+    if (entity.from != entity.to) {
+      assert(
+        sharesFromEntity.shares >= entity.shares,
+        'Abnormal shares decrease!'
+      )
+      sharesFromEntity.shares = sharesFromEntity.shares.minus(entity.shares)
+      sharesFromEntity.save()
+    }
     entity.sharesAfterDecrease = sharesFromEntity.shares
-    sharesFromEntity.save()
+  }
+  // Increasing to address shares
+  if (entity.to != ZERO_ADDRESS) {
+    const sharesToEntity = _loadOrCreateSharesEntity(entity.to)
+    entity.sharesBeforeIncrease = sharesToEntity.shares
+    if (entity.to != entity.from) {
+      sharesToEntity.shares = sharesToEntity.shares.plus(entity.shares)
+      sharesToEntity.save()
+    }
+    entity.sharesAfterIncrease = sharesToEntity.shares
   }
 }
 
@@ -217,16 +221,6 @@ export function _updateHolders(entity: LidoTransfer): void {
   }
   stats.save()
 }
-
-// export function _loadOrCreateCounters(): Counters {
-//   let counters = Counters.load('')
-//   if (!counters) {
-//     counters = new Counters('')
-//     counters.lastOracleCompletedId = ZERO
-//     counters.save()
-//   }
-//   return counters
-// }
 
 export const checkAppVer = (appId: Bytes, minUpgId: i32): bool => {
   const appVer = AppVersion.load(appId)
