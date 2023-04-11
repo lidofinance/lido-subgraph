@@ -48,7 +48,7 @@ for (const abiName of abiDirs) {
           name: event.name,
           file: abiName,
           rename: rename,
-          types: event.inputs.map(i => i.format()).join(',')
+          types: event.inputs.map(i => i.format('minimal'))
         })
       }
     }
@@ -66,7 +66,7 @@ for (const abiName of abiDirs) {
 // let casts = ''
 processedEvents.forEach(e => {
   let name = e.rename ? e.file + e.name : e.name
-  maps += `parserMap.set(Bytes.fromHexString("${e.topic}"), ["${name}","(${e.types})"])\n`
+  maps += `parserMap.set(Bytes.fromHexString("${e.topic}"), ["${name}",${e.types.map(t=> `"${t}"`).join(',')}])\n`
   //   casts +=
   //     `export function cast${name}(parsed: ParsedEvent): ${name} {\n` +
   //     `    return changetype<${name}>(parsed.event)\n` +

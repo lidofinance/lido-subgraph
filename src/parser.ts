@@ -1,4 +1,4 @@
-import { BigInt, ethereum, log } from '@graphprotocol/graph-ts'
+import { Address, BigInt, Bytes, ethereum, log } from '@graphprotocol/graph-ts'
 import { parserMap } from '../generated/parserData'
 
 export class ParsedEvent {
@@ -7,6 +7,7 @@ export class ParsedEvent {
 
 export function parseEventLogs(
   baseEvent: ethereum.Event,
+  contractAddress: Address,
   logIndexFrom: BigInt = BigInt.fromI32(0),
   logIndexTo: BigInt = BigInt.fromI32(0)
 ): ParsedEvent[] {
@@ -18,31 +19,58 @@ export function parseEventLogs(
       // skip events out of indexes range
       if (
         (!logIndexFrom.isZero() && receipt.logs[i].logIndex < logIndexFrom) ||
-        (!logIndexTo.isZero() && receipt.logs[i].logIndex > logIndexTo)
+        (!logIndexTo.isZero() && receipt.logs[i].logIndex > logIndexTo) ||
+        receipt.logs[i].address != contractAddress
       ) {
         continue
       }
-      let eventParserOpts = parserMap.get(receipt.logs[i].topics[0])
+      const eventParserOpts = parserMap.get(receipt.logs[i].topics[0])
       if (eventParserOpts) {
-        let event = new ethereum.Event(
+        const name = eventParserOpts[0]
+        const params = eventParserOpts.slice(1)
+        const event = new ethereum.Event(
           receipt.logs[i].address,
           receipt.logs[i].logIndex,
           receipt.logs[i].transactionLogIndex,
           receipt.logs[i].logType,
           baseEvent.block,
           baseEvent.transaction,
-          [],
+          new Array(params.length),
           null
         )
-        event.parameters = new Array()
-        let decoded = ethereum.decode(eventParserOpts[1], receipt.logs[i].data)
-        if (decoded) {
-          let tuple = decoded.toTuple()
-          for (let k = 0; k < tuple.length; k++) {
-            event.parameters.push(new ethereum.EventParam('', tuple[k]))
+        const notIndexedParams: string[] = []
+        const notIndexedParamsMap: i32[] = []
+        let topicIdx = 1
+        for (let j = 0; j < params.length; ++j) {
+          const type = params[j].split(' ')
+          // if (params[j].slice(-7) == ' indexed') {
+          if (type.length > 1 && type[1] == 'indexed') {
+            const decoded = ethereum.decode(
+              type[0],
+              receipt.logs[i].topics[topicIdx++]
+            )
+            event.parameters[j] = new ethereum.EventParam('', decoded!)
+          } else {
+            notIndexedParams.push(type[0])
+            notIndexedParamsMap.push(j)
           }
         }
-        events.push(new ParsedEvent(eventParserOpts[0], event))
+        if (notIndexedParamsMap.length > 0) {
+          const decoded = ethereum.decode(
+            '(' + notIndexedParams.join(',') + ')',
+            receipt.logs[i].data
+          )
+          const tuple = decoded!.toTuple()
+          for (let k = 0; k < tuple.length; k++) {
+            event.parameters[notIndexedParamsMap[k]] = new ethereum.EventParam(
+              '',
+              tuple[k]
+            )
+          }
+        }
+        events.push(new ParsedEvent(name, event))
+      } else {
+        log.warning('eventParserOpts not found!', [])
       }
     }
   }
