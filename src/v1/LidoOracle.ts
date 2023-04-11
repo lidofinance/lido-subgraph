@@ -25,7 +25,7 @@ import {
   BeaconReport,
   BeaconSpec,
   BeaconReportReceiver,
-  Totals,
+  Total,
   NodeOperatorsShares,
   CurrentFees
 } from '../../generated/schema'
@@ -102,7 +102,7 @@ export function handleCompleted(event: Completed): void {
   let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
 
   // Totals are already non-null on first oracle report
-  let totals = Totals.load('') as Totals
+  let totals = Total.load('') as Total
 
   // Keeping data before increase
   let totalPooledEtherBefore = totals.totalPooledEther

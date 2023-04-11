@@ -54,7 +54,7 @@ dataSources:
         - event: WithdrawalCredentialsSet(bytes32)
           handler: handleWithdrawalCredentialsSet
         - event: Submitted(indexed address,uint256,address)
-          handler: handleSubmit
+          handler: handleSubmitted
         - event: Unbuffered(uint256)
           handler: handleUnbuffered
         - event: Withdrawal(indexed address,uint256,uint256,indexed bytes32,uint256)

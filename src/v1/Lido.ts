@@ -22,9 +22,9 @@ import {
   LidoWithdrawal,
   TotalReward,
   NodeOperatorFees,
-  Totals,
+  Total,
   NodeOperatorsShares,
-  Shares,
+  Share,
   CurrentFees,
   ELRewardsVaultSet,
   ELRewardsWithdrawalLimitSet,
@@ -41,7 +41,7 @@ import {
   ZERO_ADDRESS
 } from '../constants'
 import { wcKeyCrops } from '../wcKeyCrops'
-import { _updateHolders, _updateTransferShares } from '../helpers'
+import { _loadOrCreateTotalsEntity, _updateHolders, _updateTransferBalances, _updateTransferShares } from '../helpers'
 
 export function handleTransfer(event: Transfer): void {
   let entity = new LidoTransfer(
@@ -69,18 +69,20 @@ export function handleTransfer(event: Transfer): void {
   entity.mintWithoutSubmission = totalRewardsEntity ? true : false
 
   // Entity is already created at this point
-  let totals = Totals.load('') as Totals
+  let totals = _loadOrCreateTotalsEntity()
 
   entity.totalPooledEther = totals.totalPooledEther
   entity.totalShares = totals.totalShares
+
+  assert(!entity.totalPooledEther.isZero())
 
   let shares = event.params.value
     .times(totals.totalShares)
     .div(totals.totalPooledEther)
 
-  if (!fromZeros) {
+  // if (!fromZeros) {
     entity.shares = shares
-  }
+  // }
 
   // We'll save the entity later
 
@@ -179,6 +181,7 @@ export function handleTransfer(event: Transfer): void {
 
   // upd account's shares and stats
   _updateTransferShares(entity)
+  _updateTransferBalances(entity)
   _updateHolders(entity)
   entity.save()
 }
@@ -254,7 +257,7 @@ export function handleWithdrawalCredentialsSet(
   }
 }
 
-export function handleSubmit(event: Submitted): void {
+export function handleSubmitted(event: Submitted): void {
   /**
   Notice: Contract checks if someone submitted zero wei, no need for checking again.
   **/
@@ -264,12 +267,12 @@ export function handleSubmit(event: Submitted): void {
   )
 
   // Loading totals
-  let totals = Totals.load('')
+  let totals = Total.load('')
 
   let isFirstSubmission = !totals
 
   if (!totals) {
-    totals = new Totals('')
+    totals = new Total('')
     totals.totalPooledEther = ZERO
     totals.totalShares = ZERO
   }
@@ -297,10 +300,10 @@ export function handleSubmit(event: Submitted): void {
   entity.shares = shares
 
   // Increasing address shares
-  let sharesEntity = Shares.load(event.params.sender)
+  let sharesEntity = Share.load(event.params.sender)
 
   if (!sharesEntity) {
-    sharesEntity = new Shares(event.params.sender)
+    sharesEntity = new Share(event.params.sender)
     sharesEntity.shares = ZERO
   }
 
@@ -348,7 +351,7 @@ export function handleWithdrawal(event: Withdrawal): void {
 
   entity.save()
 
-  let totals = Totals.load('')!
+  let totals = Total.load('')!
 
   let shares = event.params.tokenAmount
     .times(totals.totalShares)
@@ -369,7 +372,7 @@ export function handleBeaconValidatorsUpdated(
   let contract = loadLidoContract()
   let realPooledEther = contract.getTotalPooledEther()
 
-  let totals = Totals.load('')!
+  let totals = Total.load('')!
   totals.totalPooledEther = realPooledEther
   totals.save()
 }
@@ -405,7 +408,7 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
     totalRewardsEntity.insuranceFeeBasisPoints = currentFees.insuranceFeeBasisPoints!
     totalRewardsEntity.operatorsFeeBasisPoints = currentFees.operatorsFeeBasisPoints!
 
-    let totals = Totals.load('')!
+    let totals = Total.load('')!
     totalRewardsEntity.totalPooledEtherBefore = totals.totalPooledEther
     totalRewardsEntity.totalSharesBefore = totals.totalShares
 
@@ -440,7 +443,7 @@ export function handleELRewardsReceived(event: ELRewardsReceived): void {
 
   let totalSharesAfter = totalRewardsEntity.totalSharesBefore.plus(shares2mint)
 
-  let totals = Totals.load('') as Totals
+  let totals = Total.load('') as Total
   totals.totalPooledEther = totalPooledEtherAfter
   totals.totalShares = totalSharesAfter
   totals.save()
@@ -569,11 +572,11 @@ export function handleSharesBurnt(event: SharesBurnt): void {
   let address = event.params.account
   let sharesAmount = event.params.sharesAmount
 
-  let shares = Shares.load(address)!
+  let shares = Share.load(address)!
   shares.shares = shares.shares.minus(sharesAmount)
   shares.save()
 
-  let totals = Totals.load('')!
+  let totals = Total.load('')!
   totals.totalShares = totals.totalShares.minus(sharesAmount)
   totals.save()
 }
@@ -603,7 +606,7 @@ export function handleTestnetBlock(block: ethereum.Block): void {
     let contract = loadLidoContract()
     let realPooledEther = contract.getTotalPooledEther()
 
-    let totals = Totals.load('')!
+    let totals = Total.load('')!
     totals.totalPooledEther = realPooledEther
     totals.save()
   }

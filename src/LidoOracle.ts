@@ -35,7 +35,6 @@ import {
   _loadOrCreateLidoTransferEntity,
   _loadOrCreateOracleReport,
   _loadOrCreateTotalRewardEntity,
-  _loadOrCreateTotalsEntity,
   _updateHolders,
   _updateTransferShares,
   isOracleV2
@@ -65,53 +64,47 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmitted): void {
   let modules = loadSRContract().getStakingModules()
 
   // parse all events from tx receipt
-  const parsedEvents = parseEventLogs(event)
+  const parsedEvents = parseEventLogs(event, getAddress('LIDO'))
 
   // extracting all 'Transfer' and 'TransferShares' pairs
-  const transferEvents = extractPairedEvent(parsedEvents, [
+  const transferEventPairs = extractPairedEvent(parsedEvents, [
     'Transfer',
     'TransferShares'
   ])
 
   const burnerAddress = getAddress('BURNER')
-  // Totals should exists at this moment
-  const totals = _loadOrCreateTotalsEntity()
-
-  for (let i = 0; i < transferEvents.length; i++) {
-    let lidoTransferEntity = _loadOrCreateLidoTransferEntity(
-      changetype<Transfer>(transferEvents[0][0].event),
-      changetype<TransferShares>(transferEvents[0][1].event)
+  for (let i = 0; i < transferEventPairs.length; i++) {
+    const eventTransfer = changetype<Transfer>(transferEventPairs[0][0].event)
+    const eventTransferShares = changetype<TransferShares>(
+      transferEventPairs[0][1].event
     )
 
     for (let j = 0; j < modules.length; j++) {
       // process transfers from module's addresses, excluding transfers to burner
       if (
-        lidoTransferEntity.from == modules[j].stakingModuleAddress &&
-        lidoTransferEntity.to != burnerAddress
+        eventTransfer.params.from == modules[j].stakingModuleAddress &&
+        eventTransfer.params.to != burnerAddress
       ) {
-        lidoTransferEntity.totalPooledEther = totals.totalPooledEther
-        lidoTransferEntity.totalShares = totals.totalShares
-        // upd account's shares and stats
-        _updateTransferShares(lidoTransferEntity)
-        _updateHolders(lidoTransferEntity)
-        lidoTransferEntity.save()
-
-        let id =
-          event.transaction.hash.toHex() +
-          '-' +
-          lidoTransferEntity.logIndex.toString()
-        let nodeOperatorFees = new NodeOperatorFees(id)
+        const nodeOperatorFees = new NodeOperatorFees(
+          eventTransfer.transaction.hash.toHex() +
+            '-' +
+            eventTransfer.logIndex.toString()
+        )
         // Reference to TotalReward entity
         nodeOperatorFees.totalReward = oracleReportEntity.hash
-        nodeOperatorFees.address = lidoTransferEntity.to
-        nodeOperatorFees.fee = lidoTransferEntity.value
+        nodeOperatorFees.address = eventTransfer.params.to
+        nodeOperatorFees.fee = eventTransfer.params.value
         nodeOperatorFees.save()
 
-        let nodeOperatorsShares = new NodeOperatorsShares(id)
+        const nodeOperatorsShares = new NodeOperatorsShares(
+          oracleReportEntity.hash.toHex() +
+            '-' +
+            eventTransfer.params.to.toHexString()
+        )
         // Reference to TotalReward entity
         nodeOperatorsShares.totalReward = oracleReportEntity.hash
-        nodeOperatorsShares.address = lidoTransferEntity.to
-        nodeOperatorsShares.shares = lidoTransferEntity.shares
+        nodeOperatorsShares.address = eventTransfer.params.to
+        nodeOperatorsShares.shares = eventTransferShares.params.sharesValue
         nodeOperatorsShares.save()
         break
       }

@@ -54,7 +54,7 @@ dataSources:
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval
         - event: Submitted(indexed address,uint256,address)
-          handler: handleSubmit
+          handler: handleSubmitted
           receipt: true
         - event: Unbuffered(uint256)
           handler: handleUnbuffered

@@ -17,9 +17,9 @@ import {
   ChangedMinQuorum,
   ChangedVoteTime,
   ChangedObjectionPhaseTime,
-  Shares,
+  Share,
+  Total
 } from '../generated/schema'
-import { Totals } from '../generated/schema'
 
 export function handleStartVote(event: StartVote): void {
   let entity = new Voting(event.params.voteId.toString())
@@ -79,11 +79,11 @@ export function handleExecuteVote(event: ExecuteVote): void {
     )
     let sharesToSubtract = BigInt.fromString('32145684728326685744')
 
-    let shares = Shares.load(accToBurn)!
+    let shares = Share.load(accToBurn)!
     shares.shares = shares.shares.minus(sharesToSubtract)
     shares.save()
 
-    let totals = Totals.load('')!
+    let totals = Total.load('')!
     totals.totalShares = totals.totalShares.minus(sharesToSubtract)
     totals.save()
   }
