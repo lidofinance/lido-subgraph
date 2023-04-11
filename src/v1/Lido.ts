@@ -240,30 +240,31 @@ export function handleFeeDistributionSet(event: FeeDistributionSet): void {
 export function handleWithdrawalCredentialsSet(
   event: WithdrawalCredentialsSet
 ): void {
-  let entity = new LidoWithdrawalCredential(event.params.withdrawalCredentials)
+  let entity = LidoWithdrawalCredential.load(event.params.withdrawalCredentials)
+  if (!entity) {
+    entity = new LidoWithdrawalCredential(event.params.withdrawalCredentials)
 
-  entity.withdrawalCredentials = event.params.withdrawalCredentials
+    entity.withdrawalCredentials = event.params.withdrawalCredentials
+    entity.block = event.block.number
+    entity.blockTime = event.block.number
+    entity.save()
 
-  entity.block = event.block.number
-  entity.blockTime = event.block.number
-
-  entity.save()
-
-  // Cropping unused keys on withdrawal credentials change
-  if (
-    event.params.withdrawalCredentials.toHexString() ==
-    '0x010000000000000000000000b9d7934878b5fb9610b3fe8a5e441e8fad7e293f'
-  ) {
-    let keys = wcKeyCrops.get(
+    // Cropping unused keys on withdrawal credentials change
+    if (
+      event.params.withdrawalCredentials.toHexString() ==
       '0x010000000000000000000000b9d7934878b5fb9610b3fe8a5e441e8fad7e293f'
-    )
+    ) {
+      let keys = wcKeyCrops.get(
+        '0x010000000000000000000000b9d7934878b5fb9610b3fe8a5e441e8fad7e293f'
+      )
 
-    let length = keys.length
+      let length = keys.length
 
-    // There is no for...of loop in AS
-    for (let i = 0; i < length; i++) {
-      let key = keys[i]
-      store.remove('NodeOperatorSigningKey', key)
+      // There is no for...of loop in AS
+      for (let i = 0; i < length; i++) {
+        let key = keys[i]
+        store.remove('NodeOperatorSigningKey', key)
+      }
     }
   }
 }
