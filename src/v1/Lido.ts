@@ -66,7 +66,7 @@ export function handleTransfer(event: Transfer): void {
   entity.totalPooledEther = totals.totalPooledEther
   entity.totalShares = totals.totalShares
 
-  assert(!entity.totalPooledEther.isZero())
+  assert(!entity.totalPooledEther.isZero(), "Transfer at zero totalPooledEther")
 
   if (!entity.mintWithoutSubmission && entity.from == ZERO_ADDRESS) {
     // transfer after submit

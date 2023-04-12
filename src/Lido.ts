@@ -1,4 +1,4 @@
-import { BigInt } from '@graphprotocol/graph-ts'
+import { BigInt, log } from '@graphprotocol/graph-ts'
 import {
   Stopped,
   Resumed,
@@ -159,6 +159,14 @@ export function handleETHDistributed(event: ETHDistributed): void {
   totalRewardsEntity.sharesToOperators = sharesToOperators
   totalRewardsEntity.sharesToTreasury = sharesToTreasury
 
+  if ( sharesToOperators !=
+    rebaseEvent.params.sharesMintedAsFees.minus(sharesToTreasury)
+  ) {
+    log.warning("sharesToOperators {}", [sharesToOperators.toString()])
+    log.warning("rebaseEvent.params.sharesMintedAsFees {}", [rebaseEvent.params.sharesMintedAsFees.toString()])
+    log.warning("sharesToTreasury {}", [sharesToTreasury.toString()])
+    log.warning("sharesToOperators {}", [sharesToOperators.toString()])
+  }
   assert(
     sharesToOperators ==
       rebaseEvent.params.sharesMintedAsFees.minus(sharesToTreasury)
