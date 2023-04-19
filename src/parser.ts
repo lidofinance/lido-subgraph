@@ -1,5 +1,6 @@
 import { Address, BigInt, Bytes, ethereum, log } from '@graphprotocol/graph-ts'
 import { parserMap } from '../generated/parserData'
+import { ZERO, ZERO_ADDRESS } from './constants'
 
 export class ParsedEvent {
   constructor(public name: string, public event: ethereum.Event) {}
@@ -7,7 +8,7 @@ export class ParsedEvent {
 
 export function parseEventLogs(
   baseEvent: ethereum.Event,
-  contractAddress: Address,
+  contractAddress: Address = ZERO_ADDRESS,
   logIndexFrom: BigInt = BigInt.fromI32(0),
   logIndexTo: BigInt = BigInt.fromI32(0)
 ): ParsedEvent[] {
@@ -20,7 +21,7 @@ export function parseEventLogs(
       if (
         (!logIndexFrom.isZero() && receipt.logs[i].logIndex < logIndexFrom) ||
         (!logIndexTo.isZero() && receipt.logs[i].logIndex > logIndexTo) ||
-        receipt.logs[i].address != contractAddress
+        (contractAddress != ZERO_ADDRESS && receipt.logs[i].address != contractAddress)
       ) {
         continue
       }

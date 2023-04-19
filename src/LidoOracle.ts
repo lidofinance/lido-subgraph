@@ -1,13 +1,10 @@
-import { BigInt, BigDecimal } from '@graphprotocol/graph-ts'
 import { Completed, PostTotalShares } from '../generated/LidoOracle/LidoOracle'
 import { NodeOperatorsRegistry } from '../generated/LidoOracle/NodeOperatorsRegistry'
 import { CurrentFees, NodeOperatorsShares, OracleCompleted, TotalReward } from '../generated/schema'
 import {
   CALCULATION_UNIT,
   DEPOSIT_AMOUNT,
-  E27_PRECISION_BASE,
   ONE,
-  SECONDS_PER_YEAR,
   ZERO,
   getAddress
 } from './constants'
@@ -23,7 +20,7 @@ import {
   isLidoV2,
   isOracleV2
 } from './helpers'
-import { ELRewardsReceived, TokenRebased } from '../generated/Lido/Lido'
+import { ELRewardsReceived, MevTxFeeReceived, TokenRebased } from '../generated/Lido/Lido'
 import { ParsedEvent, findParsedEventByName, parseEventLogs } from './parser'
 
 function _findELRewardsReceivedEvent(parsedEvents: ParsedEvent[]): ELRewardsReceived | null {
@@ -38,6 +35,13 @@ function _findPostTotalSharesEvent(parsedEvents: ParsedEvent[]): PostTotalShares
   const parsedEvent = findParsedEventByName(parsedEvents, 'PostTotalShares')
   if (parsedEvent) {
     return changetype<PostTotalShares>(parsedEvent.event)
+  }
+  return null
+}
+function _findMevTxFeeReceivedEvent(parsedEvents: ParsedEvent[]): MevTxFeeReceived | null {
+  const parsedEvent = findParsedEventByName(parsedEvents, 'MevTxFeeReceived')
+  if (parsedEvent) {
+    return changetype<MevTxFeeReceived>(parsedEvent.event)
   }
   return null
 }
@@ -67,21 +71,12 @@ export function handleCompleted(event: Completed): void {
   newCompleted.save()
   stats.save()
 
-  // we should process token rebase here as TokenRebased event fired last but we need new values before transfers
-  // parse all events from tx receipt
-  const parsedEvents = parseEventLogs(event, event.address)
-
-  // find PostTotalShares logIndex
-  // if event absent, we should calc values
-  let postTotalSharesEvent = _findPostTotalSharesEvent(parsedEvents)
-  let elRewardsReceivedEvent = _findELRewardsReceivedEvent(parsedEvents)
-
   // Totals are already non-null on first oracle report
-  let totals = _loadOrCreateTotalsEntity()
+  const totals = _loadOrCreateTotalsEntity()
 
   // Create an empty TotalReward entity that will be filled on Transfer events
   // We know that in this transaction there will be Transfer events which we can identify by existence of TotalReward entity with transaction hash as its id
-  let totalRewardsEntity = _loadOrCreateTotalRewardEntity(event)
+  const totalRewardsEntity = _loadOrCreateTotalRewardEntity(event)
 
   // save prev values
   totalRewardsEntity.totalPooledEtherBefore = totals.totalPooledEther
@@ -92,7 +87,6 @@ export function handleCompleted(event: Completed): void {
   let oldBeaconBalance = previousCompleted ? previousCompleted.beaconBalance : ZERO
   let newBeaconValidators = event.params.beaconValidators
   let newBeaconBalance = event.params.beaconBalance
-
   let appearedValidators = newBeaconValidators.minus(oldBeaconValidators)
 
   /**
@@ -123,10 +117,18 @@ export function handleCompleted(event: Completed): void {
   let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
   let rewards = newBeaconBalance.minus(rewardBase)
 
-  if (elRewardsReceivedEvent) {
-    totalRewardsEntity.mevFee = elRewardsReceivedEvent.params.amount
-    rewards = rewards.plus(totalRewardsEntity.mevFee)
-  }
+  // we should process token rebase here as TokenRebased event fired last but we need new values before transfers
+  // parse all events from tx receipt
+  const parsedEvents = parseEventLogs(event)
+  const elRewardsReceivedEvent = _findELRewardsReceivedEvent(parsedEvents)
+  const mevTxFeeReceivedEvent = _findMevTxFeeReceivedEvent(parsedEvents)
+
+  totalRewardsEntity.mevFee = elRewardsReceivedEvent
+    ? elRewardsReceivedEvent.params.amount
+    : mevTxFeeReceivedEvent
+    ? mevTxFeeReceivedEvent.params.amount
+    : ZERO
+  rewards = rewards.plus(totalRewardsEntity.mevFee)
 
   // Increasing or decreasing totals
   totals.totalPooledEther = totals.totalPooledEther.plus(rewards)
@@ -220,6 +222,9 @@ export function handleCompleted(event: Completed): void {
     totalRewardsEntity.dustSharesToTreasury = ZERO
   }
 
+  // find PostTotalShares logIndex
+  // if event absent, we should calc values
+  const postTotalSharesEvent = _findPostTotalSharesEvent(parsedEvents)
   if (postTotalSharesEvent) {
     totalRewardsEntity.timeElapsed = postTotalSharesEvent.params.timeElapsed
     _calcAPR_v1(
