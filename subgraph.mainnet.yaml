@@ -3,9 +3,6 @@ description: Lido on Ethereum
 features:
   - grafting
   - nonFatalErrors
-#graft:
-  # base: QmcCE2vxb6be6MNe1rybPvzP42sLFFKBNFqtsjUnPmKy2F # Subgraph ID of base subgraph
-  # block: 8710746 # Block number
 schema:
   file: ./schema.graphql
 dataSources:

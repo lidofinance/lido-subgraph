@@ -171,9 +171,9 @@ export function handleTransfer(event: Transfer): void {
 
         // If insuranceFee on totalRewards exists, then next transfer is of dust to treasury
         // We need this if treasury and insurance fund is the same address
-        if (entity.to == getAddress('INSURANCE_FUND') && !totalRewardsEntity.insuranceFee) {
+        if (entity.to == getAddress('INSURANCE_FUND') && !totalRewardsEntity.insuranceFeeBasisPoints.isZero() && totalRewardsEntity.insuranceFee.isZero()) {
           // Handling the Insurance Fee transfer event
-          totalRewardsEntity.insuranceFee = entity.value
+          totalRewardsEntity.insuranceFee = totalRewardsEntity.insuranceFee.plus(entity.value)
 
           if (eventTransferShares) {
             assert(entity.shares == totalRewardsEntity.sharesToInsuranceFund, 'Unexpected sharesToInsuranceFund')
@@ -182,14 +182,14 @@ export function handleTransfer(event: Transfer): void {
           }
 
           assert(totalRewardsEntity.totalRewards >= entity.value, 'Total rewards < Insurance fee')
-        } else if (entity.to == getAddress('TREASURE') && totalRewardsEntity.insuranceFee) {
+        } else if (entity.to == getAddress('TREASURE')) {
           // Handling the Treasury Fund transfer event
 
           // Dust exists only when treasuryFeeBasisPoints is 0
           if (totalRewardsEntity.treasuryFeeBasisPoints.isZero()) {
-            totalRewardsEntity.dust = entity.value
+            totalRewardsEntity.dust = totalRewardsEntity.dust.plus(entity.value)
           } else {
-            totalRewardsEntity.treasuryFee = entity.value
+            totalRewardsEntity.treasuryFee = totalRewardsEntity.treasuryFee.plus(entity.value)
           }
           const shares = totalRewardsEntity.treasuryFeeBasisPoints.isZero()
             ? totalRewardsEntity.dustSharesToTreasury

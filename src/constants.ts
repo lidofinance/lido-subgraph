@@ -133,11 +133,14 @@ export const UPG_V1_INIT = 0
 
 // added TransferShares event
 // https://etherscan.io/tx/0x11a48020ae69cf08bd063f1fbc8ecf65bd057015aaa991bf507dbc598aadb68e
+// 14860268
 // https://goerli.etherscan.io/tx/0x61fdb6110874916557acdc51b039d0b12570675693375e8dfb4a24929d0bea45
+// 6912872
 export const UPG_V1_SHARES = 1
 
 // Lido v2 deploy, beta
 // https://goerli.etherscan.io/tx/0x75dae29ccd81f0b93c2207935e6c0e484ee6ad5307455015c962c9206ce7e8d6
+// 8710746
 export const UPG_V2_BETA = 2
 
 // v2 RC deploy
