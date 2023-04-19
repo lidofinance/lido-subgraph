@@ -70,7 +70,7 @@ export function parseEventLogs(
         }
         events.push(new ParsedEvent(name, event))
       } else {
-        log.warning('eventParserOpts not found!', [])
+        log.warning('eventParserOpts not found! topic0: {}', [receipt.logs[i].topics[0].toHexString()])
       }
     }
   }

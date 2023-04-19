@@ -1,15 +1,7 @@
-import {
-  BigInt,
-  Address,
-  TypedMap,
-  Bytes,
-  dataSource
-} from '@graphprotocol/graph-ts'
-
-import { Settings } from '../generated/schema'
+import { BigInt, Address, TypedMap, Bytes, dataSource } from '@graphprotocol/graph-ts'
+import { Setting } from '../generated/schema'
 
 const network = dataSource.network()
-const isMainnet = network == 'mainnet'
 
 /**
 Units
@@ -19,9 +11,8 @@ export const ZERO = BigInt.fromI32(0)
 export const ONE = BigInt.fromI32(1)
 
 export const CALCULATION_UNIT = BigInt.fromI32(10000)
-export const E27_PRECISION_BASE = BigInt.fromString(
-  '1000000000000000000000000000'
-).toBigDecimal()
+export const E27_PRECISION_BASE = BigInt.fromString('1000000000000000000000000000').toBigDecimal()
+export const SECONDS_PER_YEAR = BigInt.fromI32(60 * 60 * 24 * 365)
 
 // 1 ETH in WEI
 export const ETHER = BigInt.fromString('1000000000000000000')
@@ -37,9 +28,7 @@ export const DEPOSIT_AMOUNT = DEPOSIT_SIZE.times(ETHER) // in Wei
 Addresses
 **/
 
-export const ZERO_ADDRESS = Address.fromString(
-  '0x0000000000000000000000000000000000000000'
-)
+export const ZERO_ADDRESS = Address.fromString('0x0000000000000000000000000000000000000000')
 
 const LIDO_ADDRESSES = new TypedMap<string, string>()
 LIDO_ADDRESSES.set('mainnet', '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84')
@@ -65,9 +54,7 @@ BURNER_ADDRESSES.set('goerli', '0x20c61C07C2E2FAb04BF5b4E12ce45a459a18f3B1')
 
 // We presume here that initially insurance fund was the treasury
 const getInsuranceFund = (): string =>
-  Settings.load('')
-    ? Settings.load('')!.insuranceFund.toHex()
-    : TREASURY_ADDRESSES.get(network)!
+  Setting.load('') ? Setting.load('')!.insuranceFund.toHex() : TREASURY_ADDRESSES.get(network)!
 
 export const getAddress = (contract: string): Address =>
   Address.fromString(
@@ -95,44 +82,52 @@ export const KERNEL_APP_BASES_NAMESPACE = Bytes.fromHexString(
 )
 
 // Lido App
-export const LIDO_APP_ID = Bytes.fromHexString(
-  '0x79ac01111b462384f1b7fba84a17b9ec1f5d2fddcfcb99487d71b443832556ea'
-)
-const LIDO_REPO = new TypedMap<string, string>()
-LIDO_REPO.set('mainnet', '0xF5Dc67E54FC96F993CD06073f71ca732C1E654B1')
-LIDO_REPO.set('goerli', '0xE9eDe497d2417fd980D8B5338232666641B9B9aC')
+const LIDO_APP_ID_GOERLI = Bytes.fromHexString('0x79ac01111b462384f1b7fba84a17b9ec1f5d2fddcfcb99487d71b443832556ea')
+const LIDO_APP_ID_MAINNET = Bytes.fromHexString('0x3ca7c3e38968823ccb4c78ea688df41356f182ae1d159e4ee608d30d68cef320')
+const LIDO_APP_IDS = new TypedMap<string, Bytes>()
+LIDO_APP_IDS.set('mainnet', LIDO_APP_ID_MAINNET)
+LIDO_APP_IDS.set('goerli', LIDO_APP_ID_GOERLI)
+export const LIDO_APP_ID = LIDO_APP_IDS.get(network)
 
 // NOR App
-export const NOR_APP_ID = Bytes.fromHexString(
-  '0x57384c8fcaf2c1c2144974769a6ea4e5cf69090d47f5327f8fc93827f8c0001a'
-)
-const NOR_REPO = new TypedMap<string, string>()
-NOR_REPO.set('mainnet', '0x0D97E876ad14DB2b183CFeEB8aa1A5C788eB1831')
-NOR_REPO.set('goerli', '0x5F867429616b380f1Ca7a7283Ff18C53a0033073')
+const NOR_APP_ID_GOERLI = Bytes.fromHexString('0x57384c8fcaf2c1c2144974769a6ea4e5cf69090d47f5327f8fc93827f8c0001a')
+const NOR_APP_ID_MAINNET = Bytes.fromHexString('0x7071f283424072341f856ac9e947e7ec0eb68719f757a7e785979b6b8717579d')
+const NOR_APP_IDS = new TypedMap<string, Bytes>()
+NOR_APP_IDS.set('mainnet', NOR_APP_ID_MAINNET)
+NOR_APP_IDS.set('goerli', NOR_APP_ID_GOERLI)
+export const NOR_APP_ID = NOR_APP_IDS.get(network)
 
 // Oracle App
-export const ORACLE_APP_ID = Bytes.fromHexString(
-  '0xb2977cfc13b000b6807b9ae3cf4d938f4cc8ba98e1d68ad911c58924d6aa4f11'
-)
-const ORACLE_REPO = new TypedMap<string, string>()
-ORACLE_REPO.set('mainnet', '0xF9339DE629973c60c4d2b76749c81E6F40960E3A')
-ORACLE_REPO.set('goerli', '0x9234e37Adeb44022A078557D9943b72AB89bF36a')
+const ORACLE_APP_ID_GOERLI = Bytes.fromHexString('0xb2977cfc13b000b6807b9ae3cf4d938f4cc8ba98e1d68ad911c58924d6aa4f11')
+const ORACLE_APP_ID_MAINNET = Bytes.fromHexString('0x8b47ba2a8454ec799cd91646e7ec47168e91fd139b23f017455f3e5898aaba93')
+const ORACLE_APP_IDS = new TypedMap<string, Bytes>()
+ORACLE_APP_IDS.set('mainnet', ORACLE_APP_ID_MAINNET)
+ORACLE_APP_IDS.set('goerli', ORACLE_APP_ID_GOERLI)
+export const ORACLE_APP_ID = ORACLE_APP_IDS.get(network)
 
-export const getRepoAddr = (appId: Bytes): string | null =>
-  appId == LIDO_APP_ID
-    ? LIDO_REPO.get(network)
-    : appId == NOR_APP_ID
-    ? NOR_REPO.get(network)
-    : appId == ORACLE_APP_ID
-    ? ORACLE_REPO.get(network)
-    : null
+// Voting App
+const VOTING_APP_ID_GOERLI = Bytes.fromHexString('0xee7f2abf043afe722001aaa900627a6e29adcbcce63a561fbd97e0a0c6429b94')
+const VOTING_APP_ID_MAINNET = Bytes.fromHexString('0x0abcd104777321a82b010357f20887d61247493d89d2e987ff57bcecbde00e1e')
+const VOTING_APP_IDS = new TypedMap<string, Bytes>()
+VOTING_APP_IDS.set('mainnet', VOTING_APP_ID_MAINNET)
+VOTING_APP_IDS.set('goerli', VOTING_APP_ID_GOERLI)
+export const VOTING_APP_ID = VOTING_APP_IDS.get(network)
+
+export const APP_REPOS = new TypedMap<Bytes, string>()
+APP_REPOS.set(LIDO_APP_ID_MAINNET, '0xF5Dc67E54FC96F993CD06073f71ca732C1E654B1')
+APP_REPOS.set(LIDO_APP_ID_GOERLI, '0xE9eDe497d2417fd980D8B5338232666641B9B9aC')
+APP_REPOS.set(NOR_APP_ID_MAINNET, '0x0D97E876ad14DB2b183CFeEB8aa1A5C788eB1831')
+APP_REPOS.set(NOR_APP_ID_GOERLI, '0x5F867429616b380f1Ca7a7283Ff18C53a0033073')
+APP_REPOS.set(ORACLE_APP_ID_MAINNET, '0xF9339DE629973c60c4d2b76749c81E6F40960E3A')
+APP_REPOS.set(ORACLE_APP_ID_GOERLI, '0x9234e37Adeb44022A078557D9943b72AB89bF36a')
+APP_REPOS.set(VOTING_APP_ID_MAINNET, '0x4Ee3118E3858E8D7164A634825BfE0F73d99C792')
+APP_REPOS.set(VOTING_APP_ID_GOERLI, '0x14de4f901cE0B81F4EfcA594ad7b70935C276806')
 
 /**
  * upgrades definition
  **/
 
-// Upgrade Id's (upgrade iterations with breaking changes )
-
+// Upgrade Id's (upgrade iterations index with breaking changes )
 // initial deploy
 export const UPG_V1_INIT = 0
 
@@ -148,74 +143,52 @@ export const UPG_V2_BETA = 2
 // v2 RC deploy
 export const UPG_V2_RC = 3
 
-// list of app's upgrade ids and corresponding min contract version
-
-const LIDO_UPG_VERS = new TypedMap<string, i32[]>()
-const NOR_UPG_VERS = new TypedMap<string, i32[]>()
-const ORACLE_UPG_VERS = new TypedMap<string, i32[]>()
-
-// mainnet app versions
-LIDO_UPG_VERS.set('mainnet', [
+// list of app's upgrade ids and corresponding min compatible contract version
+export const APP_UPG_VERS = new TypedMap<Bytes, i32[]>()
+APP_UPG_VERS.set(LIDO_APP_ID_MAINNET, [
   1, // V1_INIT, v1.0.0
   3, // V1_SHARES, v3.0.0,
   999, // V2_BETA, TBD
   999 // V2_RC, TBD
 ])
-NOR_UPG_VERS.set('mainnet', [
-  1, // V1_INIT, v1.0.0
-  3, // V1_SHARES, v3.0.0
-  999, // V2_BETA, TBD
-  999 // V2_RC, TBD
-])
-ORACLE_UPG_VERS.set('mainnet', [
-  1, // V1_INIT, v1.0.0
-  3, // V1_SHARES, v3.0.0
-  999, // V2_BETA, TBD
-  999 // V2_RC, TBD
-])
-
-// goerli app versions
-LIDO_UPG_VERS.set('goerli', [
+APP_UPG_VERS.set(LIDO_APP_ID_GOERLI, [
   1, // V1_INIT, v1.0.0
   8, // V1_SHARES, v8.0.0
   10, // V2_BETA, v10.0.0
   999 // V2_RC, TBD
 ])
-NOR_UPG_VERS.set('goerli', [
+APP_UPG_VERS.set(NOR_APP_ID_MAINNET, [
+  1, // V1_INIT, v1.0.0
+  3, // V1_SHARES, v3.0.0
+  999, // V2_BETA, TBD
+  999 // V2_RC, TBD
+])
+APP_UPG_VERS.set(NOR_APP_ID_GOERLI, [
   1, // V1_INIT, v1.0.0
   6, // V1_SHARES, v6.0.0,
   8, // V2_BETA, 8.0.0
   999 // V2_RC, TBD
 ])
-ORACLE_UPG_VERS.set('goerli', [
+APP_UPG_VERS.set(ORACLE_APP_ID_MAINNET, [
+  1, // V1_INIT, v1.0.0
+  3, // V1_SHARES, v3.0.0
+  999, // V2_BETA, TBD
+  999 // V2_RC, TBD
+])
+APP_UPG_VERS.set(ORACLE_APP_ID_GOERLI, [
   1, // V1_INIT, v1.0.0
   4, // V1_SHARES, v4.0.0
   5, // V2_BETA, v5.0.0
   999 // V2_RC, TBD
 ])
+APP_UPG_VERS.set(VOTING_APP_ID_MAINNET, [])
+APP_UPG_VERS.set(VOTING_APP_ID_GOERLI, [])
 
-const isVerMatch = (
-  curVer: i32,
-  minUpgId: i32,
-  appVers: TypedMap<string, i32[]>
-): bool => {
-  const upgVers = appVers.get(network)
+export const isAppVerMatchUpgId = (appId: Bytes, curVer: i32, minUpgId: i32): bool => {
+  const upgVers = APP_UPG_VERS.get(appId)
   // if no upgrades defined assuming subgraph code fully compatible with deployed contracts
   if (!upgVers || upgVers.length == 0) return true
 
   // check requested minUpgId is defined and it's contract version is below requested curVer
   return minUpgId < upgVers.length && upgVers[minUpgId] <= curVer
 }
-
-export const isAppVerMatch = (
-  appId: Bytes,
-  curVer: i32,
-  minUpgId: i32
-): bool =>
-  appId == LIDO_APP_ID
-    ? isVerMatch(curVer, minUpgId, LIDO_UPG_VERS)
-    : appId == NOR_APP_ID
-    ? isVerMatch(curVer, minUpgId, NOR_UPG_VERS)
-    : appId == ORACLE_APP_ID
-    ? isVerMatch(curVer, minUpgId, ORACLE_UPG_VERS)
-    : false

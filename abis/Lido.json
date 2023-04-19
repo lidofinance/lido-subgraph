@@ -1012,5 +1012,21 @@
     ],
     "name": "TokenRebased",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "name": "amount", "type": "uint256" }],
+    "name": "WithdrawalsReceived",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "name": "reportTimestamp", "type": "uint256" },
+      { "indexed": false, "name": "preCLValidators", "type": "uint256" },
+      { "indexed": false, "name": "postCLValidators", "type": "uint256" }
+    ],
+    "name": "CLValidatorsUpdated",
+    "type": "event"
   }
 ]

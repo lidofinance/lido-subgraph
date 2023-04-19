@@ -6,28 +6,28 @@ import {
   LidoTransfer,
   TotalReward,
   Holder,
-  OracleReport,
-  AppVersion
+  // OracleReport,
+  AppVersion,
+  CurrentFees
 } from '../generated/schema'
 import {
+  CALCULATION_UNIT,
+  E27_PRECISION_BASE,
   LIDO_APP_ID,
   NOR_APP_ID,
   ONE,
   ORACLE_APP_ID,
+  SECONDS_PER_YEAR,
+  UPG_V1_SHARES,
   UPG_V2_BETA,
   ZERO,
   ZERO_ADDRESS,
-  isAppVerMatch
+  isAppVerMatchUpgId
 } from './constants'
 import { Transfer, TransferShares } from '../generated/Lido/Lido'
 
-export function _loadOrCreateLidoTransferEntity(
-  eventTransfer: Transfer
-): LidoTransfer {
-  let id =
-    eventTransfer.transaction.hash.toHex() +
-    '-' +
-    eventTransfer.logIndex.toString()
+export function _loadOrCreateLidoTransferEntity(eventTransfer: Transfer): LidoTransfer {
+  let id = eventTransfer.transaction.hash.toHex() + '-' + eventTransfer.logIndex.toString()
   let entity = LidoTransfer.load(id)
   if (!entity) {
     entity = new LidoTransfer(id)
@@ -38,7 +38,6 @@ export function _loadOrCreateLidoTransferEntity(
     entity.transactionHash = eventTransfer.transaction.hash
     entity.transactionIndex = eventTransfer.transaction.index
     entity.logIndex = eventTransfer.logIndex
-    entity.transactionLogIndex = eventTransfer.transactionLogIndex
 
     entity.value = eventTransfer.params.value
     entity.shares = ZERO
@@ -56,20 +55,18 @@ export function _loadOrCreateLidoTransferEntity(
   return entity
 }
 
-export function _loadOrCreateOracleReport(refSLot: BigInt): OracleReport {
-  let entity = OracleReport.load(refSLot.toString())
-  if (!entity) {
-    entity = new OracleReport(refSLot.toString())
-  }
-  entity.itemsProcessed = ZERO
-  entity.itemsCount = ZERO
+// export function _loadOrCreateOracleReport(refSLot: BigInt): OracleReport {
+//   let entity = OracleReport.load(refSLot.toString())
+//   if (!entity) {
+//     entity = new OracleReport(refSLot.toString())
+//   }
+//   entity.itemsProcessed = ZERO
+//   entity.itemsCount = ZERO
 
-  return entity
-}
+//   return entity
+// }
 
-export function _loadOrCreateTotalRewardEntity(
-  event: ethereum.Event
-): TotalReward {
+export function _loadOrCreateTotalRewardEntity(event: ethereum.Event): TotalReward {
   let entity = TotalReward.load(event.transaction.hash)
   if (!entity) {
     entity = new TotalReward(event.transaction.hash)
@@ -78,7 +75,6 @@ export function _loadOrCreateTotalRewardEntity(
     entity.blockTime = event.block.timestamp
     entity.transactionIndex = event.transaction.index
     entity.logIndex = event.logIndex
-    entity.transactionLogIndex = event.transactionLogIndex
 
     entity.feeBasis = ZERO
     entity.treasuryFeeBasisPoints = ZERO
@@ -88,7 +84,17 @@ export function _loadOrCreateTotalRewardEntity(
     entity.totalRewardsWithFees = ZERO
     entity.totalRewards = ZERO
     entity.totalFee = ZERO
+    entity.treasuryFee = ZERO
+    entity.insuranceFee = ZERO
     entity.operatorsFee = ZERO
+    entity.dust = ZERO
+    entity.mevFee = ZERO
+
+    entity.apr = ZERO.toBigDecimal()
+    entity.aprRaw = ZERO.toBigDecimal()
+    entity.aprBeforeFees = ZERO.toBigDecimal()
+
+    entity.timeElapsed = ZERO
 
     entity.totalPooledEtherAfter = ZERO
     entity.totalSharesAfter = ZERO
@@ -145,16 +151,14 @@ export function _updateTransferBalances(entity: LidoTransfer): void {
     entity.balanceAfterIncrease = entity.value
     entity.balanceAfterDecrease = ZERO
   } else {
-    entity.balanceAfterIncrease = entity
-      .sharesAfterIncrease!.times(entity.totalPooledEther)
-      .div(entity.totalShares)
-    entity.balanceAfterDecrease = entity
-      .sharesAfterDecrease!.times(entity.totalPooledEther)
-      .div(entity.totalShares)
+    entity.balanceAfterIncrease = entity.sharesAfterIncrease!.times(entity.totalPooledEther).div(entity.totalShares)
+    entity.balanceAfterDecrease = entity.sharesAfterDecrease!.times(entity.totalPooledEther).div(entity.totalShares)
   }
 }
 
 export function _updateTransferShares(entity: LidoTransfer): void {
+  const stats = _loadOrCreateStatsEntity()
+
   // Decreasing from address shares
   if (entity.from != ZERO_ADDRESS) {
     // Address must already have shares, HOWEVER:
@@ -163,10 +167,10 @@ export function _updateTransferShares(entity: LidoTransfer): void {
     entity.sharesBeforeDecrease = sharesFromEntity.shares
 
     if (entity.from != entity.to) {
-      assert(
-        sharesFromEntity.shares >= entity.shares,
-        'Abnormal shares decrease!'
-      )
+      if (entity.shares > sharesFromEntity.shares) {
+        log.critical("acc: {}, shares: {}, transfer: {}", [entity.from.toHexString(), sharesFromEntity.shares.toString(), entity.shares.toString()])
+      }
+      assert(sharesFromEntity.shares >= entity.shares, 'Abnormal shares decrease!')
       sharesFromEntity.shares = sharesFromEntity.shares.minus(entity.shares)
       sharesFromEntity.save()
     }
@@ -195,24 +199,24 @@ export function _updateHolders(entity: LidoTransfer): void {
       holder = new Holder(entity.to)
       // @todo remove
       holder.address = entity.to
-      holder.balance = ZERO
+      holder.hasBalance = false
 
       stats.uniqueAnytimeHolders = stats.uniqueAnytimeHolders.plus(ONE)
     }
-    if (holder.balance.isZero()) {
+    if (!holder.hasBalance) {
+      holder.hasBalance = true
       stats.uniqueHolders = stats.uniqueHolders.plus(ONE)
     }
-    holder.balance = entity.balanceAfterIncrease!
     holder.save()
   }
 
   if (entity.from != ZERO_ADDRESS) {
     const holder = Holder.load(entity.from)
     if (holder) {
-      if (!holder.balance.isZero() && entity.balanceAfterDecrease!.isZero()) {
+      if (holder.hasBalance && entity.balanceAfterDecrease!.isZero()) {
+        holder.hasBalance = false
         stats.uniqueHolders = stats.uniqueHolders.minus(ONE)
       }
-      holder.balance = entity.balanceAfterDecrease!
       holder.save()
       // @todo delete holder
       // @todo check id correctness
@@ -222,14 +226,101 @@ export function _updateHolders(entity: LidoTransfer): void {
   stats.save()
 }
 
-export const checkAppVer = (appId: Bytes, minUpgId: i32): bool => {
+export function _calcAPR_v1(
+  entity: TotalReward,
+  preTotalPooledEther: BigInt,
+  postTotalPooledEther: BigInt,
+  timeElapsed: BigInt,
+  feeBasis: BigInt
+): void {
+  // Lido v1 deprecated approach
+  /**
+    aprRaw -> aprBeforeFees -> apr
+
+    aprRaw - APR straight from validator balances without adjustments
+    aprBeforeFees - APR compensated for time difference between oracle reports
+    apr - Time-compensated APR with fees subtracted
+    **/
+
+  // APR without subtracting fees and without any compensations
+  entity.aprRaw = postTotalPooledEther
+    .toBigDecimal()
+    .div(preTotalPooledEther.toBigDecimal())
+    .minus(BigInt.fromI32(1).toBigDecimal())
+    .times(BigInt.fromI32(100).toBigDecimal())
+    .times(BigInt.fromI32(365).toBigDecimal())
+
+  // Time-compensated APR
+  // (postTotalPooledEther - preTotalPooledEther) * secondsInYear / (preTotalPooledEther * timeElapsed)
+  entity.aprBeforeFees = timeElapsed.isZero()
+    ? entity.aprRaw
+    : postTotalPooledEther
+        .minus(preTotalPooledEther)
+        .times(SECONDS_PER_YEAR)
+        .toBigDecimal()
+        .div(preTotalPooledEther.times(timeElapsed).toBigDecimal())
+        .times(BigInt.fromI32(100).toBigDecimal())
+
+  // Subtracting fees
+  // const currentFees = CurrentFees.load('')!
+  // const feeBasis = currentFees.feeBasisPoints!.toBigDecimal() // 1000
+  entity.apr = entity.aprBeforeFees.minus(
+    entity.aprBeforeFees
+      .times(CALCULATION_UNIT.toBigDecimal())
+      .div(feeBasis.toBigDecimal())
+      .div(BigInt.fromI32(100).toBigDecimal())
+  )
+}
+
+export function _calcAPR_v2(
+  entity: TotalReward,
+  preTotalEther: BigInt,
+  postTotalEther: BigInt,
+  preTotalShares: BigInt,
+  postTotalShares: BigInt,
+  timeElapsed: BigInt
+): void {
+  // Lido v2 new approach
+
+  // APR without subtracting fees and without any compensations
+  entity.aprRaw = postTotalEther
+    .toBigDecimal()
+    .div(preTotalEther.toBigDecimal())
+    .minus(BigInt.fromI32(1).toBigDecimal())
+    .times(BigInt.fromI32(100).toBigDecimal())
+    .times(BigInt.fromI32(365).toBigDecimal())
+
+  let preShareRate = preTotalEther
+    .toBigDecimal()
+    .times(E27_PRECISION_BASE)
+    .div(preTotalShares.toBigDecimal())
+  let postShareRate = postTotalEther
+    .toBigDecimal()
+    .times(E27_PRECISION_BASE)
+    .div(postTotalShares.toBigDecimal())
+  let secondsInYear = BigInt.fromI32(60 * 60 * 24 * 365).toBigDecimal()
+
+  entity.apr = secondsInYear
+    .times(postShareRate.minus(preShareRate))
+    .div(preShareRate)
+    .div(timeElapsed.toBigDecimal())
+
+  entity.aprBeforeFees = entity.apr
+}
+
+export const checkAppVer = (appId: Bytes | null, minUpgId: i32): bool => {
+  if (!appId) return true
   const appVer = AppVersion.load(appId)
-  if (!appVer) return false
-  return isAppVerMatch(appId, appVer.major, minUpgId)
+  if (!appVer) return true
+  return isAppVerMatchUpgId(appId, appVer.major, minUpgId)
 }
 
 export function isLidoV2(): bool {
   return checkAppVer(LIDO_APP_ID, UPG_V2_BETA)
+}
+
+export function isLidoTransferShares(): bool {
+  return checkAppVer(LIDO_APP_ID, UPG_V1_SHARES)
 }
 
 export function isOracleV2(): bool {

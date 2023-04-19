@@ -26,7 +26,6 @@ export const transferInQuery = gql`
       transactionHash
       transactionIndex
       logIndex
-      transactionLogIndex
     }
   }
 `

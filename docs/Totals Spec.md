@@ -93,7 +93,6 @@ totalRewardsEntity.block = event.block.number
 totalRewardsEntity.blockTime = event.block.timestamp
 totalRewardsEntity.transactionIndex = event.transaction.index
 totalRewardsEntity.logIndex = event.logIndex
-totalRewardsEntity.transactionLogIndex = event.transactionLogIndex
 ```
 
 Calculating raw rewards (positive validator balance changes). For every new validator appearing, we need to compensate that new 32 eth balance is for activation, not rewards:
@@ -526,7 +525,6 @@ type LidoTransfer @entity {
   transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  transactionLogIndex: BigInt!
 }
 ```
 
@@ -554,7 +552,6 @@ type LidoSubmission @entity {
   transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  transactionLogIndex: BigInt!
 }
 ```
 
@@ -626,7 +623,6 @@ type TotalReward @entity {
   blockTime: BigInt!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  transactionLogIndex: BigInt!
 }
 ```
 
