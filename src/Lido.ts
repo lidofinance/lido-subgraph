@@ -1,6 +1,7 @@
-import { BigInt,ethereum, log } from '@graphprotocol/graph-ts'
+import { BigInt, ethereum, log } from '@graphprotocol/graph-ts'
 import {
   Approval,
+  BeaconValidatorsUpdated,
   FeeDistributionSet,
   FeeSet,
   Lido,
@@ -96,8 +97,22 @@ export function handleSubmitted(event: Submitted): void {
 
     // const eventTransfer = changetype<Transfer>(transferEvents[0][0].event)
     const eventTransferShares = changetype<TransferShares>(transferEventPairs[0][1].event)
-    // log.warning("eventTransferShares.params.sharesValue {} {}", [])
-    assert(eventTransferShares.params.sharesValue == shares, 'Unexpected shares in TransferShares event!')
+    if (eventTransferShares.params.sharesValue != shares) {
+      log.warning(
+        'Unexpected shares in TransferShares event! calc shares: {} event shares: {} totalShares: {} totalPooledEth: {} block: {} txHash: {} logIdx(Transfer): {} logIdx(TransferShares): {}',
+        [
+          shares.toString(),
+          eventTransferShares.params.sharesValue.toString(),
+          event.block.number.toString(),
+          totals.totalShares.toString(),
+          totals.totalPooledEther.toString(),
+          event.block.number.toString(),
+          event.transaction.hash.toHexString(),
+          event.logIndex.toString(),
+          eventTransferShares.logIndex.toString()
+        ]
+      )
+    }
   }
 
   const sharesEntity = _loadOrCreateSharesEntity(event.params.sender)
@@ -171,7 +186,11 @@ export function handleTransfer(event: Transfer): void {
 
         // If insuranceFee on totalRewards exists, then next transfer is of dust to treasury
         // We need this if treasury and insurance fund is the same address
-        if (entity.to == getAddress('INSURANCE_FUND') && !totalRewardsEntity.insuranceFeeBasisPoints.isZero() && totalRewardsEntity.insuranceFee.isZero()) {
+        if (
+          entity.to == getAddress('INSURANCE_FUND') &&
+          !totalRewardsEntity.insuranceFeeBasisPoints.isZero() &&
+          totalRewardsEntity.insuranceFee.isZero()
+        ) {
           // Handling the Insurance Fee transfer event
           totalRewardsEntity.insuranceFee = totalRewardsEntity.insuranceFee.plus(entity.value)
 
@@ -349,35 +368,38 @@ export function handleApproval(event: Approval): void {
   entity.save()
 }
 
-
-
 /**
-Handling manual NOs removal on Testnet in txs:
-6014681 0x45b83117a28ba9f6aed3a865004e85aea1e8611998eaef52ca81d47ac43e98d5
-6014696 0x5d37899cce4086d7cdf8590f90761e49cd5dcc5c32aebbf2d9a6b2a1c00152c7
+ *  WARNING: this handler should exists for Goerli testnet, otherwise subgraph will break
+ */
 
-This allows us not to enable tracing.
+// Handling manual NOs removal on Testnet in txs:
+// 6014681 0x45b83117a28ba9f6aed3a865004e85aea1e8611998eaef52ca81d47ac43e98d5
+// 6014696 0x5d37899cce4086d7cdf8590f90761e49cd5dcc5c32aebbf2d9a6b2a1c00152c7
 
-WARNING:
-If Totals are wrong just before these blocks, then graph-node tracing filter broke again.
-
-Broken Oracle report after long broken state:
-First val number went down, but then went up all when reports were not happening.
-7225143 0xde2667f834746bdbe0872163d632ce79c4930a82ec7c3c11cb015373b691643b
-
-**/
+// Broken Oracle report after long broken state:
+// First val number went down, but then went up all when reports were not happening.
+// 7225143 0xde2667f834746bdbe0872163d632ce79c4930a82ec7c3c11cb015373b691643b
 
 export function handleTestnetBlock(block: ethereum.Block): void {
   if (
     block.number.toString() == '6014681' ||
     block.number.toString() == '6014696' ||
     block.number.toString() == '7225143'
+    // 7225313
   ) {
-    let contract = Lido.bind(getAddress('LIDO'))
-    let realPooledEther = contract.getTotalPooledEther()
-
-    const totals = _loadOrCreateTotalsEntity()
-    totals.totalPooledEther = realPooledEther
-    totals.save()
+    _fixTotalPooledEther()
   }
+}
+
+// Handling validators count correction during the upgrade:
+// 7127807 0xa9111b9bf19777ca08902fbd9c1dc8efc7a5bf61766f92bd469b522477257195
+export function handleBeaconValidatorsUpdated(_event: BeaconValidatorsUpdated): void {
+  _fixTotalPooledEther()
+}
+
+function _fixTotalPooledEther(): void {
+  const realPooledEther = Lido.bind(getAddress('LIDO')).getTotalPooledEther()
+  const totals = _loadOrCreateTotalsEntity()
+  totals.totalPooledEther = realPooledEther
+  totals.save()
 }

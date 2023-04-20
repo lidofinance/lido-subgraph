@@ -92,8 +92,8 @@ dataSources:
 #           handler: handleELRewardsWithdrawalLimitSet
 #         - event: ELRewardsVaultSet(address)
 #           handler: handleELRewardsVaultSet
-#         - event: BeaconValidatorsUpdated(uint256)
-#           handler: handleBeaconValidatorsUpdated
+        - event: BeaconValidatorsUpdated(uint256)
+          handler: handleBeaconValidatorsUpdated
 #         - event: MevTxFeeReceived(uint256)
 #           handler: handleELRewardsReceived
 

@@ -46,42 +46,50 @@ export function parseEventLogs(
           const type = params[j].split(' ')
           // if (params[j].slice(-7) == ' indexed') {
           if (type.length > 1 && type[1] == 'indexed') {
-            const decoded = ethereum.decode(
-              type[0],
-              receipt.logs[i].topics[topicIdx++]
-            )
+            const decoded = ethereum.decode(type[0], receipt.logs[i].topics[topicIdx++])
             event.parameters[j] = new ethereum.EventParam('', decoded!)
           } else {
             notIndexedParams.push(type[0])
             notIndexedParamsMap.push(j)
           }
         }
-        if (notIndexedParamsMap.length > 0) {
-          const decoded = ethereum.decode(
-            '(' + notIndexedParams.join(',') + ')',
-            receipt.logs[i].data
-          )
-          const tuple = decoded!.toTuple()
-          for (let k = 0; k < tuple.length; k++) {
-            event.parameters[notIndexedParamsMap[k]] = new ethereum.EventParam(
-              '',
-              tuple[k]
-            )
+        let decodeFinished = notIndexedParamsMap.length == 0
+        if (!decodeFinished) {
+          const decoded = ethereum.decode('(' + notIndexedParams.join(',') + ')', receipt.logs[i].data)
+          if (!decoded) {
+            log.warning('params decode fai for event: {} tuple: {} data: {} block: {} txHash: {} logIdx: {}', [
+              eventParserOpts[0],
+              notIndexedParams.join(','),
+              receipt.logs[i].data.toHexString(),
+              baseEvent.block.number.toString(),
+              baseEvent.transaction.hash.toHexString(),
+              receipt.logs[i].logIndex.toString()
+            ])
+          } else {
+            const tuple = decoded.toTuple()
+            for (let k = 0; k < notIndexedParamsMap.length; k++) {
+              event.parameters[notIndexedParamsMap[k]] = new ethereum.EventParam('', tuple[k])
+            }
+            decodeFinished = true
           }
         }
-        events.push(new ParsedEvent(name, event))
+        if (decodeFinished) {
+          events.push(new ParsedEvent(name, event))
+        }
       } else {
-        log.warning('eventParserOpts not found! topic0: {}', [receipt.logs[i].topics[0].toHexString()])
+        log.warning('eventParserOpts not found for topic0: {} block: {} txHash: {} logIdx: {}', [
+          receipt.logs[i].topics[0].toHexString(),
+          baseEvent.block.number.toString(),
+          baseEvent.transaction.hash.toHexString(),
+          receipt.logs[i].logIndex.toString()
+        ])
       }
     }
   }
   return events
 }
 
-export function extractPairedEvent(
-  events: ParsedEvent[],
-  pairNames: string[]
-): ParsedEvent[][] {
+export function extractPairedEvent(events: ParsedEvent[], pairNames: string[]): ParsedEvent[][] {
   let eventPairs: ParsedEvent[][] = []
   // 1 based index
   let idx0 = 0
@@ -123,20 +131,14 @@ export function filterParsedEventsByLogIndexRange(
   let filtered: ParsedEvent[] = []
 
   for (let i = 0; i < events.length; i++) {
-    if (
-      events[i].event.logIndex >= logIndexFrom &&
-      events[i].event.logIndex <= logIndexTo
-    ) {
+    if (events[i].event.logIndex >= logIndexFrom && events[i].event.logIndex <= logIndexTo) {
       filtered.push(events[i])
     }
   }
   return filtered
 }
 
-export function findParsedEventByName(
-  events: ParsedEvent[],
-  name: string
-): ParsedEvent | null {
+export function findParsedEventByName(events: ParsedEvent[], name: string): ParsedEvent | null {
   for (let i = 0; i < events.length; i++) {
     if (events[i].name == name) {
       return events[i]
@@ -153,20 +155,14 @@ export function filterPairedEventsByLogIndexRange(
   let filtered: ParsedEvent[][] = []
 
   for (let i = 0; i < events.length; i++) {
-    if (
-      events[i][0].event.logIndex >= logIndexFrom &&
-      events[i][0].event.logIndex <= logIndexTo
-    ) {
+    if (events[i][0].event.logIndex >= logIndexFrom && events[i][0].event.logIndex <= logIndexTo) {
       filtered.push(events[i])
     }
   }
   return filtered
 }
 
-export function findPairedEventByLogIndex(
-  events: ParsedEvent[][],
-  logIndex: BigInt
-): ParsedEvent[] | null {
+export function findPairedEventByLogIndex(events: ParsedEvent[][], logIndex: BigInt): ParsedEvent[] | null {
   for (let i = 0; i < events.length; i++) {
     if (events[i][0].event.logIndex == logIndex) {
       return events[i]
