@@ -17,7 +17,7 @@ const lidoAbi = JSON.parse(fs.readFileSync('abis/Lido.json'))
 const lidoContract = new Contract(LIDO_ADDRESS, lidoAbi, provider)
 
 const oracleAddress = await lidoContract.getOracle()
-const oracleAbi = JSON.parse(fs.readFileSync('abis/LidoOracle.json'))
+const oracleAbi = JSON.parse(fs.readFileSync('abis/LegacyOracle.json'))
 const oracleContract = new Contract(oracleAddress, oracleAbi, provider)
 
 const nopRegistryAbi = JSON.parse(

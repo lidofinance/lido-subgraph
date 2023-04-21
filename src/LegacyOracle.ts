@@ -1,13 +1,7 @@
-import { Completed, PostTotalShares } from '../generated/LidoOracle/LidoOracle'
-import { NodeOperatorsRegistry } from '../generated/LidoOracle/NodeOperatorsRegistry'
-import { CurrentFees, NodeOperatorsShares, OracleCompleted, TotalReward } from '../generated/schema'
-import {
-  CALCULATION_UNIT,
-  DEPOSIT_AMOUNT,
-  ONE,
-  ZERO,
-  getAddress
-} from './constants'
+import { Completed, MemberAdded, MemberRemoved, PostTotalShares } from '../generated/LegacyOracle/LegacyOracle'
+import { NodeOperatorsRegistry } from '../generated/LegacyOracle/NodeOperatorsRegistry'
+import { CurrentFees, NodeOperatorsShares, OracleCompleted, OracleMember, TotalReward } from '../generated/schema'
+import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ONE, ZERO, getAddress } from './constants'
 
 import {
   _calcAPR_v1,
@@ -21,32 +15,10 @@ import {
   isOracleV2
 } from './helpers'
 import { ELRewardsReceived, MevTxFeeReceived, TokenRebased } from '../generated/Lido/Lido'
-import { ParsedEvent, findParsedEventByName, parseEventLogs } from './parser'
-
-function _findELRewardsReceivedEvent(parsedEvents: ParsedEvent[]): ELRewardsReceived | null {
-  const parsedEvent = findParsedEventByName(parsedEvents, 'ELRewardsReceived')
-  if (parsedEvent) {
-    return changetype<ELRewardsReceived>(parsedEvent.event)
-  }
-  return null
-}
-
-function _findPostTotalSharesEvent(parsedEvents: ParsedEvent[]): PostTotalShares | null {
-  const parsedEvent = findParsedEventByName(parsedEvents, 'PostTotalShares')
-  if (parsedEvent) {
-    return changetype<PostTotalShares>(parsedEvent.event)
-  }
-  return null
-}
-function _findMevTxFeeReceivedEvent(parsedEvents: ParsedEvent[]): MevTxFeeReceived | null {
-  const parsedEvent = findParsedEventByName(parsedEvents, 'MevTxFeeReceived')
-  if (parsedEvent) {
-    return changetype<MevTxFeeReceived>(parsedEvent.event)
-  }
-  return null
-}
+import { getParsedEventByName, parseEventLogs } from './parser'
 
 export function handleCompleted(event: Completed): void {
+  // method is deprecated in Lido v2
   if (isLidoV2()) {
     return
   }
@@ -120,8 +92,12 @@ export function handleCompleted(event: Completed): void {
   // we should process token rebase here as TokenRebased event fired last but we need new values before transfers
   // parse all events from tx receipt
   const parsedEvents = parseEventLogs(event)
-  const elRewardsReceivedEvent = _findELRewardsReceivedEvent(parsedEvents)
-  const mevTxFeeReceivedEvent = _findMevTxFeeReceivedEvent(parsedEvents)
+  const elRewardsReceivedEvent = getParsedEventByName<ELRewardsReceived>(
+    parsedEvents,
+    'ELRewardsReceived',
+    event.logIndex
+  )
+  const mevTxFeeReceivedEvent = getParsedEventByName<MevTxFeeReceived>(parsedEvents, 'MevTxFeeReceived', event.logIndex)
 
   totalRewardsEntity.mevFee = elRewardsReceivedEvent
     ? elRewardsReceivedEvent.params.amount
@@ -224,7 +200,8 @@ export function handleCompleted(event: Completed): void {
 
   // find PostTotalShares logIndex
   // if event absent, we should calc values
-  const postTotalSharesEvent = _findPostTotalSharesEvent(parsedEvents)
+  const postTotalSharesEvent = getParsedEventByName<PostTotalShares>(parsedEvents, 'PostTotalShares', event.logIndex)
+  // todo assert require if upgraded to PostTotalShares
   if (postTotalSharesEvent) {
     totalRewardsEntity.timeElapsed = postTotalSharesEvent.params.timeElapsed
     _calcAPR_v1(
@@ -246,4 +223,20 @@ export function handleCompleted(event: Completed): void {
     )
   }
   totalRewardsEntity.save()
+}
+
+export function handleMemberAdded(event: MemberAdded): void {
+  let entity = new OracleMember(event.params.member)
+  entity.member = event.params.member
+  entity.removed = false
+  entity.save()
+}
+
+export function handleMemberRemoved(event: MemberRemoved): void {
+  let entity = OracleMember.load(event.params.member)
+  if (entity == null) {
+    entity = new OracleMember(event.params.member)
+  }
+  entity.removed = true
+  entity.save()
 }

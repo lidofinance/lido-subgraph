@@ -9,8 +9,8 @@ export class ParsedEvent {
 export function parseEventLogs(
   baseEvent: ethereum.Event,
   contractAddress: Address = ZERO_ADDRESS,
-  logIndexFrom: BigInt = BigInt.fromI32(0),
-  logIndexTo: BigInt = BigInt.fromI32(0)
+  logIndexFrom: BigInt = ZERO,
+  logIndexTo: BigInt = ZERO
 ): ParsedEvent[] {
   const events: ParsedEvent[] = []
 
@@ -89,20 +89,34 @@ export function parseEventLogs(
   return events
 }
 
-export function extractPairedEvent(events: ParsedEvent[], pairNames: string[]): ParsedEvent[][] {
+
+export function extractPairedEvent(
+  events: ParsedEvent[],
+  leftName: string,
+  rightName: string,
+  logIndexFrom: BigInt = ZERO,
+  logIndexTo: BigInt = ZERO
+): ParsedEvent[][] {
   let eventPairs: ParsedEvent[][] = []
   // 1 based index
   let idx0 = 0
   let idx1 = 0
 
   for (let i = 0; i < events.length; i++) {
-    if (events[i].name == pairNames[0] && !idx0) {
+    if (
+      (!logIndexFrom.isZero() && events[i].event.logIndex < logIndexFrom) ||
+      (!logIndexTo.isZero() && events[i].event.logIndex > logIndexTo)
+    ) {
+      continue
+    }
+
+    if (events[i].name == leftName && !idx0) {
       idx0 = i + 1
       if (!idx1) {
         continue
       }
     }
-    if (events[i].name == pairNames[1] && !idx1) {
+    if (events[i].name == rightName && !idx1) {
       idx1 = i + 1
       if (!idx0) {
         continue
@@ -114,7 +128,7 @@ export function extractPairedEvent(events: ParsedEvent[], pairNames: string[]): 
       idx0 = 0
       idx1 = 0
     } else if ((idx0 && !idx1) || (idx1 && !idx0)) {
-      log.error('Pair not found for events <{}, {}>', pairNames)
+      log.error('Pair not found for events <{}, {}>', [leftName, rightName])
       throw new Error('Pair event missed')
     }
     // eventPairs.push([events[i]])
@@ -123,49 +137,33 @@ export function extractPairedEvent(events: ParsedEvent[], pairNames: string[]): 
   return eventPairs
 }
 
-export function filterParsedEventsByLogIndexRange(
-  events: ParsedEvent[],
-  logIndexFrom: BigInt,
-  logIndexTo: BigInt
-): ParsedEvent[] {
-  let filtered: ParsedEvent[] = []
 
+export function getRightPairedEventByLeftLogIndex<T>(events: ParsedEvent[][], logIndex: BigInt): T | null {
   for (let i = 0; i < events.length; i++) {
-    if (events[i].event.logIndex >= logIndexFrom && events[i].event.logIndex <= logIndexTo) {
-      filtered.push(events[i])
-    }
-  }
-  return filtered
-}
-
-export function findParsedEventByName(events: ParsedEvent[], name: string): ParsedEvent | null {
-  for (let i = 0; i < events.length; i++) {
-    if (events[i].name == name) {
-      return events[i]
+    if (events[i][0].event.logIndex == logIndex) {
+      return getParsedEvent<T>(events[i], 1)
     }
   }
   return null
 }
 
-export function filterPairedEventsByLogIndexRange(
-  events: ParsedEvent[][],
-  logIndexFrom: BigInt,
-  logIndexTo: BigInt
-): ParsedEvent[][] {
-  let filtered: ParsedEvent[][] = []
-
-  for (let i = 0; i < events.length; i++) {
-    if (events[i][0].event.logIndex >= logIndexFrom && events[i][0].event.logIndex <= logIndexTo) {
-      filtered.push(events[i])
-    }
-  }
-  return filtered
+export function getParsedEvent<T>(events: ParsedEvent[], pos: i32 = 0): T {
+  return changetype<T>(events[pos].event)
 }
 
-export function findPairedEventByLogIndex(events: ParsedEvent[][], logIndex: BigInt): ParsedEvent[] | null {
+export function getParsedEventByName<T>(
+  events: ParsedEvent[],
+  name: string,
+  logIndexFrom: BigInt = ZERO,
+  logIndexTo: BigInt = ZERO
+): T | null {
   for (let i = 0; i < events.length; i++) {
-    if (events[i][0].event.logIndex == logIndex) {
-      return events[i]
+    if (
+      (logIndexFrom.isZero() || events[i].event.logIndex >= logIndexFrom) &&
+      (logIndexTo.isZero() || events[i].event.logIndex <= logIndexTo) &&
+      events[i].name == name
+    ) {
+      return changetype<T>(events[i].event)
     }
   }
   return null

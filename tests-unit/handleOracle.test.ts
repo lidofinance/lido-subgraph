@@ -9,9 +9,9 @@ import {
   assert,
 } from 'matchstick-as/assembly/index'
 import { Total, CurrentFees, OracleCompleted } from '../generated/schema'
-import { Completed } from '../generated/LidoOracle/LidoOracle'
+import { Completed } from '../generated/LegacyOracle/LegacyOracle'
 import { BigInt, Address, ethereum } from '@graphprotocol/graph-ts'
-import { handleCompleted } from '../src/LidoOracle'
+import { handleCompleted } from '../src/LegacyOracle'
 
 import { createMockedRewardDistribution } from './mockedFns'
 

@@ -224,14 +224,14 @@ type CurrentFees @entity {
 #   to: Bytes!
 # }
 
-# type SharesBurn @entity(immutable: true) {
-#   id: ID!
+type SharesBurn @entity(immutable: true) {
+  id: ID!
 
-#   account: Bytes!
-#   postRebaseTokenAmount: BigInt!
-#   preRebaseTokenAmount: BigInt!
-#   sharesAmount: BigInt!
-# }
+  account: Bytes!
+  postRebaseTokenAmount: BigInt!
+  preRebaseTokenAmount: BigInt!
+  sharesAmount: BigInt!
+}
 
 """
 LegacyOracle
@@ -312,12 +312,12 @@ type TotalReward @entity {
   logIndex: BigInt!
 }
 
-# type OracleMember @entity {
-#   id: Bytes!
+type OracleMember @entity {
+  id: Bytes!
 
-#   member: Bytes!
-#   removed: Boolean!
-# }
+  member: Bytes!
+  removed: Boolean!
+}
 
 # type OracleQuorumChange @entity(immutable: true) {
 #   id: ID!
@@ -641,18 +641,17 @@ type TotalReward @entity {
 #   transactionHash: Bytes!
 # }
 
-# type OracleReport @entity {
-#   id: ID!
+type OracleReport @entity {
+  "v2 oracle report refSlot = ID"
+  id: ID!
 
-#   totalReward: TotalReward!
+  totalReward: TotalReward!
 
-#   "v2 oracle report refSlot"
-#   # refSlot: BigInt!
-#   hash: Bytes!
+  hash: Bytes!
 
-#   itemsProcessed: BigInt!
-#   itemsCount: BigInt!
-# }
+  itemsProcessed: BigInt!
+  itemsCount: BigInt!
+}
 
 """
 Lido DAO
@@ -668,3 +667,177 @@ type AppVersion @entity {
   transactionHash: Bytes!
   transactionIndex: BigInt!
 }
+
+# WithdrawalQueue
+
+
+# type Approval @entity(immutable: true) {
+#   id: Bytes!
+#   owner: Bytes! # address
+#   approved: Bytes! # address
+#   tokenId: BigInt! # uint256
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type ApprovalForAll @entity(immutable: true) {
+#   id: Bytes!
+#   owner: Bytes! # address
+#   operator: Bytes! # address
+#   approved: Boolean! # bool
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type BaseURISet @entity(immutable: true) {
+#   id: Bytes!
+#   baseURI: String! # string
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type BunkerModeDisabled @entity(immutable: true) {
+#   id: Bytes!
+
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type BunkerModeEnabled @entity(immutable: true) {
+#   id: Bytes!
+#   _sinceTimestamp: BigInt! # uint256
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type ContractVersionSet @entity(immutable: true) {
+#   id: Bytes!
+#   version: BigInt! # uint256
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type InitializedV1 @entity(immutable: true) {
+#   id: Bytes!
+#   _admin: Bytes! # address
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type NftDescriptorAddressSet @entity(immutable: true) {
+#   id: Bytes!
+#   nftDescriptorAddress: Bytes! # address
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type Paused @entity(immutable: true) {
+#   id: Bytes!
+#   duration: BigInt! # uint256
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type Resumed @entity(immutable: true) {
+#   id: Bytes!
+
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type RoleAdminChanged @entity(immutable: true) {
+#   id: Bytes!
+#   role: Bytes! # bytes32
+#   previousAdminRole: Bytes! # bytes32
+#   newAdminRole: Bytes! # bytes32
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type RoleGranted @entity(immutable: true) {
+#   id: Bytes!
+#   role: Bytes! # bytes32
+#   account: Bytes! # address
+#   sender: Bytes! # address
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type RoleRevoked @entity(immutable: true) {
+#   id: Bytes!
+#   role: Bytes! # bytes32
+#   account: Bytes! # address
+#   sender: Bytes! # address
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type Transfer @entity(immutable: true) {
+#   id: Bytes!
+#   from: Bytes! # address
+#   to: Bytes! # address
+#   tokenId: BigInt! # uint256
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type WithdrawalClaimed @entity(immutable: true) {
+#   id: Bytes!
+#   requestId: BigInt! # uint256
+#   owner: Bytes! # address
+#   receiver: Bytes! # address
+#   amountOfETH: BigInt! # uint256
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type WithdrawalRequested @entity(immutable: true) {
+#   id: Bytes!
+#   requestId: BigInt! # uint256
+#   requestor: Bytes! # address
+#   owner: Bytes! # address
+#   amountOfStETH: BigInt! # uint256
+#   amountOfShares: BigInt! # uint256
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type WithdrawalsFinalized @entity(immutable: true) {
+#   id: Bytes!
+#   from: BigInt! # uint256
+#   to: BigInt! # uint256
+#   amountOfETHLocked: BigInt! # uint256
+#   sharesToBurn: BigInt! # uint256
+#   timestamp: BigInt! # uint256
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }
+
+# type WithdrawalBatchFinalized @entity(immutable: true) {
+#   id: Bytes!
+#   from: BigInt! # uint256
+#   to: BigInt! # uint256
+#   amountOfETHLocked: BigInt! # uint256
+#   sharesToBurn: BigInt! # uint256
+#   timestamp: BigInt! # uint256
+#   blockNumber: BigInt!
+#   blockTimestamp: BigInt!
+#   transactionHash: Bytes!
+# }

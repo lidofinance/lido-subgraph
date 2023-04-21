@@ -6,7 +6,7 @@ import {
   LidoTransfer,
   TotalReward,
   Holder,
-  // OracleReport,
+  OracleReport,
   AppVersion,
   CurrentFees
 } from '../generated/schema'
@@ -55,16 +55,16 @@ export function _loadOrCreateLidoTransferEntity(eventTransfer: Transfer): LidoTr
   return entity
 }
 
-// export function _loadOrCreateOracleReport(refSLot: BigInt): OracleReport {
-//   let entity = OracleReport.load(refSLot.toString())
-//   if (!entity) {
-//     entity = new OracleReport(refSLot.toString())
-//   }
-//   entity.itemsProcessed = ZERO
-//   entity.itemsCount = ZERO
+export function _loadOrCreateOracleReport(refSLot: BigInt): OracleReport {
+  let entity = OracleReport.load(refSLot.toString())
+  if (!entity) {
+    entity = new OracleReport(refSLot.toString())
+  }
+  entity.itemsProcessed = ZERO
+  entity.itemsCount = ZERO
 
-//   return entity
-// }
+  return entity
+}
 
 export function _loadOrCreateTotalRewardEntity(event: ethereum.Event): TotalReward {
   let entity = TotalReward.load(event.transaction.hash)
@@ -330,3 +330,12 @@ export function isOracleV2(): bool {
 export function isNORV2(): bool {
   return checkAppVer(NOR_APP_ID, UPG_V2_BETA)
 }
+
+
+// export function logEventInfo(event: ethereum.Event): void {
+//   log.warning('block: {} txHash: {} logIdx: {}', [
+//     event.block.number.toString(),
+//     event.transaction.hash.toHexString(),
+//     event.logIndex.toString()
+//   ])
+// }
