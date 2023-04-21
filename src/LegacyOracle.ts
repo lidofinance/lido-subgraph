@@ -1,7 +1,18 @@
-import { Completed, MemberAdded, MemberRemoved, PostTotalShares } from '../generated/LegacyOracle/LegacyOracle'
+import {
+  AllowedBeaconBalanceAnnualRelativeIncreaseSet as AllowedBeaconBalanceAnnualRelativeIncreaseSetEvent,
+  AllowedBeaconBalanceRelativeDecreaseSet as AllowedBeaconBalanceRelativeDecreaseSetEvent,
+  BeaconReportReceiverSet as BeaconReportReceiverSetEvent,
+  BeaconSpecSet as BeaconSpecSetEvent,
+  Completed as CompletedEvent,
+  ContractVersionSet as ContractVersionSetEvent,
+  MemberAdded as MemberAddedEvent,
+  MemberRemoved as MemberRemovedEvent,
+  PostTotalShares as PostTotalSharesEvent,
+  QuorumChanged as QuorumChangedEvent
+} from '../generated/LegacyOracle/LegacyOracle'
 import { NodeOperatorsRegistry } from '../generated/LegacyOracle/NodeOperatorsRegistry'
-import { CurrentFee, NodeOperatorsShares, OracleCompleted, OracleMember } from '../generated/schema'
-import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ONE, ZERO, getAddress } from './constants'
+import { CurrentFee, NodeOperatorsShares, OracleCompleted, OracleConfig, OracleMember } from '../generated/schema'
+import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ONE, ZERO, ZERO_ADDRESS, getAddress } from './constants'
 
 import {
   _calcAPR_v1,
@@ -14,8 +25,9 @@ import {
 } from './helpers'
 import { ELRewardsReceived, MevTxFeeReceived, TokenRebased } from '../generated/Lido/Lido'
 import { getParsedEventByName, parseEventLogs } from './parser'
+import { ethereum } from '@graphprotocol/graph-ts'
 
-export function handleCompleted(event: Completed): void {
+export function handleCompleted(event: CompletedEvent): void {
   let stats = _loadOrCreateStatsEntity()
   let previousCompleted = OracleCompleted.load(stats.lastOracleCompletedId.toString())
   stats.lastOracleCompletedId = stats.lastOracleCompletedId.plus(ONE)
@@ -193,7 +205,11 @@ export function handleCompleted(event: Completed): void {
 
   // find PostTotalShares logIndex
   // if event absent, we should calc values
-  const postTotalSharesEvent = getParsedEventByName<PostTotalShares>(parsedEvents, 'PostTotalShares', event.logIndex)
+  const postTotalSharesEvent = getParsedEventByName<PostTotalSharesEvent>(
+    parsedEvents,
+    'PostTotalShares',
+    event.logIndex
+  )
   // todo assert require if upgraded to PostTotalShares
   if (postTotalSharesEvent) {
     totalRewardsEntity.timeElapsed = postTotalSharesEvent.params.timeElapsed
@@ -218,18 +234,90 @@ export function handleCompleted(event: Completed): void {
   totalRewardsEntity.save()
 }
 
-export function handleMemberAdded(event: MemberAdded): void {
+export function handleMemberAdded(event: MemberAddedEvent): void {
   let entity = new OracleMember(event.params.member)
   entity.member = event.params.member
   entity.removed = false
   entity.save()
 }
 
-export function handleMemberRemoved(event: MemberRemoved): void {
+export function handleMemberRemoved(event: MemberRemovedEvent): void {
   let entity = OracleMember.load(event.params.member)
   if (entity == null) {
     entity = new OracleMember(event.params.member)
   }
   entity.removed = true
+  entity.save()
+}
+
+export function handleQuorumChanged(event: QuorumChangedEvent): void {
+  const entity = _loadOracleConfig()
+  entity.quorum = event.params.quorum
+  _saveOracleConfig(entity, event)
+}
+
+export function handleContractVersionSet(event: ContractVersionSetEvent): void {
+  const entity = _loadOracleConfig()
+  entity.contractVersion = event.params.version
+  _saveOracleConfig(entity, event)
+}
+
+export function handleBeaconReportReceiverSet(event: BeaconReportReceiverSetEvent): void {
+  const entity = _loadOracleConfig()
+  entity.beaconReportReceiver = event.params.callback
+  _saveOracleConfig(entity, event)
+}
+
+export function handleBeaconSpecSet(event: BeaconSpecSetEvent): void {
+  const entity = _loadOracleConfig()
+  entity.epochsPerFrame = event.params.epochsPerFrame
+  entity.slotsPerEpoch = event.params.slotsPerEpoch
+  entity.secondsPerSlot = event.params.secondsPerSlot
+  entity.genesisTime = event.params.genesisTime
+  _saveOracleConfig(entity, event)
+}
+
+export function handleAllowedBeaconBalanceRelativeDecreaseSet(
+  event: AllowedBeaconBalanceRelativeDecreaseSetEvent
+): void {
+  const entity = _loadOracleConfig()
+  entity.allowedBeaconBalanceRelativeDecrease = event.params.value
+  _saveOracleConfig(entity, event)
+}
+
+export function handleAllowedBeaconBalanceAnnualRelativeIncreaseSet(
+  event: AllowedBeaconBalanceAnnualRelativeIncreaseSetEvent
+): void {
+  const entity = _loadOracleConfig()
+  entity.allowedBeaconBalanceAnnualRelativeIncrease = event.params.value
+  _saveOracleConfig(entity, event)
+}
+
+function _loadOracleConfig(): OracleConfig {
+  let entity = OracleConfig.load('')
+  if (!entity) {
+    entity = new OracleConfig('')
+
+    entity.quorum = ZERO
+    entity.contractVersion = ZERO
+
+    entity.allowedBeaconBalanceAnnualRelativeIncrease = ZERO
+    entity.allowedBeaconBalanceRelativeDecrease = ZERO
+
+    entity.epochsPerFrame = ZERO
+    entity.slotsPerEpoch = ZERO
+    entity.secondsPerSlot = ZERO
+    entity.genesisTime = ZERO
+
+    entity.beaconReportReceiver = ZERO_ADDRESS
+  }
+  return entity
+}
+
+function _saveOracleConfig(entity: OracleConfig, event: ethereum.Event): void {
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
   entity.save()
 }

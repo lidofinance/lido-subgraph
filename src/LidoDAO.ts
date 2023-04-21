@@ -1,10 +1,10 @@
 import { Address, Bytes } from '@graphprotocol/graph-ts'
-import { SetApp } from '../generated/LidoDAO/LidoDAO'
+import { SetApp as SetAppEvent } from '../generated/LidoDAO/LidoDAO'
 import { AppRepo } from '../generated/LidoDAO/AppRepo'
 import { AppVersion } from '../generated/schema'
 import { KERNEL_APP_BASES_NAMESPACE, APP_REPOS, ZERO_ADDRESS } from './constants'
 
-export function handleSetApp(event: SetApp): void {
+export function handleSetApp(event: SetAppEvent): void {
   if (event.params.namespace == KERNEL_APP_BASES_NAMESPACE) {
     const repoAddr = APP_REPOS.get(event.params.appId)
     // process only known apps

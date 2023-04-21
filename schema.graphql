@@ -174,8 +174,29 @@ type SharesBurn @entity(immutable: true) {
 }
 
 """
-LegacyOracle
+Oracle
 """
+type OracleConfig @entity {
+  id: ID!
+
+  quorum: BigInt!
+  contractVersion: BigInt!
+  allowedBeaconBalanceAnnualRelativeIncrease: BigInt!
+  allowedBeaconBalanceRelativeDecrease: BigInt!
+
+  epochsPerFrame: BigInt!
+  slotsPerEpoch: BigInt!
+  secondsPerSlot: BigInt!
+  genesisTime: BigInt!
+
+  beaconReportReceiver: Bytes!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
+
 type OracleCompleted @entity(immutable: true) {
   id: ID!
 
@@ -189,9 +210,6 @@ type OracleCompleted @entity(immutable: true) {
   logIndex: BigInt!
 }
 
-"""
-Main entity for daily rewards
-"""
 type TotalReward @entity {
   "transactionHash"
   id: Bytes!
@@ -260,32 +278,6 @@ type OracleMember @entity {
   removed: Boolean!
 }
 
-# type OracleQuorumChange @entity(immutable: true) {
-#   id: ID!
-
-#   quorum: BigInt!
-# }
-
-# type OracleVersion @entity(immutable: true) {
-#   id: ID!
-
-#   version: BigInt!
-
-#   block: BigInt!
-#   blockTime: BigInt!
-# }
-
-# type AllowedBeaconBalanceRelativeDecrease @entity(immutable: true) {
-#   id: ID!
-
-#   value: BigInt!
-# }
-
-# type AllowedBeaconBalanceAnnualRelativeIncrease @entity(immutable: true) {
-#   id: ID!
-
-#   value: BigInt!
-# }
 
 # type OracleExpectedEpoch @entity(immutable: true) {
 #   id: ID!
@@ -302,20 +294,6 @@ type OracleMember @entity {
 #   caller: Bytes!
 # }
 
-# type BeaconSpec @entity(immutable: true) {
-#   id: ID!
-
-#   epochsPerFrame: BigInt!
-#   slotsPerEpoch: BigInt!
-#   secondsPerSlot: BigInt!
-#   genesisTime: BigInt!
-# }
-
-# type BeaconReportReceiver @entity(immutable: true) {
-#   id: ID!
-
-#   callback: Bytes!
-# }
 
 # """
 # NodeOperatorsRegistry
@@ -642,50 +620,20 @@ type AppVersion @entity {
 
 # WithdrawalQueue
 
-# type BunkerModeDisabled @entity(immutable: true) {
-#   id: Bytes!
+type WithdrawalQueueConfig @entity {
+  id: ID!
 
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
+  isBunkerMode: Boolean!
+  bunkerModeSince: BigInt!
+  contractVersion: BigInt!
+  isPaused: Boolean!
+  pauseDuration: BigInt!
 
-# type BunkerModeEnabled @entity(immutable: true) {
-#   id: Bytes!
-#   _sinceTimestamp: BigInt! # uint256
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-# type ContractVersionSet @entity(immutable: true) {
-#   id: Bytes!
-#   version: BigInt! # uint256
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-# type Paused @entity(immutable: true) {
-#   id: Bytes!
-#   duration: BigInt! # uint256
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-# type Resumed @entity(immutable: true) {
-#   id: Bytes!
-
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
 
 type WithdrawalClaimed @entity(immutable: true) {
   id: Bytes!

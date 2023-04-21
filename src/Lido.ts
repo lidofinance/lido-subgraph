@@ -1,27 +1,27 @@
 import { BigInt, ethereum, log, store } from '@graphprotocol/graph-ts'
 import {
-  Approval,
-  BeaconValidatorsUpdated,
-  ETHDistributed,
-  FeeDistributionSet,
-  FeeSet,
   Lido,
-  Resumed,
-  SharesBurnt,
-  Stopped,
-  Submitted,
-  TokenRebased,
-  Transfer,
-  TransferShares,
-  StakingLimitRemoved,
-  StakingLimitSet,
-  ELRewardsVaultSet,
-  ELRewardsWithdrawalLimitSet,
-  ProtocolContactsSet,
-  StakingResumed,
-  StakingPaused,
-  WithdrawalCredentialsSet,
-  LidoLocatorSet
+  Approval as ApprovalEvent,
+  BeaconValidatorsUpdated as BeaconValidatorsUpdatedEvent,
+  ETHDistributed as ETHDistributedEvent,
+  FeeDistributionSet as FeeDistributionSetEvent,
+  FeeSet as FeeSetEvent,
+  Resumed as ResumedEvent,
+  SharesBurnt as SharesBurntEvent,
+  Stopped as StoppedEvent,
+  Submitted as SubmittedEvent,
+  TokenRebased as TokenRebasedEvent,
+  Transfer as TransferEvent,
+  TransferShares as TransferSharesEvent,
+  StakingLimitRemoved as StakingLimitRemovedEvent,
+  StakingLimitSet as StakingLimitSetEvent,
+  ELRewardsVaultSet as ELRewardsVaultSetEvent,
+  ELRewardsWithdrawalLimitSet as ELRewardsWithdrawalLimitSetEvent,
+  ProtocolContactsSet as ProtocolContactsSetEvent,
+  StakingResumed as StakingResumedEvent,
+  StakingPaused as StakingPausedEvent,
+  WithdrawalCredentialsSet as WithdrawalCredentialsSetEvent,
+  LidoLocatorSet as LidoLocatorSetEvent
 } from '../generated/Lido/Lido'
 import {
   LidoSubmission,
@@ -33,7 +33,7 @@ import {
   LidoApproval,
   Total,
   SharesBurn,
-  LidoConfig,
+  LidoConfig
 } from '../generated/schema'
 
 import { ZERO, getAddress, ONE, CALCULATION_UNIT, ZERO_ADDRESS } from './constants'
@@ -60,7 +60,7 @@ import {
 
 import { wcKeyCrops } from './wcKeyCrops'
 
-export function handleSubmitted(event: Submitted): void {
+export function handleSubmitted(event: SubmittedEvent): void {
   let entity = new LidoSubmission(event.transaction.hash.concatI32(event.logIndex.toI32()))
 
   entity.block = event.block.number
@@ -106,7 +106,7 @@ export function handleSubmitted(event: Submitted): void {
 
     // take only 1st
     // const eventTransfer = getParsedEvent<Transfer>(transferEventPairs[0], 0)
-    const eventTransferShares = getParsedEvent<TransferShares>(transferEventPairs[0], 1)
+    const eventTransferShares = getParsedEvent<TransferSharesEvent>(transferEventPairs[0], 1)
     if (eventTransferShares.params.sharesValue != shares) {
       log.critical(
         'Unexpected shares in TransferShares event! calc shares: {} event shares: {} totalShares: {} totalPooledEth: {} block: {} txHash: {} logIdx(Transfer): {} logIdx(TransferShares): {}',
@@ -145,7 +145,7 @@ export function handleSubmitted(event: Submitted): void {
   entity.save()
 }
 
-export function handleTransfer(event: Transfer): void {
+export function handleTransfer(event: TransferEvent): void {
   const entity = _loadOrCreateLidoTransferEntity(event)
 
   // Entity is already created at this point
@@ -155,11 +155,11 @@ export function handleTransfer(event: Transfer): void {
   entity.totalPooledEther = totals.totalPooledEther
   entity.totalShares = totals.totalShares
 
-  let eventTransferShares: TransferShares | null = null
+  let eventTransferShares: TransferSharesEvent | null = null
   // now we should parse the whole tx receipt to be sure pair extraction is accurate
   if (isLidoTransferShares()) {
     const parsedEvents = parseEventLogs(event, event.address)
-    eventTransferShares = getRightPairedEventByLeftLogIndex<TransferShares>(
+    eventTransferShares = getRightPairedEventByLeftLogIndex<TransferSharesEvent>(
       extractPairedEvent(parsedEvents, 'Transfer', 'TransferShares'),
       event.logIndex
     )
@@ -368,7 +368,7 @@ export function handleTransfer(event: Transfer): void {
   entity.save()
 }
 
-export function handleSharesBurnt(event: SharesBurnt): void {
+export function handleSharesBurnt(event: SharesBurntEvent): void {
   // shares are burned only during oracle report from LidoBurner contract
   const id = event.transaction.hash.concatI32(event.logIndex.toI32())
   let entity = SharesBurn.load(id)
@@ -412,13 +412,13 @@ export function handleSharesBurnt(event: SharesBurnt): void {
 
 // event WithdrawalsFinalized (or WithdrawalsBatchFinalized) should be captured by Subgraph right before
 // and totalPooledEther will be decreased by amountETHToLock
-export function handleETHDistributed(event: ETHDistributed): void {
+export function handleETHDistributed(event: ETHDistributedEvent): void {
   // we should process token rebase here as TokenRebased event fired last but we need new values before transfers
   // parse all events from tx receipt
   const parsedEvents = parseEventLogs(event, event.address)
 
   // TokenRebased event should exists
-  const tokenRebasedEvent = getParsedEventByName<TokenRebased>(parsedEvents, 'TokenRebased', event.logIndex)
+  const tokenRebasedEvent = getParsedEventByName<TokenRebasedEvent>(parsedEvents, 'TokenRebased', event.logIndex)
   if (!tokenRebasedEvent) {
     log.critical('Event TokenRebased not found when ETHDistributed! block: {} txHash: {} logIdx: {} ', [
       event.block.number.toString(),
@@ -455,7 +455,7 @@ export function handleETHDistributed(event: ETHDistributed): void {
   totals.save()
 
   // try to find and handle SharesBurnt event which expect not yet changed totalShares
-  const sharesBurntEvent = getParsedEventByName<SharesBurnt>(
+  const sharesBurntEvent = getParsedEventByName<SharesBurntEvent>(
     parsedEvents,
     'SharesBurnt',
     event.logIndex,
@@ -506,14 +506,19 @@ export function handleETHDistributed(event: ETHDistributed): void {
   totalRewardsEntity.save()
 }
 
-export function handleTokenRebase(event: TokenRebased): void {
+export function handleTokenRebase(event: TokenRebasedEvent): void {
   // we should process token rebase here as TokenRebased event fired last
 
   // parse all events from tx receipt
   const parsedEvents = parseEventLogs(event, event.address)
 
   // find preceding ETHDistributed event
-  const ethDistributedEvent = getParsedEventByName<ETHDistributed>(parsedEvents, 'ETHDistributed', ZERO, event.logIndex)
+  const ethDistributedEvent = getParsedEventByName<ETHDistributedEvent>(
+    parsedEvents,
+    'ETHDistributed',
+    ZERO,
+    event.logIndex
+  )
   if (!ethDistributedEvent) {
     log.critical('Event ETHDistributed not found when TokenRebased! block: {} txHash: {} logIdx: {} ', [
       event.block.number.toString(),
@@ -542,8 +547,8 @@ export function handleTokenRebase(event: TokenRebased): void {
 
   // NB: there is no insurance fund anymore since v2
   for (let i = 0; i < transferEventPairs.length; i++) {
-    const eventTransfer = getParsedEvent<Transfer>(transferEventPairs[i], 0)
-    const eventTransferShares = getParsedEvent<TransferShares>(transferEventPairs[i], 1)
+    const eventTransfer = getParsedEvent<TransferEvent>(transferEventPairs[i], 0)
+    const eventTransferShares = getParsedEvent<TransferSharesEvent>(transferEventPairs[i], 1)
 
     const treasureAddress = getAddress('TREASURE')
     log.warning('treasureAddress {}', [treasureAddress.toHexString()])
@@ -614,7 +619,7 @@ export function handleTokenRebase(event: TokenRebased): void {
   totalRewardsEntity.save()
 }
 
-export function handleApproval(event: Approval): void {
+export function handleApproval(event: ApprovalEvent): void {
   let entity = new LidoApproval(event.transaction.hash.concatI32(event.logIndex.toI32()))
   entity.owner = event.params.owner
   entity.spender = event.params.spender
@@ -622,13 +627,13 @@ export function handleApproval(event: Approval): void {
   entity.save()
 }
 
-export function handleFeeSet(event: FeeSet): void {
+export function handleFeeSet(event: FeeSetEvent): void {
   const curFee = _loadCurrentFee(event)
   curFee.feeBasisPoints = BigInt.fromI32(event.params.feeBasisPoints)
   _saveCurrentFee(curFee, event)
 }
 
-export function handleFeeDistributionSet(event: FeeDistributionSet): void {
+export function handleFeeDistributionSet(event: FeeDistributionSetEvent): void {
   const curFee = _loadCurrentFee(event)
   curFee.treasuryFeeBasisPoints = BigInt.fromI32(event.params.treasuryFeeBasisPoints)
   curFee.insuranceFeeBasisPoints = BigInt.fromI32(event.params.insuranceFeeBasisPoints)
@@ -636,37 +641,37 @@ export function handleFeeDistributionSet(event: FeeDistributionSet): void {
   _saveCurrentFee(curFee, event)
 }
 
-export function handleLidoLocatorSet(event: LidoLocatorSet): void {
+export function handleLidoLocatorSet(event: LidoLocatorSetEvent): void {
   const entity = _loadLidoConfig()
   entity.lidoLocator = event.params.lidoLocator
   _saveLidoConfig(entity, event)
 }
 
-export function handleResumed(event: Resumed): void {
+export function handleResumed(event: ResumedEvent): void {
   const entity = _loadLidoConfig()
   entity.isStopped = false
   _saveLidoConfig(entity, event)
 }
 
-export function handleStopped(event: Stopped): void {
+export function handleStopped(event: StoppedEvent): void {
   const entity = _loadLidoConfig()
   entity.isStopped = true
   _saveLidoConfig(entity, event)
 }
 
-export function handleELRewardsVaultSet(event: ELRewardsVaultSet): void {
+export function handleELRewardsVaultSet(event: ELRewardsVaultSetEvent): void {
   const entity = _loadLidoConfig()
   entity.elRewardsVault = event.params.executionLayerRewardsVault
   _saveLidoConfig(entity, event)
 }
 
-export function handleELRewardsWithdrawalLimitSet(event: ELRewardsWithdrawalLimitSet): void {
+export function handleELRewardsWithdrawalLimitSet(event: ELRewardsWithdrawalLimitSetEvent): void {
   const entity = _loadLidoConfig()
   entity.elRewardsWithdrawalLimitPoints = event.params.limitPoints
   _saveLidoConfig(entity, event)
 }
 
-export function handleProtocolContractsSet(event: ProtocolContactsSet): void {
+export function handleProtocolContractsSet(event: ProtocolContactsSetEvent): void {
   const entity = _loadLidoConfig()
   entity.insuranceFund = event.params.insuranceFund
   entity.oracle = event.params.oracle
@@ -674,32 +679,32 @@ export function handleProtocolContractsSet(event: ProtocolContactsSet): void {
   _saveLidoConfig(entity, event)
 }
 
-export function handleStakingLimitRemoved(event: StakingLimitRemoved): void {
+export function handleStakingLimitRemoved(event: StakingLimitRemovedEvent): void {
   const entity = _loadLidoConfig()
   entity.maxStakeLimit = ZERO
   _saveLidoConfig(entity, event)
 }
 
-export function handleStakingLimitSet(event: StakingLimitSet): void {
+export function handleStakingLimitSet(event: StakingLimitSetEvent): void {
   const entity = _loadLidoConfig()
   entity.maxStakeLimit = event.params.maxStakeLimit
   entity.stakeLimitIncreasePerBlock = event.params.stakeLimitIncreasePerBlock
   _saveLidoConfig(entity, event)
 }
 
-export function handleStakingResumed(event: StakingResumed): void {
+export function handleStakingResumed(event: StakingResumedEvent): void {
   const entity = _loadLidoConfig()
   entity.isStakingPaused = false
   _saveLidoConfig(entity, event)
 }
 
-export function handleStakingPaused(event: StakingPaused): void {
+export function handleStakingPaused(event: StakingPausedEvent): void {
   const entity = _loadLidoConfig()
   entity.isStakingPaused = true
   _saveLidoConfig(entity, event)
 }
 
-export function handleWithdrawalCredentialsSet(event: WithdrawalCredentialsSet): void {
+export function handleWithdrawalCredentialsSet(event: WithdrawalCredentialsSetEvent): void {
   const entity = _loadLidoConfig()
   entity.withdrawalCredentials = event.params.withdrawalCredentials
   _saveLidoConfig(entity, event)
@@ -738,7 +743,7 @@ export function handleTestnetBlock(block: ethereum.Block): void {
 
 // Handling validators count correction during the upgrade:
 // 7127807 0xa9111b9bf19777ca08902fbd9c1dc8efc7a5bf61766f92bd469b522477257195
-export function handleBeaconValidatorsUpdated(_event: BeaconValidatorsUpdated): void {
+export function handleBeaconValidatorsUpdated(_event: BeaconValidatorsUpdatedEvent): void {
   _fixTotalPooledEther()
 }
 

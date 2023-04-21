@@ -1,105 +1,27 @@
 import { Bytes, ethereum } from '@graphprotocol/graph-ts'
 import {
-  EVMScriptExecutorChanged,
-  EVMScriptFactoryAdded,
-  EVMScriptFactoryRemoved,
-  MotionCanceled,
-  MotionCreated,
-  MotionDurationChanged,
-  MotionEnacted,
-  MotionObjected,
-  MotionRejected,
-  MotionsCountLimitChanged,
-  ObjectionsThresholdChanged,
-  Paused,
-  Unpaused,
-  RoleAdminChanged,
-  RoleGranted,
-  RoleRevoked
+  EVMScriptExecutorChanged as EVMScriptExecutorChangedEvent,
+  EVMScriptFactoryAdded as EVMScriptFactoryAddedEvent,
+  EVMScriptFactoryRemoved as EVMScriptFactoryRemovedEvent,
+  MotionCanceled as MotionCanceledEvent,
+  MotionCreated as MotionCreatedEvent,
+  MotionDurationChanged as MotionDurationChangedEvent,
+  MotionEnacted as MotionEnactedEvent,
+  MotionObjected as MotionObjectedEvent,
+  MotionRejected as MotionRejectedEvent,
+  MotionsCountLimitChanged as MotionsCountLimitChangedEvent,
+  ObjectionsThresholdChanged as ObjectionsThresholdChangedEvent,
+  Paused as PausedEvent,
+  Unpaused as UnpausedEvent,
+  RoleAdminChanged as RoleAdminChangedEvent,
+  RoleGranted as RoleGrantedEvent,
+  RoleRevoked as RoleRevokedEvent
 } from '../generated/EasyTrack/EasyTrack'
 
 import { Motion, Role, EVMScriptFactory, Objection, EasyTrackConfig } from '../generated/schema'
 import { ZERO, ZERO_ADDRESS } from './constants'
 
-function _loadConfig(): EasyTrackConfig {
-  let entity = EasyTrackConfig.load('')
-  if (!entity) {
-    entity = new EasyTrackConfig('')
-
-    entity.evmScriptExecutor = ZERO_ADDRESS
-    entity.motionDuration = ZERO
-    entity.motionsCountLimit = ZERO
-    entity.objectionsThreshold = ZERO
-    entity.isPaused = false
-  }
-  return entity
-}
-
-function _saveConfig(entity: EasyTrackConfig, event: ethereum.Event): void {
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-  entity.logIndex = event.logIndex
-  entity.save()
-}
-
-export function handleEVMScriptExecutorChanged(event: EVMScriptExecutorChanged): void {
-  const entity = _loadConfig()
-  entity.evmScriptExecutor = event.params._evmScriptExecutor
-  _saveConfig(entity, event)
-}
-
-export function handleMotionDurationChanged(event: MotionDurationChanged): void {
-  const entity = _loadConfig()
-  entity.motionDuration = event.params._motionDuration
-  _saveConfig(entity, event)
-}
-
-export function handleMotionsCountLimitChanged(event: MotionsCountLimitChanged): void {
-  const entity = _loadConfig()
-  entity.motionsCountLimit = event.params._newMotionsCountLimit
-  _saveConfig(entity, event)
-}
-
-export function handleObjectionsThresholdChanged(event: ObjectionsThresholdChanged): void {
-  const entity = _loadConfig()
-  entity.objectionsThreshold = event.params._newThreshold
-  _saveConfig(entity, event)
-}
-
-export function handlePaused(event: Paused): void {
-  const entity = _loadConfig()
-  entity.isPaused = true
-  _saveConfig(entity, event)
-}
-
-export function handleUnpaused(event: Unpaused): void {
-  const entity = _loadConfig()
-  entity.isPaused = false
-  _saveConfig(entity, event)
-}
-
-export function handleRoleAdminChanged(_event: RoleAdminChanged): void {}
-
-export function handleEVMScriptFactoryAdded(event: EVMScriptFactoryAdded): void {
-  const entity = new EVMScriptFactory(event.params._evmScriptFactory)
-
-  entity.address = event.params._evmScriptFactory
-  entity.permissions = event.params._permissions
-  entity.isActive = true
-
-  entity.save()
-}
-
-export function handleEVMScriptFactoryRemoved(event: EVMScriptFactoryRemoved): void {
-  const entity = EVMScriptFactory.load(event.params._evmScriptFactory)!
-
-  entity.isActive = false
-
-  entity.save()
-}
-
-export function handleMotionCreated(event: MotionCreated): void {
+export function handleMotionCreated(event: MotionCreatedEvent): void {
   const entity = new Motion(event.params._motionId.toString())
 
   let config = _loadConfig()
@@ -125,7 +47,7 @@ export function handleMotionCreated(event: MotionCreated): void {
   entity.save()
 }
 
-export function handleMotionObjected(event: MotionObjected): void {
+export function handleMotionObjected(event: MotionObjectedEvent): void {
   const entity = Motion.load(event.params._motionId.toString())!
 
   entity.objectionsAmount = event.params._newObjectionsAmount
@@ -149,7 +71,7 @@ export function handleMotionObjected(event: MotionObjected): void {
   objectionEntity.save()
 }
 
-export function handleMotionCanceled(event: MotionCanceled): void {
+export function handleMotionCanceled(event: MotionCanceledEvent): void {
   const entity = Motion.load(event.params._motionId.toString())!
 
   entity.status = 'CANCELED'
@@ -158,7 +80,7 @@ export function handleMotionCanceled(event: MotionCanceled): void {
   entity.save()
 }
 
-export function handleMotionEnacted(event: MotionEnacted): void {
+export function handleMotionEnacted(event: MotionEnactedEvent): void {
   const entity = Motion.load(event.params._motionId.toString())!
 
   entity.status = 'ENACTED'
@@ -167,7 +89,7 @@ export function handleMotionEnacted(event: MotionEnacted): void {
   entity.save()
 }
 
-export function handleMotionRejected(event: MotionRejected): void {
+export function handleMotionRejected(event: MotionRejectedEvent): void {
   const entity = Motion.load(event.params._motionId.toString())!
 
   entity.status = 'REJECTED'
@@ -176,7 +98,25 @@ export function handleMotionRejected(event: MotionRejected): void {
   entity.save()
 }
 
-export function handleRoleGranted(event: RoleGranted): void {
+export function handleEVMScriptFactoryAdded(event: EVMScriptFactoryAddedEvent): void {
+  const entity = new EVMScriptFactory(event.params._evmScriptFactory)
+
+  entity.address = event.params._evmScriptFactory
+  entity.permissions = event.params._permissions
+  entity.isActive = true
+
+  entity.save()
+}
+
+export function handleEVMScriptFactoryRemoved(event: EVMScriptFactoryRemovedEvent): void {
+  const entity = EVMScriptFactory.load(event.params._evmScriptFactory)!
+
+  entity.isActive = false
+
+  entity.save()
+}
+
+export function handleRoleGranted(event: RoleGrantedEvent): void {
   const entity = new Role(event.params.account.concat(event.params.role))
 
   entity.role = event.params.role
@@ -187,10 +127,70 @@ export function handleRoleGranted(event: RoleGranted): void {
   entity.save()
 }
 
-export function handleRoleRevoked(event: RoleRevoked): void {
+export function handleRoleRevoked(event: RoleRevokedEvent): void {
   const entity = Role.load(event.params.account.concat(event.params.role))!
 
   entity.isActive = false
 
+  entity.save()
+}
+
+export function handleEVMScriptExecutorChanged(event: EVMScriptExecutorChangedEvent): void {
+  const entity = _loadConfig()
+  entity.evmScriptExecutor = event.params._evmScriptExecutor
+  _saveConfig(entity, event)
+}
+
+export function handleMotionDurationChanged(event: MotionDurationChangedEvent): void {
+  const entity = _loadConfig()
+  entity.motionDuration = event.params._motionDuration
+  _saveConfig(entity, event)
+}
+
+export function handleMotionsCountLimitChanged(event: MotionsCountLimitChangedEvent): void {
+  const entity = _loadConfig()
+  entity.motionsCountLimit = event.params._newMotionsCountLimit
+  _saveConfig(entity, event)
+}
+
+export function handleObjectionsThresholdChanged(event: ObjectionsThresholdChangedEvent): void {
+  const entity = _loadConfig()
+  entity.objectionsThreshold = event.params._newThreshold
+  _saveConfig(entity, event)
+}
+
+export function handlePaused(event: PausedEvent): void {
+  const entity = _loadConfig()
+  entity.isPaused = true
+  _saveConfig(entity, event)
+}
+
+export function handleUnpaused(event: UnpausedEvent): void {
+  const entity = _loadConfig()
+  entity.isPaused = false
+  _saveConfig(entity, event)
+}
+
+export function handleRoleAdminChanged(_event: RoleAdminChangedEvent): void {}
+
+function _loadConfig(): EasyTrackConfig {
+  let entity = EasyTrackConfig.load('')
+  if (!entity) {
+    entity = new EasyTrackConfig('')
+
+    entity.evmScriptExecutor = ZERO_ADDRESS
+    entity.motionDuration = ZERO
+    entity.motionsCountLimit = ZERO
+    entity.objectionsThreshold = ZERO
+    entity.isPaused = false
+  }
+  return entity
+}
+
+function _saveConfig(entity: EasyTrackConfig, event: ethereum.Event): void {
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
   entity.save()
 }

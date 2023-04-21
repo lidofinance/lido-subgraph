@@ -136,24 +136,24 @@ dataSources:
         - event: Completed(uint256,uint128,uint128)
           handler: handleCompleted
           receipt: true
-        # - event: PostTotalShares(uint256,uint256,uint256,uint256)
-        #   handler: handlePostTotalShares
-        #   receipt: true
-        # - event: ContractVersionSet(uint256)
-        #   handler: handleContractVersionSet
-# lido v2 deprecated
         - event: MemberAdded(address)
           handler: handleMemberAdded
         - event: MemberRemoved(address)
           handler: handleMemberRemoved
-        # - event: QuorumChanged(uint256)
-        #   handler: handleQuorumChanged
+# internally processed (no need handler)
         # - event: BeaconReported(uint256,uint128,uint128,address)
         #   handler: handleBeaconReported
-        # - event: BeaconSpecSet(uint64,uint64,uint64,uint64)
-        #   handler: handleBeaconSpecSet
         # - event: ExpectedEpochIdUpdated(uint256)
         #   handler: handleExpectedEpochIdUpdated
+        # - event: PostTotalShares(uint256,uint256,uint256,uint256)
+        #   handler: handlePostTotalShares
+# config events
+        # - event: ContractVersionSet(uint256)
+        #   handler: handleContractVersionSet
+        # - event: QuorumChanged(uint256)
+        #   handler: handleQuorumChanged
+        # - event: BeaconSpecSet(uint64,uint64,uint64,uint64)
+        #   handler: handleBeaconSpecSet
         # - event: BeaconReportReceiverSet(address)
         #   handler: handleBeaconReportReceiverSet
         # - event: AllowedBeaconBalanceRelativeDecreaseSet(uint256)
@@ -390,8 +390,8 @@ dataSources:
     source:
       address: '0x1dD91b354Ebd706aB3Ac7c727455C7BAA164945A'
       abi: LidoDAO
-      startBlock: 8710746
-      # startBlock: 4533286
+      # startBlock: 8710746
+      startBlock: 4533286
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -407,7 +407,7 @@ dataSources:
         - event: SetApp(indexed bytes32,indexed bytes32,address)
           handler: handleSetApp
       file: ./src/LidoDAO.ts
-  - kind: ethereum
+  - kind: ethereum/contract
     name: WithdrawalQueue
     network: goerli
     source:
@@ -419,11 +419,6 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        # - BunkerModeDisabled
-        # - BunkerModeEnabled
-        # - ContractVersionSet
-        # - Paused
-        # - Resumed
         - WithdrawalClaimed
         - WithdrawalRequested
         - WithdrawalsFinalized
@@ -431,16 +426,16 @@ dataSources:
         - name: WithdrawalQueue
           file: ./abis/WithdrawalQueue.json
       eventHandlers:
-        # - event: BunkerModeDisabled()
-        #   handler: handleBunkerModeDisabled
-        # - event: BunkerModeEnabled(uint256)
-        #   handler: handleBunkerModeEnabled
-        # - event: ContractVersionSet(uint256)
-        #   handler: handleContractVersionSet
-        # - event: Paused(uint256)
-        #   handler: handlePaused
-        # - event: Resumed()
-        #   handler: handleResumed
+        - event: BunkerModeDisabled()
+          handler: handleBunkerModeDisabled
+        - event: BunkerModeEnabled(uint256)
+          handler: handleBunkerModeEnabled
+        - event: ContractVersionSet(uint256)
+          handler: handleContractVersionSet
+        - event: Paused(uint256)
+          handler: handlePaused
+        - event: Resumed()
+          handler: handleResumed
         - event: WithdrawalClaimed(indexed uint256,indexed address,indexed address,uint256)
           handler: handleWithdrawalClaimed
         - event: WithdrawalRequested(indexed uint256,indexed address,indexed address,uint256,uint256)
