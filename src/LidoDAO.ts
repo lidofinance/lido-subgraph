@@ -27,8 +27,9 @@ export function handleSetApp(event: SetApp): void {
         entity.impl = event.params.app
 
         entity.block = event.block.number
+        entity.blockTime = event.block.timestamp
         entity.transactionHash = event.transaction.hash
-        entity.transactionIndex = event.transaction.index
+        entity.logIndex = event.logIndex
         entity.save()
       }
     } // else skip all other apps

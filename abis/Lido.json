@@ -10,9 +10,7 @@
   },
   {
     "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "beaconValidators", "type": "uint256" }
-    ],
+    "inputs": [{ "indexed": false, "name": "beaconValidators", "type": "uint256" }],
     "name": "BeaconValidatorsUpdated",
     "type": "event"
   },
@@ -906,9 +904,7 @@
   },
   {
     "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "feeBasisPoints", "type": "uint16" }
-    ],
+    "inputs": [{ "indexed": false, "name": "feeBasisPoints", "type": "uint16" }],
     "name": "FeeSet",
     "type": "event"
   },
@@ -936,9 +932,7 @@
   },
   {
     "anonymous": false,
-    "inputs": [
-      { "indexed": false, "name": "withdrawalCredentials", "type": "bytes32" }
-    ],
+    "inputs": [{ "indexed": false, "name": "withdrawalCredentials", "type": "bytes32" }],
     "name": "WithdrawalCredentialsSet",
     "type": "event"
   },
@@ -1027,6 +1021,12 @@
       { "indexed": false, "name": "postCLValidators", "type": "uint256" }
     ],
     "name": "CLValidatorsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "name": "lidoLocator", "type": "address" }],
+    "name": "LidoLocatorSet",
     "type": "event"
   }
 ]

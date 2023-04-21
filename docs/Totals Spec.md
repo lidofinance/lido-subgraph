@@ -211,8 +211,8 @@ for (let i = 0; i < opAddresses.length; i++) {
   // Incrementing total of actual shares distributed
   sharesToOperatorsActual = sharesToOperatorsActual.plus(shares)
 
-  let nodeOperatorsShares = new NodeOperatorsShares(
-    event.transaction.hash.toHex() + '-' + addr.toHexString()
+  let nodeOperatorFees = new NodeOperatorFees(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
   )
   nodeOperatorsShares.totalReward = event.transaction.hash.toHex()
 
@@ -349,17 +349,17 @@ else if (totalRewardsEntity && fromZeros) {
 	// Handling node operator fee transfer to node operator
 
 	// Entity should be existent at this point
-	let nodeOperatorsShares = NodeOperatorsShares.load(
-	  event.transaction.hash.toHex() + '-' + event.params.to.toHexString()
-	) as NodeOperatorsShares
+    let nodeOperatorFees =  NodeOperatorsShares.load(
+    event.transaction.hash.concat(event.params.to)
+  ) as NodeOperatorsShares
 
 	let sharesToOperator = nodeOperatorsShares.shares
 
 	entity.shares = sharesToOperator
 
-	let nodeOperatorFees = new NodeOperatorFees(
-	  event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-	)
+  let nodeOperatorFees = new NodeOperatorFees(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
 
 	// Reference to TotalReward entity
 	nodeOperatorFees.totalReward = event.transaction.hash.toHex()

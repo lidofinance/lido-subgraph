@@ -7,8 +7,7 @@ import {
   TotalReward,
   Holder,
   OracleReport,
-  AppVersion,
-  CurrentFees
+  AppVersion
 } from '../generated/schema'
 import {
   CALCULATION_UNIT,
@@ -24,22 +23,21 @@ import {
   ZERO_ADDRESS,
   isAppVerMatchUpgId
 } from './constants'
-import { Transfer, TransferShares } from '../generated/Lido/Lido'
+import { Transfer } from '../generated/Lido/Lido'
 
-export function _loadOrCreateLidoTransferEntity(eventTransfer: Transfer): LidoTransfer {
-  let id = eventTransfer.transaction.hash.toHex() + '-' + eventTransfer.logIndex.toString()
+export function _loadOrCreateLidoTransferEntity(event: Transfer): LidoTransfer {
+  const id = event.transaction.hash.concatI32(event.logIndex.toI32())
   let entity = LidoTransfer.load(id)
   if (!entity) {
     entity = new LidoTransfer(id)
-    entity.from = eventTransfer.params.from
-    entity.to = eventTransfer.params.to
-    entity.block = eventTransfer.block.number
-    entity.blockTime = eventTransfer.block.timestamp
-    entity.transactionHash = eventTransfer.transaction.hash
-    entity.transactionIndex = eventTransfer.transaction.index
-    entity.logIndex = eventTransfer.logIndex
+    entity.from = event.params.from
+    entity.to = event.params.to
+    entity.block = event.block.number
+    entity.blockTime = event.block.timestamp
+    entity.transactionHash = event.transaction.hash
+    entity.logIndex = event.logIndex
 
-    entity.value = eventTransfer.params.value
+    entity.value = event.params.value
     entity.shares = ZERO
     entity.totalPooledEther = ZERO
     entity.totalShares = ZERO
@@ -73,7 +71,7 @@ export function _loadOrCreateTotalRewardEntity(event: ethereum.Event): TotalRewa
 
     entity.block = event.block.number
     entity.blockTime = event.block.timestamp
-    entity.transactionIndex = event.transaction.index
+    entity.transactionHash = event.transaction.hash
     entity.logIndex = event.logIndex
 
     entity.feeBasis = ZERO
@@ -168,7 +166,11 @@ export function _updateTransferShares(entity: LidoTransfer): void {
 
     if (entity.from != entity.to) {
       if (entity.shares > sharesFromEntity.shares) {
-        log.critical("acc: {}, shares: {}, transfer: {}", [entity.from.toHexString(), sharesFromEntity.shares.toString(), entity.shares.toString()])
+        log.critical('acc: {}, shares: {}, transfer: {}', [
+          entity.from.toHexString(),
+          sharesFromEntity.shares.toString(),
+          entity.shares.toString()
+        ])
       }
       assert(sharesFromEntity.shares >= entity.shares, 'Abnormal shares decrease!')
       sharesFromEntity.shares = sharesFromEntity.shares.minus(entity.shares)
@@ -262,8 +264,6 @@ export function _calcAPR_v1(
         .times(BigInt.fromI32(100).toBigDecimal())
 
   // Subtracting fees
-  // const currentFees = CurrentFees.load('')!
-  // const feeBasis = currentFees.feeBasisPoints!.toBigDecimal() // 1000
   entity.apr = entity.aprBeforeFees.minus(
     entity.aprBeforeFees
       .times(CALCULATION_UNIT.toBigDecimal())
@@ -330,7 +330,6 @@ export function isOracleV2(): bool {
 export function isNORV2(): bool {
   return checkAppVer(NOR_APP_ID, UPG_V2_BETA)
 }
-
 
 // export function logEventInfo(event: ethereum.Event): void {
 //   log.warning('block: {} txHash: {} logIdx: {}', [

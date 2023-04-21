@@ -8,7 +8,7 @@ import {
   beforeEach,
   assert,
 } from 'matchstick-as/assembly/index'
-import { Total, CurrentFees, OracleCompleted } from '../generated/schema'
+import { Total, CurrentFee, OracleCompleted } from '../generated/schema'
 import { Completed } from '../generated/LegacyOracle/LegacyOracle'
 import { BigInt, Address, ethereum } from '@graphprotocol/graph-ts'
 import { handleCompleted } from '../src/LegacyOracle'
@@ -58,12 +58,12 @@ describe('handleCompleted()', () => {
     totals.totalShares = INITIAL_BEACON_BALANCE
     totals.save()
 
-    let currentFees = new CurrentFees('')
-    currentFees.feeBasisPoints = BigInt.fromI32(1000)
-    currentFees.insuranceFeeBasisPoints = BigInt.fromI32(0)
-    currentFees.operatorsFeeBasisPoints = BigInt.fromI32(5000)
-    currentFees.treasuryFeeBasisPoints = BigInt.fromI32(5000)
-    currentFees.save()
+    let curFee = new CurrentFee('')
+    curFee.feeBasisPoints = BigInt.fromI32(1000)
+    curFee.insuranceFeeBasisPoints = BigInt.fromI32(0)
+    curFee.operatorsFeeBasisPoints = BigInt.fromI32(5000)
+    curFee.treasuryFeeBasisPoints = BigInt.fromI32(5000)
+    curFee.save()
 
     let prevDay = new OracleCompleted('0')
     prevDay.epochId = BigInt.fromI32(0)

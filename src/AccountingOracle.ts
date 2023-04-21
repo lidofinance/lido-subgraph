@@ -48,18 +48,15 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmitted): void {
     for (let j = 0; j < modules.length; j++) {
       // process transfers from module's addresses, excluding transfers to burner
       if (eventTransfer.params.from == modules[j].stakingModuleAddress && eventTransfer.params.to != burnerAddress) {
-        const nodeOperatorFees = new NodeOperatorFees(
-          eventTransfer.transaction.hash.toHex() + '-' + eventTransfer.logIndex.toString()
-        )
+        const nodeOperatorFees = new NodeOperatorFees(eventTransfer.transaction.hash.concatI32(eventTransfer.logIndex.toI32()))
         // Reference to TotalReward entity
         nodeOperatorFees.totalReward = oracleReportEntity.hash
         nodeOperatorFees.address = eventTransfer.params.to
         nodeOperatorFees.fee = eventTransfer.params.value
         nodeOperatorFees.save()
 
-        const nodeOperatorsShares = new NodeOperatorsShares(
-          oracleReportEntity.hash.toHex() + '-' + eventTransfer.params.to.toHexString()
-        )
+
+        const nodeOperatorsShares = new NodeOperatorsShares(event.transaction.hash.concat(eventTransfer.params.to))
         // Reference to TotalReward entity
         nodeOperatorsShares.totalReward = oracleReportEntity.hash
         nodeOperatorsShares.address = eventTransfer.params.to

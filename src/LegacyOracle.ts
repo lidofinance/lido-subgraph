@@ -1,34 +1,21 @@
 import { Completed, MemberAdded, MemberRemoved, PostTotalShares } from '../generated/LegacyOracle/LegacyOracle'
 import { NodeOperatorsRegistry } from '../generated/LegacyOracle/NodeOperatorsRegistry'
-import { CurrentFees, NodeOperatorsShares, OracleCompleted, OracleMember, TotalReward } from '../generated/schema'
+import { CurrentFee, NodeOperatorsShares, OracleCompleted, OracleMember } from '../generated/schema'
 import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ONE, ZERO, getAddress } from './constants'
 
 import {
   _calcAPR_v1,
-  // _loadOrCreateOracleReport,
   _loadOrCreateStatsEntity,
   _loadOrCreateTotalRewardEntity,
   _loadOrCreateTotalsEntity,
   _updateHolders,
   _updateTransferShares,
-  isLidoV2,
   isOracleV2
 } from './helpers'
 import { ELRewardsReceived, MevTxFeeReceived, TokenRebased } from '../generated/Lido/Lido'
 import { getParsedEventByName, parseEventLogs } from './parser'
 
 export function handleCompleted(event: Completed): void {
-  // method is deprecated in Lido v2
-  if (isLidoV2()) {
-    return
-  }
-
-  // todo
-  // if v1 - call process report, then handle mints, then calc APR
-  // if v2 (PostTotalShares) - call process report, then handle mints, skip calc APR in favor PostTotalShares
-  // if v3 (TransferShares, ELRewardsReceived) - just make totals updates ( process report in ELRewardsReceived and  handle mints), skip calc APR in favor PostTotalShares
-  // if v4 (Lido v2) -  skip, process report and mints in ETHDistributed, skip calc APR in favor PostTotalShares,finish process in ExtraDataSubmitted
-
   let stats = _loadOrCreateStatsEntity()
   let previousCompleted = OracleCompleted.load(stats.lastOracleCompletedId.toString())
   stats.lastOracleCompletedId = stats.lastOracleCompletedId.plus(ONE)
@@ -37,11 +24,18 @@ export function handleCompleted(event: Completed): void {
   newCompleted.epochId = event.params.epochId
   newCompleted.beaconBalance = event.params.beaconBalance
   newCompleted.beaconValidators = event.params.beaconValidators
+
   newCompleted.block = event.block.number
   newCompleted.blockTime = event.block.timestamp
   newCompleted.transactionHash = event.transaction.hash
+  newCompleted.logIndex = event.logIndex
   newCompleted.save()
   stats.save()
+
+  if (isOracleV2()) {
+    // skip future totalRewards processing
+    return
+  }
 
   // Totals are already non-null on first oracle report
   const totals = _loadOrCreateTotalsEntity()
@@ -124,16 +118,15 @@ export function handleCompleted(event: Completed): void {
   // Setting totalRewards to totalRewardsWithFees so we can subtract fees from it
   totalRewardsEntity.totalRewards = rewards
 
-  let currentFees = CurrentFees.load('')!
-
+  const curFee = CurrentFee.load('')!
   // Total fee of the protocol eg 1000 / 100 = 10% fee
-  let feeBasis = currentFees.feeBasisPoints! // 1000
+  // feeBasisPoints = 1000
 
   // Overall shares for all rewards cut
-  let shares2mint = rewards
-    .times(feeBasis)
+  const shares2mint = rewards
+    .times(curFee.feeBasisPoints)
     .times(totals.totalShares)
-    .div(totals.totalPooledEther.times(CALCULATION_UNIT).minus(feeBasis.times(rewards)))
+    .div(totals.totalPooledEther.times(CALCULATION_UNIT).minus(curFee.feeBasisPoints.times(rewards)))
 
   totals.totalShares = totals.totalShares.plus(shares2mint)
   totals.save()
@@ -145,10 +138,10 @@ export function handleCompleted(event: Completed): void {
 
   // Storing contract calls data so we don't need to fetch it again
   // We will load them in handleMevTxFeeReceived in Lido handlers
-  totalRewardsEntity.feeBasis = feeBasis
-  totalRewardsEntity.treasuryFeeBasisPoints = currentFees.treasuryFeeBasisPoints! // 0
-  totalRewardsEntity.insuranceFeeBasisPoints = currentFees.insuranceFeeBasisPoints! // 5000
-  totalRewardsEntity.operatorsFeeBasisPoints = currentFees.operatorsFeeBasisPoints! // 5000
+  totalRewardsEntity.feeBasis = curFee.feeBasisPoints
+  totalRewardsEntity.treasuryFeeBasisPoints = curFee.treasuryFeeBasisPoints // 0
+  totalRewardsEntity.insuranceFeeBasisPoints = curFee.insuranceFeeBasisPoints // 5000
+  totalRewardsEntity.operatorsFeeBasisPoints = curFee.operatorsFeeBasisPoints // 5000
 
   const sharesToInsuranceFund = shares2mint.times(totalRewardsEntity.insuranceFeeBasisPoints).div(CALCULATION_UNIT)
   const sharesToOperators = shares2mint.times(totalRewardsEntity.operatorsFeeBasisPoints).div(CALCULATION_UNIT)
@@ -174,7 +167,7 @@ export function handleCompleted(event: Completed): void {
     // Incrementing total of actual shares distributed
     sharesToOperatorsActual = sharesToOperatorsActual.plus(shares)
 
-    const nodeOperatorsShares = new NodeOperatorsShares(event.transaction.hash.toHex() + '-' + addr.toHexString())
+    const nodeOperatorsShares = new NodeOperatorsShares(event.transaction.hash.concat(addr))
     nodeOperatorsShares.totalReward = event.transaction.hash
 
     nodeOperatorsShares.address = addr
@@ -209,7 +202,7 @@ export function handleCompleted(event: Completed): void {
       postTotalSharesEvent.params.preTotalPooledEther,
       postTotalSharesEvent.params.postTotalPooledEther,
       postTotalSharesEvent.params.timeElapsed,
-      feeBasis
+      curFee.feeBasisPoints
     )
   } else {
     const timeElapsed = previousCompleted ? newCompleted.blockTime.minus(previousCompleted.blockTime) : ZERO
@@ -219,7 +212,7 @@ export function handleCompleted(event: Completed): void {
       totalRewardsEntity.totalPooledEtherBefore,
       totalRewardsEntity.totalPooledEtherAfter,
       timeElapsed,
-      feeBasis
+      curFee.feeBasisPoints
     )
   }
   totalRewardsEntity.save()

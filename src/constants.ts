@@ -1,5 +1,5 @@
 import { BigInt, Address, TypedMap, Bytes, dataSource } from '@graphprotocol/graph-ts'
-import { Setting } from '../generated/schema'
+import { LidoConfig } from '../generated/schema'
 
 const network = dataSource.network()
 
@@ -53,8 +53,10 @@ BURNER_ADDRESSES.set('mainnet', '0x20c61C07C2E2FAb04BF5b4E12ce45a459a18f3B1')
 BURNER_ADDRESSES.set('goerli', '0x20c61C07C2E2FAb04BF5b4E12ce45a459a18f3B1')
 
 // We presume here that initially insurance fund was the treasury
-const getInsuranceFund = (): string =>
-  Setting.load('') ? Setting.load('')!.insuranceFund.toHex() : TREASURY_ADDRESSES.get(network)!
+const getInsuranceFund = (): string => {
+  const cfg = LidoConfig.load('')
+  return cfg && cfg.insuranceFund ? cfg.insuranceFund!.toHex() : TREASURY_ADDRESSES.get(network)!
+}
 
 export const getAddress = (contract: string): Address =>
   Address.fromString(

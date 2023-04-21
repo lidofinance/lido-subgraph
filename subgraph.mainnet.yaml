@@ -218,11 +218,11 @@ dataSources:
           handler: handleChangeObjectionPhaseTime
       file: ./src/Voting.ts
   - kind: ethereum/contract
-    name: Easytrack
+    name: EasyTrack
     network: mainnet
     source:
       address: '0xF0211b7660680B49De1A7E9f25C65660F0a13Fea'
-      abi: Easytrack
+      abi: EasyTrack
       startBlock: 13676720
     mapping:
       kind: ethereum/events
@@ -235,8 +235,8 @@ dataSources:
         - EVMScriptFactory
         - Objection
       abis:
-        - name: Easytrack
-          file: ./abis/Easytrack.json
+        - name: EasyTrack
+          file: ./abis/EasyTrack.json
       eventHandlers:
         - event: EVMScriptExecutorChanged(indexed address)
           handler: handleEVMScriptExecutorChanged
@@ -270,7 +270,7 @@ dataSources:
           handler: handleRoleGranted
         - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
           handler: handleRoleRevoked
-      file: ./src/Easytrack.ts
+      file: ./src/EasyTrack.ts
   - kind: ethereum/contract
     name: DepositSecurityModule
     network: mainnet

@@ -1,4 +1,4 @@
-import { BigInt, ethereum, log } from '@graphprotocol/graph-ts'
+import { BigInt, ethereum, log, store } from '@graphprotocol/graph-ts'
 import {
   Approval,
   BeaconValidatorsUpdated,
@@ -12,22 +12,28 @@ import {
   Submitted,
   TokenRebased,
   Transfer,
-  TransferShares
+  TransferShares,
+  StakingLimitRemoved,
+  StakingLimitSet,
+  ELRewardsVaultSet,
+  ELRewardsWithdrawalLimitSet,
+  ProtocolContactsSet,
+  StakingResumed,
+  StakingPaused,
+  WithdrawalCredentialsSet,
+  LidoLocatorSet
 } from '../generated/Lido/Lido'
 import {
   LidoSubmission,
   Holder,
-  LidoFee,
-  CurrentFees,
-  LidoFeeDistribution,
+  CurrentFee,
   TotalReward,
   NodeOperatorsShares,
   NodeOperatorFees,
-  LidoStopped,
-  LidoResumed,
   LidoApproval,
   Total,
-  SharesBurn
+  SharesBurn,
+  LidoConfig,
 } from '../generated/schema'
 
 import { ZERO, getAddress, ONE, CALCULATION_UNIT, ZERO_ADDRESS } from './constants'
@@ -44,7 +50,6 @@ import {
   _loadOrCreateSharesEntity,
   _loadOrCreateStatsEntity,
   _loadOrCreateTotalRewardEntity,
-  // _loadOrCreateTotalRewardEntity,
   _loadOrCreateTotalsEntity,
   _updateHolders,
   _updateTransferBalances,
@@ -53,13 +58,14 @@ import {
   isLidoV2
 } from './helpers'
 
+import { wcKeyCrops } from './wcKeyCrops'
+
 export function handleSubmitted(event: Submitted): void {
-  let entity = new LidoSubmission(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
+  let entity = new LidoSubmission(event.transaction.hash.concatI32(event.logIndex.toI32()))
 
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
   entity.transactionHash = event.transaction.hash
-  entity.transactionIndex = event.transaction.index
   entity.logIndex = event.logIndex
   entity.sender = event.params.sender
   entity.amount = event.params.amount
@@ -281,9 +287,7 @@ export function handleTransfer(event: Transfer): void {
         if (!isV2) {
           // Handling fee transfer to node operator only prior v2 upgrade
           // After v2 there are only transfer to SR modules
-          const nodeOperatorFees = new NodeOperatorFees(
-            event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-          )
+          const nodeOperatorFees = new NodeOperatorFees(event.transaction.hash.concatI32(event.logIndex.toI32()))
           // Reference to TotalReward entity
           nodeOperatorFees.totalReward = totalRewardsEntity.id
           nodeOperatorFees.address = entity.to
@@ -291,9 +295,7 @@ export function handleTransfer(event: Transfer): void {
           nodeOperatorFees.save()
 
           // Entity should exists at this point
-          const nodeOperatorsShares = NodeOperatorsShares.load(
-            event.transaction.hash.toHex() + '-' + entity.to.toHexString()
-          )
+          const nodeOperatorsShares = NodeOperatorsShares.load(event.transaction.hash.concat(entity.to))
 
           // assert(entity.shares == nodeOperatorsShares!.shares, 'Unexpected nodeOperatorsShares')
           if (eventTransferShares) {
@@ -336,9 +338,7 @@ export function handleTransfer(event: Transfer): void {
       if (!eventTransferShares) {
         // prior TransferShares logic
         // try get shares from Submission entity from the previous logIndex (as mint Transfer occurs only after Submit event)
-        let submissionEntity = LidoSubmission.load(
-          event.transaction.hash.toHex() + '-' + event.logIndex.minus(ONE).toString()
-        )
+        let submissionEntity = LidoSubmission.load(event.transaction.hash.concatI32(event.logIndex.minus(ONE).toI32()))
         // throws error if no submissionEntity
         entity.shares = submissionEntity!.shares
 
@@ -370,13 +370,14 @@ export function handleTransfer(event: Transfer): void {
 
 export function handleSharesBurnt(event: SharesBurnt): void {
   // shares are burned only during oracle report from LidoBurner contract
-  let entity = SharesBurn.load(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
-  // process totals only if entity not exists before, i.e. not handled by other handlers
+  const id = event.transaction.hash.concatI32(event.logIndex.toI32())
+  let entity = SharesBurn.load(id)
+  // process totals only if entity not yet exists, i.e. not yet handled before
   if (!!entity) {
     return
   }
 
-  entity = new SharesBurn(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
+  entity = new SharesBurn(id)
   entity.account = event.params.account
   entity.postRebaseTokenAmount = event.params.postRebaseTokenAmount
   entity.preRebaseTokenAmount = event.params.preRebaseTokenAmount
@@ -426,24 +427,32 @@ export function handleETHDistributed(event: ETHDistributed): void {
     ])
     return
   }
-  const totals = _loadOrCreateTotalsEntity()
-  const totalRewardsEntity = _loadOrCreateTotalRewardEntity(event)
 
+  const totals = _loadOrCreateTotalsEntity()
+  if (totals.totalPooledEther != tokenRebasedEvent.params.preTotalEther) {
+    log.warning('unexpected totalPooledEther {} {} ', [
+      totals.totalPooledEther.toString(),
+      tokenRebasedEvent.params.preTotalEther.toString()
+    ])
+  }
+
+  if (totals.totalShares != tokenRebasedEvent.params.preTotalShares) {
+    log.warning('unexpected totalPooledEther {} {} ', [
+      totals.totalShares.toString(),
+      tokenRebasedEvent.params.preTotalShares.toString()
+    ])
+  }
+
+  assert(totals.totalPooledEther == tokenRebasedEvent.params.preTotalEther, 'Unexpected totalPooledEther!')
+  assert(totals.totalShares == tokenRebasedEvent.params.preTotalShares, 'Unexpected totalPooledEther!')
+
+  const totalRewardsEntity = _loadOrCreateTotalRewardEntity(event)
   totalRewardsEntity.totalPooledEtherBefore = totals.totalPooledEther
   totalRewardsEntity.totalSharesBefore = totals.totalShares
 
-  totals.totalPooledEther = totals.totalPooledEther
-    .plus(event.params.withdrawalsWithdrawn)
-    .plus(event.params.executionLayerRewardsWithdrawn)
-
-  // totals.totalPooledEther = tokenRebasedEvent.params.postTotalEther
-  // totals.totalShares = tokenRebasedEvent.params.postTotalShares
+  // update totalPooledEther for correct SharesBurnt
+  totals.totalPooledEther = tokenRebasedEvent.params.postTotalEther
   totals.save()
-
-  assert(
-    totals.totalPooledEther == tokenRebasedEvent.params.postTotalEther,
-    'Unexpected totalPooledEther on ETHDistributed'
-  )
 
   // try to find and handle SharesBurnt event which expect not yet changed totalShares
   const sharesBurntEvent = getParsedEventByName<SharesBurnt>(
@@ -462,10 +471,12 @@ export function handleETHDistributed(event: ETHDistributed): void {
     handleSharesBurnt(sharesBurntEvent)
   }
 
-  // save correct totalShares for next mint transfers (i.e. accounting minted rewards), as we need new values before transfers
+  // override and save correct totalShares for next mint transfers
+  // (i.e. for calculation minted rewards), as we need new values before transfers
   totals.totalShares = tokenRebasedEvent.params.postTotalShares
   totals.save()
 
+  // @todo check zero
   const postCLTotalBalance = event.params.postCLBalance.plus(event.params.withdrawalsWithdrawn)
   const totalRewards =
     postCLTotalBalance > event.params.preCLBalance
@@ -478,6 +489,20 @@ export function handleETHDistributed(event: ETHDistributed): void {
 
   totalRewardsEntity.totalPooledEtherAfter = totals.totalPooledEther
   totalRewardsEntity.totalSharesAfter = totals.totalShares
+
+  totalRewardsEntity.shares2mint = tokenRebasedEvent.params.sharesMintedAsFees
+  totalRewardsEntity.timeElapsed = tokenRebasedEvent.params.timeElapsed
+
+  // APR
+  _calcAPR_v2(
+    totalRewardsEntity,
+    tokenRebasedEvent.params.preTotalEther,
+    tokenRebasedEvent.params.postTotalEther,
+    tokenRebasedEvent.params.preTotalShares,
+    tokenRebasedEvent.params.postTotalShares,
+    tokenRebasedEvent.params.timeElapsed
+  )
+
   totalRewardsEntity.save()
 }
 
@@ -498,23 +523,7 @@ export function handleTokenRebase(event: TokenRebased): void {
     return
   }
 
-  let totals = _loadOrCreateTotalsEntity()
-  let totalRewardsEntity = _loadOrCreateTotalRewardEntity(event)
-  //   totalRewardsEntity.totalPooledEtherBefore = totals.totalPooledEther
-  //   totalRewardsEntity.totalSharesBefore = totals.totalShares
-
-  //   totals.totalPooledEther = event.params.postTotalEther
-  // totals.totalShares = event.params.postTotalShares
-  // totals.save()
-
-  //   totalRewardsEntity.totalPooledEtherAfter = totals.totalPooledEther
-  //   totalRewardsEntity.totalSharesAfter = totals.totalShares
-
-  // totalRewardsEntity.totalRewardsWithFees = totalRewardsEntity.totalPooledEtherAfter.minus(
-  //   totalRewardsEntity.totalPooledEtherBefore
-  // )
-
-  totalRewardsEntity.shares2mint = event.params.sharesMintedAsFees
+  const totalRewardsEntity = _loadOrCreateTotalRewardEntity(event)
 
   // extracting only 'Transfer' and 'TransferShares' pairs between ETHDistributed to TokenRebased
   // assuming the ETHDistributed and TokenRebased events are presents in tx only once
@@ -588,92 +597,120 @@ export function handleTokenRebase(event: TokenRebased): void {
     )
   }
 
-  // assert(sharesToTreasury == totalRewardsEntity.shares2mint.minus(sharesToOperators), "fee shares summ doesn't match")
-
-  //   totalRewardsEntity.mevFee = event.params.executionLayerRewardsWithdrawn
+  assert(
+    totalRewardsEntity.shares2mint == sharesToTreasury.plus(sharesToOperators),
+    "shares2mint doesn't match sharesToTreasury+sharesToOperators"
+  )
 
   // @todo calc
-  // totalRewardsEntity.feeBasis = currentFees.feeBasisPoints!
+  // totalRewardsEntity.feeBasis = CurrentFee.feeBasisPoints!
   // totalRewardsEntity.treasuryFeeBasisPoints =
-  //   currentFees.treasuryFeeBasisPoints!
+  //   CurrentFee.treasuryFeeBasisPoints!
   // totalRewardsEntity.insuranceFeeBasisPoints =
-  //   currentFees.insuranceFeeBasisPoints!
+  //   CurrentFee.insuranceFeeBasisPoints!
   // totalRewardsEntity.operatorsFeeBasisPoints =
-  //   currentFees.operatorsFeeBasisPoints!
-
-  // APR
-  totalRewardsEntity.timeElapsed = event.params.timeElapsed
-
-  _calcAPR_v2(
-    totalRewardsEntity,
-    event.params.preTotalEther,
-    event.params.postTotalEther,
-    event.params.preTotalShares,
-    event.params.postTotalShares,
-    event.params.timeElapsed
-  )
+  //   CurrentFee.operatorsFeeBasisPoints!
 
   totalRewardsEntity.save()
 }
 
-export function handleFeeSet(event: FeeSet): void {
-  const entity = new LidoFee(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
-  entity.feeBasisPoints = event.params.feeBasisPoints
-  entity.save()
-
-  let current = CurrentFees.load('')
-  if (!current) {
-    current = new CurrentFees('')
-    current.treasuryFeeBasisPoints = ZERO
-    current.insuranceFeeBasisPoints = ZERO
-    current.operatorsFeeBasisPoints = ZERO
-  }
-
-  current.feeBasisPoints = BigInt.fromI32(event.params.feeBasisPoints)
-  current.save()
-}
-
-export function handleFeeDistributionSet(event: FeeDistributionSet): void {
-  const entity = new LidoFeeDistribution(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
-  entity.treasuryFeeBasisPoints = event.params.treasuryFeeBasisPoints
-  entity.insuranceFeeBasisPoints = event.params.insuranceFeeBasisPoints
-  entity.operatorsFeeBasisPoints = event.params.operatorsFeeBasisPoints
-  entity.save()
-
-  let current = CurrentFees.load('')
-  if (!current) {
-    current = new CurrentFees('')
-    current.feeBasisPoints = ZERO
-  }
-
-  current.treasuryFeeBasisPoints = BigInt.fromI32(event.params.treasuryFeeBasisPoints)
-  current.insuranceFeeBasisPoints = BigInt.fromI32(event.params.insuranceFeeBasisPoints)
-  current.operatorsFeeBasisPoints = BigInt.fromI32(event.params.operatorsFeeBasisPoints)
-  current.save()
-}
-
-// @todo merge into LidoProtocolState
-export function handleStopped(event: Stopped): void {
-  let entity = new LidoStopped(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.save()
-}
-
-// @todo merge into LidoProtocolState
-export function handleResumed(event: Resumed): void {
-  let entity = new LidoResumed(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.save()
-}
-
 export function handleApproval(event: Approval): void {
-  let entity = new LidoApproval(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
+  let entity = new LidoApproval(event.transaction.hash.concatI32(event.logIndex.toI32()))
   entity.owner = event.params.owner
   entity.spender = event.params.spender
   entity.value = event.params.value
   entity.save()
+}
+
+export function handleFeeSet(event: FeeSet): void {
+  const curFee = _loadCurrentFee(event)
+  curFee.feeBasisPoints = BigInt.fromI32(event.params.feeBasisPoints)
+  _saveCurrentFee(curFee, event)
+}
+
+export function handleFeeDistributionSet(event: FeeDistributionSet): void {
+  const curFee = _loadCurrentFee(event)
+  curFee.treasuryFeeBasisPoints = BigInt.fromI32(event.params.treasuryFeeBasisPoints)
+  curFee.insuranceFeeBasisPoints = BigInt.fromI32(event.params.insuranceFeeBasisPoints)
+  curFee.operatorsFeeBasisPoints = BigInt.fromI32(event.params.operatorsFeeBasisPoints)
+  _saveCurrentFee(curFee, event)
+}
+
+export function handleLidoLocatorSet(event: LidoLocatorSet): void {
+  const entity = _loadLidoConfig()
+  entity.lidoLocator = event.params.lidoLocator
+  _saveLidoConfig(entity, event)
+}
+
+export function handleResumed(event: Resumed): void {
+  const entity = _loadLidoConfig()
+  entity.isStopped = false
+  _saveLidoConfig(entity, event)
+}
+
+export function handleStopped(event: Stopped): void {
+  const entity = _loadLidoConfig()
+  entity.isStopped = true
+  _saveLidoConfig(entity, event)
+}
+
+export function handleELRewardsVaultSet(event: ELRewardsVaultSet): void {
+  const entity = _loadLidoConfig()
+  entity.elRewardsVault = event.params.executionLayerRewardsVault
+  _saveLidoConfig(entity, event)
+}
+
+export function handleELRewardsWithdrawalLimitSet(event: ELRewardsWithdrawalLimitSet): void {
+  const entity = _loadLidoConfig()
+  entity.elRewardsWithdrawalLimitPoints = event.params.limitPoints
+  _saveLidoConfig(entity, event)
+}
+
+export function handleProtocolContractsSet(event: ProtocolContactsSet): void {
+  const entity = _loadLidoConfig()
+  entity.insuranceFund = event.params.insuranceFund
+  entity.oracle = event.params.oracle
+  entity.treasury = event.params.treasury
+  _saveLidoConfig(entity, event)
+}
+
+export function handleStakingLimitRemoved(event: StakingLimitRemoved): void {
+  const entity = _loadLidoConfig()
+  entity.maxStakeLimit = ZERO
+  _saveLidoConfig(entity, event)
+}
+
+export function handleStakingLimitSet(event: StakingLimitSet): void {
+  const entity = _loadLidoConfig()
+  entity.maxStakeLimit = event.params.maxStakeLimit
+  entity.stakeLimitIncreasePerBlock = event.params.stakeLimitIncreasePerBlock
+  _saveLidoConfig(entity, event)
+}
+
+export function handleStakingResumed(event: StakingResumed): void {
+  const entity = _loadLidoConfig()
+  entity.isStakingPaused = false
+  _saveLidoConfig(entity, event)
+}
+
+export function handleStakingPaused(event: StakingPaused): void {
+  const entity = _loadLidoConfig()
+  entity.isStakingPaused = true
+  _saveLidoConfig(entity, event)
+}
+
+export function handleWithdrawalCredentialsSet(event: WithdrawalCredentialsSet): void {
+  const entity = _loadLidoConfig()
+  entity.withdrawalCredentials = event.params.withdrawalCredentials
+  _saveLidoConfig(entity, event)
+
+  // Cropping unused keys on withdrawal credentials change
+  const keys = wcKeyCrops.get(event.params.withdrawalCredentials.toHexString())
+  if (keys) {
+    for (let i = 0; i < keys.length; i++) {
+      store.remove('NodeOperatorSigningKey', keys[i])
+    }
+  }
 }
 
 /**
@@ -710,4 +747,61 @@ function _fixTotalPooledEther(): void {
   const totals = _loadOrCreateTotalsEntity()
   totals.totalPooledEther = realPooledEther
   totals.save()
+}
+
+function _loadCurrentFee(event: ethereum.Event): CurrentFee {
+  let entity = CurrentFee.load('')
+  if (!entity) {
+    entity = new CurrentFee('')
+    entity.treasuryFeeBasisPoints = ZERO
+    entity.insuranceFeeBasisPoints = ZERO
+    entity.operatorsFeeBasisPoints = ZERO
+    entity.feeBasisPoints = ZERO
+  }
+  return entity
+}
+
+function _saveCurrentFee(entity: CurrentFee, event: ethereum.Event): void {
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
+  entity.save()
+}
+
+export function _loadLidoConfig(): LidoConfig {
+  let entity = LidoConfig.load('')
+  if (!entity) {
+    entity = new LidoConfig('')
+
+    // entity.insuranceFund = ZERO_ADDRESS
+    // entity.oracle = ZERO_ADDRESS
+    // entity.treasury = ZERO_ADDRESS
+
+    entity.isStopped = true
+    entity.isStakingPaused = true
+
+    entity.maxStakeLimit = ZERO
+    entity.stakeLimitIncreasePerBlock = ZERO
+
+    entity.elRewardsVault = ZERO_ADDRESS
+    entity.elRewardsWithdrawalLimitPoints = ZERO
+
+    entity.withdrawalCredentials = ZERO_ADDRESS
+    entity.wcSetBy = ZERO_ADDRESS
+
+    entity.lidoLocator = ZERO_ADDRESS
+
+    entity.elRewardsWithdrawalLimitPoints = ZERO
+    entity.elRewardsVault = ZERO_ADDRESS
+  }
+  return entity
+}
+
+export function _saveLidoConfig(entity: LidoConfig, event: ethereum.Event): void {
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
+  entity.save()
 }

@@ -1,30 +1,34 @@
 """
 Lido
 """
-type Setting @entity {
+type LidoConfig @entity {
   id: ID!
 
-  insuranceFund: Bytes!
-  oracle: Bytes!
-  treasury: Bytes!
-}
+  insuranceFund: Bytes
+  oracle: Bytes
+  treasury: Bytes
 
-type LidoStopped @entity(immutable: true) {
-  id: ID!
+  isStopped: Boolean!
+  isStakingPaused: Boolean!
+
+  maxStakeLimit: BigInt!
+  stakeLimitIncreasePerBlock: BigInt!
+
+  elRewardsVault: Bytes
+  elRewardsWithdrawalLimitPoints: BigInt!
+
+  withdrawalCredentials: Bytes!
+  wcSetBy: Bytes
+  lidoLocator: Bytes
 
   block: BigInt!
   blockTime: BigInt!
-}
-
-type LidoResumed @entity(immutable: true) {
-  id: ID!
-
-  block: BigInt!
-  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
 }
 
 type LidoTransfer @entity(immutable: true) {
-  id: ID!
+  id: Bytes!
 
   from: Bytes!
   to: Bytes!
@@ -47,30 +51,15 @@ type LidoTransfer @entity(immutable: true) {
   block: BigInt!
   blockTime: BigInt!
   transactionHash: Bytes!
-  transactionIndex: BigInt!
   logIndex: BigInt!
 }
 
 type LidoApproval @entity(immutable: true) {
-  id: ID!
+  id: Bytes!
 
   owner: Bytes!
   spender: Bytes!
   value: BigInt!
-}
-
-type LidoFee @entity(immutable: true) {
-  id: ID!
-
-  feeBasisPoints: Int!
-}
-
-type LidoFeeDistribution @entity(immutable: true) {
-  id: ID!
-
-  treasuryFeeBasisPoints: Int!
-  insuranceFeeBasisPoints: Int!
-  operatorsFeeBasisPoints: Int!
 }
 
 # type LidoWithdrawalCredential @entity(immutable: true) {
@@ -81,10 +70,12 @@ type LidoFeeDistribution @entity(immutable: true) {
 
 #   block: BigInt!
 #   blockTime: BigInt!
+#   transactionHash: Bytes!
+#   logIndex: BigInt!
 # }
 
 type LidoSubmission @entity(immutable: true) {
-  id: ID!
+  id: Bytes!
 
   sender: Bytes!
   amount: BigInt!
@@ -104,28 +95,11 @@ type LidoSubmission @entity(immutable: true) {
   block: BigInt!
   blockTime: BigInt!
   transactionHash: Bytes!
-  transactionIndex: BigInt!
   logIndex: BigInt!
 }
 
-# type LidoUnbuffered @entity(immutable: true) {
-#   id: ID!
-
-#   amount: BigInt!
-# }
-
-# type LidoWithdrawal @entity(immutable: true) {
-#   id: ID!
-
-#   sender: Bytes!
-#   tokenAmount: BigInt!
-#   sentFromBuffer: BigInt!
-#   pubkeyHash: Bytes!
-#   etherAmount: BigInt!
-# }
-
 type NodeOperatorFees @entity(immutable: true) {
-  id: ID!
+  id: Bytes!
   totalReward: TotalReward!
 
   address: Bytes!
@@ -133,7 +107,7 @@ type NodeOperatorFees @entity(immutable: true) {
 }
 
 type NodeOperatorsShares @entity(immutable: true) {
-  id: ID!
+  id: Bytes!
   totalReward: TotalReward!
 
   address: Bytes!
@@ -168,53 +142,19 @@ type Holder @entity {
   hasBalance: Boolean!
 }
 
-type CurrentFees @entity {
+type CurrentFee @entity {
   id: ID!
 
-  feeBasisPoints: BigInt
-  treasuryFeeBasisPoints: BigInt
-  insuranceFeeBasisPoints: BigInt
-  operatorsFeeBasisPoints: BigInt
+  feeBasisPoints: BigInt!
+  treasuryFeeBasisPoints: BigInt!
+  insuranceFeeBasisPoints: BigInt!
+  operatorsFeeBasisPoints: BigInt!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
 }
-
-# type ELRewardsVaultSet @entity(immutable: true) {
-#   id: ID!
-
-#   executionLayerRewardsVault: Bytes!
-# }
-
-# type ELRewardsWithdrawalLimitSet @entity(immutable: true) {
-#   id: ID!
-
-#   limitPoints: BigInt!
-# }
-
-# type ProtocolContactsSet @entity(immutable: true) {
-#   id: ID!
-
-#   insuranceFund: Bytes!
-#   oracle: Bytes!
-#   treasury: Bytes!
-# }
-
-# type StakingLimitRemove @entity(immutable: true) {
-#   id: ID!
-# }
-
-# type StakingLimitSet @entity(immutable: true) {
-#   id: ID!
-
-#   maxStakeLimit: BigInt!
-#   stakeLimitIncreasePerBlock: BigInt!
-# }
-
-# type StakingResume @entity(immutable: true) {
-#   id: ID!
-# }
-
-# type StakingPause @entity(immutable: true) {
-#   id: ID!
-# }
 
 # type SharesTransfer @entity(immutable: true) {
 #   id: ID!
@@ -225,7 +165,7 @@ type CurrentFees @entity {
 # }
 
 type SharesBurn @entity(immutable: true) {
-  id: ID!
+  id: Bytes!
 
   account: Bytes!
   postRebaseTokenAmount: BigInt!
@@ -246,6 +186,7 @@ type OracleCompleted @entity(immutable: true) {
   block: BigInt!
   blockTime: BigInt!
   transactionHash: Bytes!
+  logIndex: BigInt!
 }
 
 """
@@ -308,7 +249,7 @@ type TotalReward @entity {
 
   block: BigInt!
   blockTime: BigInt!
-  transactionIndex: BigInt!
+  transactionHash: Bytes!
   logIndex: BigInt!
 }
 
@@ -477,65 +418,81 @@ type OracleMember @entity {
 #   objectionPhaseTime: BigInt!
 # }
 
-# """
-# Easytrack
-# """
-# type Motion @entity {
-#   id: ID!
+"""
+EasyTrack
+"""
+type Motion @entity {
+  id: ID!
 
-#   creator: Bytes!
-#   evmScriptFactory: Bytes!
-#   duration: BigInt
-#   startDate: BigInt!
-#   snapshotBlock: BigInt!
-#   objectionsAmount: BigInt!
-#   objectionsAmountPct: BigInt!
-#   objectionsThreshold: BigInt
-#   evmScriptHash: Bytes!
-#   evmScriptCalldata: Bytes!
-#   status: String!
-#   enacted_at: BigInt
-#   canceled_at: BigInt
-#   rejected_at: BigInt
-# }
+  creator: Bytes!
+  evmScriptFactory: Bytes!
+  duration: BigInt
+  startDate: BigInt!
+  snapshotBlock: BigInt!
+  objectionsAmount: BigInt!
+  objectionsAmountPct: BigInt!
+  objectionsThreshold: BigInt
+  evmScriptHash: Bytes!
+  evmScriptCalldata: Bytes!
+  status: String!
+  enacted_at: BigInt
+  canceled_at: BigInt
+  rejected_at: BigInt
 
-# type EasyTrackConfig @entity {
-#   id: ID!
+  objections: [Objection!] @derivedFrom(field: "motion")
 
-#   evmScriptExecutor: Bytes
-#   motionDuration: BigInt
-#   motionsCountLimit: BigInt
-#   objectionsThreshold: BigInt
-#   isPaused: Boolean
-# }
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
 
-# type Role @entity {
-#   id: ID!
+type EasyTrackConfig @entity {
+  id: ID!
 
-#   role: Bytes!
-#   address: Bytes!
-#   creator: Bytes!
-#   isActive: Boolean!
-# }
+  evmScriptExecutor: Bytes!
+  motionDuration: BigInt!
+  motionsCountLimit: BigInt!
+  objectionsThreshold: BigInt!
+  isPaused: Boolean!
 
-# type EVMScriptFactory @entity {
-#   id: ID!
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
 
-#   address: Bytes!
-#   permissions: Bytes!
-#   isActive: Boolean!
-# }
+type Role @entity {
+  id: Bytes!
 
-# type Objection @entity(immutable: true) {
-#   id: ID!
+  role: Bytes!
+  address: Bytes!
+  creator: Bytes!
+  isActive: Boolean!
+}
 
-#   motionId: BigInt!
-#   objector: Bytes!
-#   weight: BigInt!
+type EVMScriptFactory @entity {
+  id: Bytes!
 
-#   block: BigInt!
-#   blockTime: BigInt!
-# }
+  address: Bytes!
+  permissions: Bytes!
+  isActive: Boolean!
+}
+
+type Objection @entity(immutable: true) {
+  id: Bytes!
+
+  motionId: BigInt!
+  objector: Bytes!
+  weight: BigInt!
+
+  motion: Motion!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
 
 # """
 # DepositSecurityModule
@@ -557,17 +514,19 @@ type OracleMember @entity {
 
 #   guardian: Guardian!
 
-#   block: BigInt!
-#   blockTime: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type DepositsUnpause @entity(immutable: true) {
 #   id: ID!
 
-#   block: BigInt!
-#   blockTime: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type Guardian @entity {
@@ -576,9 +535,10 @@ type OracleMember @entity {
 #   address: Bytes!
 #   removed: Boolean!
 
-#   block: BigInt!
-#   blockTime: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type GuardianQuorumChange @entity(immutable: true) {
@@ -586,9 +546,10 @@ type OracleMember @entity {
 
 #   guardianQuorum: BigInt!
 
-#   block: BigInt!
-#   blockTime: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type MaxDepositsChange @entity(immutable: true) {
@@ -596,9 +557,10 @@ type OracleMember @entity {
 
 #   maxDeposits: BigInt!
 
-#   block: BigInt!
-#   blockTime: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type MinDepositBlockDistanceChange @entity(immutable: true) {
@@ -606,9 +568,10 @@ type OracleMember @entity {
 
 #   minDepositBlockDistance: BigInt!
 
-#   block: BigInt!
-#   blockTime: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type NodeOperatorsRegistryChange @entity(immutable: true) {
@@ -616,9 +579,10 @@ type OracleMember @entity {
 
 #   nodeOperatorsRegistry: Bytes!
 
-#   block: BigInt!
-#   blockTime: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type OwnerChange @entity(immutable: true) {
@@ -626,9 +590,10 @@ type OracleMember @entity {
 
 #   owner: Bytes!
 
-#   block: BigInt!
-#   blockTime: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type PauseIntentValidityPeriodBlocksChange @entity(immutable: true) {
@@ -636,9 +601,10 @@ type OracleMember @entity {
 
 #   pauseIntentValidityPeriodBlocks: BigInt!
 
-#   block: BigInt!
-#   blockTime: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 type OracleReport @entity {
@@ -651,6 +617,11 @@ type OracleReport @entity {
 
   itemsProcessed: BigInt!
   itemsCount: BigInt!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
 }
 
 """
@@ -664,180 +635,92 @@ type AppVersion @entity {
   impl: Bytes!
 
   block: BigInt!
+  blockTime: BigInt!
   transactionHash: Bytes!
-  transactionIndex: BigInt!
+  logIndex: BigInt!
 }
 
 # WithdrawalQueue
 
-
-# type Approval @entity(immutable: true) {
-#   id: Bytes!
-#   owner: Bytes! # address
-#   approved: Bytes! # address
-#   tokenId: BigInt! # uint256
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
-
-# type ApprovalForAll @entity(immutable: true) {
-#   id: Bytes!
-#   owner: Bytes! # address
-#   operator: Bytes! # address
-#   approved: Boolean! # bool
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
-
-# type BaseURISet @entity(immutable: true) {
-#   id: Bytes!
-#   baseURI: String! # string
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
-
 # type BunkerModeDisabled @entity(immutable: true) {
 #   id: Bytes!
 
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type BunkerModeEnabled @entity(immutable: true) {
 #   id: Bytes!
 #   _sinceTimestamp: BigInt! # uint256
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type ContractVersionSet @entity(immutable: true) {
 #   id: Bytes!
 #   version: BigInt! # uint256
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
-
-# type InitializedV1 @entity(immutable: true) {
-#   id: Bytes!
-#   _admin: Bytes! # address
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
-
-# type NftDescriptorAddressSet @entity(immutable: true) {
-#   id: Bytes!
-#   nftDescriptorAddress: Bytes! # address
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type Paused @entity(immutable: true) {
 #   id: Bytes!
 #   duration: BigInt! # uint256
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
 # type Resumed @entity(immutable: true) {
 #   id: Bytes!
 
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
+# block: BigInt!
+# blockTime: BigInt!
+# transactionHash: Bytes!
+# logIndex: BigInt!
 # }
 
-# type RoleAdminChanged @entity(immutable: true) {
-#   id: Bytes!
-#   role: Bytes! # bytes32
-#   previousAdminRole: Bytes! # bytes32
-#   newAdminRole: Bytes! # bytes32
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
+type WithdrawalClaimed @entity(immutable: true) {
+  id: Bytes!
+  requestId: BigInt! # uint256
+  owner: Bytes! # address
+  receiver: Bytes! # address
+  amountOfETH: BigInt! # uint256
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
 
-# type RoleGranted @entity(immutable: true) {
-#   id: Bytes!
-#   role: Bytes! # bytes32
-#   account: Bytes! # address
-#   sender: Bytes! # address
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
+type WithdrawalRequested @entity(immutable: true) {
+  id: Bytes!
+  requestId: BigInt! # uint256
+  requestor: Bytes! # address
+  owner: Bytes! # address
+  amountOfStETH: BigInt! # uint256
+  amountOfShares: BigInt! # uint256
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
 
-# type RoleRevoked @entity(immutable: true) {
-#   id: Bytes!
-#   role: Bytes! # bytes32
-#   account: Bytes! # address
-#   sender: Bytes! # address
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
-
-# type Transfer @entity(immutable: true) {
-#   id: Bytes!
-#   from: Bytes! # address
-#   to: Bytes! # address
-#   tokenId: BigInt! # uint256
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
-
-# type WithdrawalClaimed @entity(immutable: true) {
-#   id: Bytes!
-#   requestId: BigInt! # uint256
-#   owner: Bytes! # address
-#   receiver: Bytes! # address
-#   amountOfETH: BigInt! # uint256
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
-
-# type WithdrawalRequested @entity(immutable: true) {
-#   id: Bytes!
-#   requestId: BigInt! # uint256
-#   requestor: Bytes! # address
-#   owner: Bytes! # address
-#   amountOfStETH: BigInt! # uint256
-#   amountOfShares: BigInt! # uint256
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
-
-# type WithdrawalsFinalized @entity(immutable: true) {
-#   id: Bytes!
-#   from: BigInt! # uint256
-#   to: BigInt! # uint256
-#   amountOfETHLocked: BigInt! # uint256
-#   sharesToBurn: BigInt! # uint256
-#   timestamp: BigInt! # uint256
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
-
-# type WithdrawalBatchFinalized @entity(immutable: true) {
-#   id: Bytes!
-#   from: BigInt! # uint256
-#   to: BigInt! # uint256
-#   amountOfETHLocked: BigInt! # uint256
-#   sharesToBurn: BigInt! # uint256
-#   timestamp: BigInt! # uint256
-#   blockNumber: BigInt!
-#   blockTimestamp: BigInt!
-#   transactionHash: Bytes!
-# }
+type WithdrawalsFinalized @entity(immutable: true) {
+  id: Bytes!
+  from: BigInt! # uint256
+  to: BigInt! # uint256
+  amountOfETHLocked: BigInt! # uint256
+  sharesToBurn: BigInt! # uint256
+  timestamp: BigInt! # uint256
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
