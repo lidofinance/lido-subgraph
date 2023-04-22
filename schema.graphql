@@ -298,47 +298,49 @@ type OracleMember @entity {
 # """
 # NodeOperatorsRegistry
 # """
-# type NodeOperatorSigningKey @entity {
-#   id: Bytes!
 
-#   operatorId: BigInt!
-#   pubkey: Bytes!
-#   removed: Boolean!
+type NodeOperatorSigningKey @entity {
+  id: Bytes!
 
-#   operator: NodeOperator!
-# }
+  operatorId: BigInt!
+  pubkey: Bytes!
+  removed: Boolean!
 
-# type NodeOperator @entity {
-#   id: ID!
+  operator: NodeOperator!
 
-#   name: String!
-#   rewardAddress: Bytes!
-#   stakingLimit: BigInt!
-#   active: Boolean!
-#   totalStoppedValidators: BigInt
-#   # nonce: BigInt!
-# }
+   block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
 
-# type NodeOperatorTotalKeysTrim @entity(immutable: true) {
-#   id: ID!
+type NodeOperator @entity {
+  id: ID!
 
-#   operatorId: BigInt!
-#   totalKeysTrimmed: BigInt!
+  name: String!
+  rewardAddress: Bytes!
+  stakingLimit: BigInt!
+  active: Boolean!
+  totalStoppedValidators: BigInt
+  totalKeysTrimmed: BigInt!
+  nonce: BigInt!
 
-#   operator: NodeOperator!
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
 
-#   block: BigInt!
-#   blockTime: BigInt!
-# }
+type NodeOperatorKeysOpIndex @entity {
+  id: Bytes!
 
-# type handleKeysOpIndexChange @entity {
-#   id: ID!
+  index: BigInt!
 
-#   index: BigInt!
-
-#   block: BigInt!
-#   blockTime: BigInt!
-# }
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
 
 # """
 # Voting
