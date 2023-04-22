@@ -16,7 +16,7 @@ import {
   WithdrawalRequested,
   WithdrawalsFinalized
 } from '../generated/schema'
-import { _loadOrCreateTotalsEntity } from './helpers'
+import { _loadTotalsEntity } from './helpers'
 import { ZERO } from './constants'
 
 export function handleWithdrawalClaimed(event: WithdrawalClaimedEvent): void {

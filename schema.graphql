@@ -197,6 +197,23 @@ type OracleConfig @entity {
   logIndex: BigInt!
 }
 
+type OracleReport @entity {
+  "v2 oracle report refSlot = ID"
+  id: ID!
+
+  totalReward: TotalReward!
+
+  hash: Bytes!
+
+  itemsProcessed: BigInt!
+  itemsCount: BigInt!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
+
 type OracleCompleted @entity(immutable: true) {
   id: ID!
 
@@ -278,22 +295,20 @@ type OracleMember @entity {
   removed: Boolean!
 }
 
+type OracleExpectedEpoch @entity(immutable: true) {
+  id: Bytes!
 
-# type OracleExpectedEpoch @entity(immutable: true) {
-#   id: ID!
+  epochId: BigInt!
+}
 
-#   epochId: BigInt!
-# }
+type BeaconReport @entity(immutable: true) {
+  id: Bytes!
 
-# type BeaconReport @entity(immutable: true) {
-#   id: ID!
-
-#   epochId: BigInt!
-#   beaconBalance: BigInt!
-#   beaconValidators: BigInt!
-#   caller: Bytes!
-# }
-
+  epochId: BigInt!
+  beaconBalance: BigInt!
+  beaconValidators: BigInt!
+  caller: Bytes!
+}
 
 # """
 # NodeOperatorsRegistry
@@ -308,7 +323,7 @@ type NodeOperatorSigningKey @entity {
 
   operator: NodeOperator!
 
-   block: BigInt!
+  block: BigInt!
   blockTime: BigInt!
   transactionHash: Bytes!
   logIndex: BigInt!
@@ -342,61 +357,51 @@ type NodeOperatorKeysOpIndex @entity {
   logIndex: BigInt!
 }
 
-# """
-# Voting
-# """
-# type Voting @entity {
-#   id: ID!
+"""
+Voting
+"""
+type VotingConfig @entity {
+  id: ID!
 
-#   index: Int!
-#   creator: Bytes!
-#   metadata: String!
-#   executed: Boolean!
+  supportRequiredPct: BigInt!
+  minAcceptQuorumPct: BigInt!
+  voteTime: BigInt!
+  objectionPhaseTime: BigInt!
 
-#   votes: [Vote!]! @derivedFrom(field: "voting")
-#   objections: [VotingObjection!]! @derivedFrom(field: "voting")
-# }
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
 
-# type Vote @entity(immutable: true) {
-#   id: ID!
+type Voting @entity {
+  id: ID!
 
-#   voting: Voting!
-#   voter: Bytes!
-#   supports: Boolean!
-#   stake: BigInt!
-# }
+  index: Int!
+  creator: Bytes!
+  metadata: String!
+  executed: Boolean!
 
-# type VotingObjection @entity(immutable: true) {
-#   id: ID!
+  votes: [Vote!]! @derivedFrom(field: "voting")
+  objections: [VotingObjection!]! @derivedFrom(field: "voting")
+}
 
-#   voting: Voting!
-#   voter: Bytes!
-#   stake: BigInt!
-# }
+type Vote @entity(immutable: true) {
+  id: Bytes!
 
-# type ChangedSupportRequired @entity(immutable: true) {
-#   id: ID!
+  voting: Voting!
+  voter: Bytes!
+  supports: Boolean!
+  stake: BigInt!
+}
 
-#   supportRequiredPct: BigInt!
-# }
+type VotingObjection @entity(immutable: true) {
+  id: Bytes!
 
-# type ChangedMinQuorum @entity(immutable: true) {
-#   id: ID!
-
-#   minAcceptQuorumPct: BigInt!
-# }
-
-# type ChangedVoteTime @entity(immutable: true) {
-#   id: ID!
-
-#   voteTime: BigInt!
-# }
-
-# type ChangedObjectionPhaseTime @entity(immutable: true) {
-#   id: ID!
-
-#   objectionPhaseTime: BigInt!
-# }
+  voting: Voting!
+  voter: Bytes!
+  stake: BigInt!
+}
 
 """
 EasyTrack
@@ -474,129 +479,42 @@ type Objection @entity(immutable: true) {
   logIndex: BigInt!
 }
 
-# """
-# DepositSecurityModule
-# """
-# type DepositSecurityModuleSettings @entity {
-#   id: ID!
-
-#   paused: Boolean
-#   guardianQuorum: BigInt
-#   maxDeposits: BigInt
-#   minDepositBlockDistance: BigInt
-#   nodeOperatorsRegistry: Bytes
-#   owner: Bytes
-#   pauseIntentValidityPeriodBlocks: BigInt
-# }
-
-# type DepositsPause @entity(immutable: true) {
-#   id: ID!
-
-#   guardian: Guardian!
-
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-# type DepositsUnpause @entity(immutable: true) {
-#   id: ID!
-
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-# type Guardian @entity {
-#   id: ID!
-
-#   address: Bytes!
-#   removed: Boolean!
-
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-# type GuardianQuorumChange @entity(immutable: true) {
-#   id: ID!
-
-#   guardianQuorum: BigInt!
-
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-# type MaxDepositsChange @entity(immutable: true) {
-#   id: ID!
-
-#   maxDeposits: BigInt!
-
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-# type MinDepositBlockDistanceChange @entity(immutable: true) {
-#   id: ID!
-
-#   minDepositBlockDistance: BigInt!
-
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-# type NodeOperatorsRegistryChange @entity(immutable: true) {
-#   id: ID!
-
-#   nodeOperatorsRegistry: Bytes!
-
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-# type OwnerChange @entity(immutable: true) {
-#   id: ID!
-
-#   owner: Bytes!
-
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-# type PauseIntentValidityPeriodBlocksChange @entity(immutable: true) {
-#   id: ID!
-
-#   pauseIntentValidityPeriodBlocks: BigInt!
-
-# block: BigInt!
-# blockTime: BigInt!
-# transactionHash: Bytes!
-# logIndex: BigInt!
-# }
-
-type OracleReport @entity {
-  "v2 oracle report refSlot = ID"
+"""
+DepositSecurityModule
+"""
+type DepositSecurityModuleConfig @entity {
   id: ID!
 
-  totalReward: TotalReward!
+  paused: Boolean
+  guardianQuorum: BigInt
+  maxDeposits: BigInt
+  minDepositBlockDistance: BigInt
+  nodeOperatorsRegistry: Bytes
+  owner: Bytes
+  pauseIntentValidityPeriodBlocks: BigInt
 
-  hash: Bytes!
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
 
-  itemsProcessed: BigInt!
-  itemsCount: BigInt!
+type DepositsPause @entity(immutable: true) {
+  id: Bytes!
+
+  guardian: Guardian!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
+}
+
+type Guardian @entity {
+  id: ID!
+
+  address: Bytes!
+  removed: Boolean!
 
   block: BigInt!
   blockTime: BigInt!

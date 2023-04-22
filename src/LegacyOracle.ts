@@ -2,6 +2,7 @@ import {
   AllowedBeaconBalanceAnnualRelativeIncreaseSet as AllowedBeaconBalanceAnnualRelativeIncreaseSetEvent,
   AllowedBeaconBalanceRelativeDecreaseSet as AllowedBeaconBalanceRelativeDecreaseSetEvent,
   BeaconReportReceiverSet as BeaconReportReceiverSetEvent,
+  BeaconReported,
   BeaconSpecSet as BeaconSpecSetEvent,
   Completed as CompletedEvent,
   ContractVersionSet as ContractVersionSetEvent,
@@ -11,14 +12,22 @@ import {
   QuorumChanged as QuorumChangedEvent
 } from '../generated/LegacyOracle/LegacyOracle'
 import { NodeOperatorsRegistry } from '../generated/LegacyOracle/NodeOperatorsRegistry'
-import { CurrentFee, NodeOperatorsShares, OracleCompleted, OracleConfig, OracleMember } from '../generated/schema'
+import {
+  BeaconReport,
+  CurrentFee,
+  NodeOperatorsShares,
+  OracleCompleted,
+  OracleConfig,
+  OracleExpectedEpoch,
+  OracleMember
+} from '../generated/schema'
 import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ONE, ZERO, ZERO_ADDRESS, getAddress } from './constants'
 
 import {
   _calcAPR_v1,
-  _loadOrCreateStatsEntity,
-  _loadOrCreateTotalRewardEntity,
-  _loadOrCreateTotalsEntity,
+  _loadStatsEntity,
+  _loadTotalRewardEntity,
+  _loadTotalsEntity,
   _updateHolders,
   _updateTransferShares,
   isOracleV2
@@ -28,7 +37,7 @@ import { getParsedEventByName, parseEventLogs } from './parser'
 import { ethereum } from '@graphprotocol/graph-ts'
 
 export function handleCompleted(event: CompletedEvent): void {
-  let stats = _loadOrCreateStatsEntity()
+  let stats = _loadStatsEntity()
   let previousCompleted = OracleCompleted.load(stats.lastOracleCompletedId.toString())
   stats.lastOracleCompletedId = stats.lastOracleCompletedId.plus(ONE)
 
@@ -44,17 +53,32 @@ export function handleCompleted(event: CompletedEvent): void {
   newCompleted.save()
   stats.save()
 
+  // backward compatibility
+  const config = _loadOracleConfig()
+
+  const beaconReportEntity = new BeaconReport(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  beaconReportEntity.epochId = event.params.epochId
+  beaconReportEntity.beaconBalance = event.params.beaconBalance
+  beaconReportEntity.beaconValidators = event.params.beaconValidators
+  beaconReportEntity.caller = event.transaction.from
+  beaconReportEntity.save()
+
+  const expectedEpochEntity = new OracleExpectedEpoch(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  expectedEpochEntity.epochId = event.params.epochId.plus(config.epochsPerFrame)
+  expectedEpochEntity.save()
+
+
   if (isOracleV2()) {
     // skip future totalRewards processing
     return
   }
 
   // Totals are already non-null on first oracle report
-  const totals = _loadOrCreateTotalsEntity()
+  const totals = _loadTotalsEntity()
 
   // Create an empty TotalReward entity that will be filled on Transfer events
   // We know that in this transaction there will be Transfer events which we can identify by existence of TotalReward entity with transaction hash as its id
-  const totalRewardsEntity = _loadOrCreateTotalRewardEntity(event)
+  const totalRewardsEntity = _loadTotalRewardEntity(event)
 
   // save prev values
   totalRewardsEntity.totalPooledEtherBefore = totals.totalPooledEther
@@ -95,7 +119,6 @@ export function handleCompleted(event: CompletedEvent): void {
   let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
   let rewards = newBeaconBalance.minus(rewardBase)
 
-  // we should process token rebase here as TokenRebased event fired last but we need new values before transfers
   // parse all events from tx receipt
   const parsedEvents = parseEventLogs(event)
   const elRewardsReceivedEvent = getParsedEventByName<ELRewardsReceived>(
@@ -234,6 +257,15 @@ export function handleCompleted(event: CompletedEvent): void {
   totalRewardsEntity.save()
 }
 
+// export function handleBeaconReported(event: BeaconReported): void {
+//   const entity = new BeaconReport(event.transaction.hash.concatI32(event.logIndex.toI32()))
+//   entity.epochId = event.params.epochId
+//   entity.beaconBalance = event.params.beaconBalance
+//   entity.beaconValidators = event.params.beaconValidators
+//   entity.caller = event.params.caller
+//   entity.save()
+// }
+
 export function handleMemberAdded(event: MemberAddedEvent): void {
   let entity = new OracleMember(event.params.member)
   entity.member = event.params.member
@@ -293,7 +325,7 @@ export function handleAllowedBeaconBalanceAnnualRelativeIncreaseSet(
   _saveOracleConfig(entity, event)
 }
 
-function _loadOracleConfig(): OracleConfig {
+export function _loadOracleConfig(): OracleConfig {
   let entity = OracleConfig.load('')
   if (!entity) {
     entity = new OracleConfig('')
@@ -314,7 +346,7 @@ function _loadOracleConfig(): OracleConfig {
   return entity
 }
 
-function _saveOracleConfig(entity: OracleConfig, event: ethereum.Event): void {
+export function _saveOracleConfig(entity: OracleConfig, event: ethereum.Event): void {
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
   entity.transactionHash = event.transaction.hash

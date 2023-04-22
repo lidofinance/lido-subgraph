@@ -25,7 +25,7 @@ import {
 } from './constants'
 import { Transfer } from '../generated/Lido/Lido'
 
-export function _loadOrCreateLidoTransferEntity(event: Transfer): LidoTransfer {
+export function _loadLidoTransferEntity(event: Transfer): LidoTransfer {
   const id = event.transaction.hash.concatI32(event.logIndex.toI32())
   let entity = LidoTransfer.load(id)
   if (!entity) {
@@ -53,7 +53,7 @@ export function _loadOrCreateLidoTransferEntity(event: Transfer): LidoTransfer {
   return entity
 }
 
-export function _loadOrCreateOracleReport(refSLot: BigInt): OracleReport {
+export function _loadOracleReport(refSLot: BigInt): OracleReport {
   let entity = OracleReport.load(refSLot.toString())
   if (!entity) {
     entity = new OracleReport(refSLot.toString())
@@ -64,7 +64,7 @@ export function _loadOrCreateOracleReport(refSLot: BigInt): OracleReport {
   return entity
 }
 
-export function _loadOrCreateTotalRewardEntity(event: ethereum.Event): TotalReward {
+export function _loadTotalRewardEntity(event: ethereum.Event): TotalReward {
   let entity = TotalReward.load(event.transaction.hash)
   if (!entity) {
     entity = new TotalReward(event.transaction.hash)
@@ -113,7 +113,7 @@ export function _loadOrCreateTotalRewardEntity(event: ethereum.Event): TotalRewa
   return entity
 }
 
-export function _loadOrCreateStatsEntity(): Stat {
+export function _loadStatsEntity(): Stat {
   let stats = Stat.load('')
   if (!stats) {
     stats = new Stat('')
@@ -125,7 +125,7 @@ export function _loadOrCreateStatsEntity(): Stat {
   return stats
 }
 
-export function _loadOrCreateTotalsEntity(): Total {
+export function _loadTotalsEntity(): Total {
   let totals = Total.load('')
   if (!totals) {
     totals = new Total('')
@@ -135,13 +135,13 @@ export function _loadOrCreateTotalsEntity(): Total {
   return totals
 }
 
-export function _loadOrCreateSharesEntity(id: Bytes): Share {
-  let sharesEntity = Share.load(id)
-  if (!sharesEntity) {
-    sharesEntity = new Share(id)
-    sharesEntity.shares = ZERO
+export function _loadSharesEntity(id: Bytes): Share {
+  let entity = Share.load(id)
+  if (!entity) {
+    entity = new Share(id)
+    entity.shares = ZERO
   }
-  return sharesEntity
+  return entity
 }
 
 export function _updateTransferBalances(entity: LidoTransfer): void {
@@ -155,13 +155,13 @@ export function _updateTransferBalances(entity: LidoTransfer): void {
 }
 
 export function _updateTransferShares(entity: LidoTransfer): void {
-  const stats = _loadOrCreateStatsEntity()
+  const stats = _loadStatsEntity()
 
   // Decreasing from address shares
   if (entity.from != ZERO_ADDRESS) {
     // Address must already have shares, HOWEVER:
     // Someone can and managed to produce events of 0 to 0 transfers
-    const sharesFromEntity = _loadOrCreateSharesEntity(entity.from)
+    const sharesFromEntity = _loadSharesEntity(entity.from)
     entity.sharesBeforeDecrease = sharesFromEntity.shares
 
     if (entity.from != entity.to) {
@@ -180,7 +180,7 @@ export function _updateTransferShares(entity: LidoTransfer): void {
   }
   // Increasing to address shares
   if (entity.to != ZERO_ADDRESS) {
-    const sharesToEntity = _loadOrCreateSharesEntity(entity.to)
+    const sharesToEntity = _loadSharesEntity(entity.to)
     entity.sharesBeforeIncrease = sharesToEntity.shares
     if (entity.to != entity.from) {
       sharesToEntity.shares = sharesToEntity.shares.plus(entity.shares)
@@ -192,7 +192,7 @@ export function _updateTransferShares(entity: LidoTransfer): void {
 
 export function _updateHolders(entity: LidoTransfer): void {
   // Saving recipient address as a unique stETH holder
-  const stats = _loadOrCreateStatsEntity()
+  const stats = _loadStatsEntity()
 
   // skip zero destination for any case
   if (entity.to != ZERO_ADDRESS && !entity.balanceAfterIncrease!.isZero()) {

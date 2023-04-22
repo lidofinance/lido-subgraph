@@ -46,11 +46,11 @@ import {
 } from './parser'
 import {
   _calcAPR_v2,
-  _loadOrCreateLidoTransferEntity,
-  _loadOrCreateSharesEntity,
-  _loadOrCreateStatsEntity,
-  _loadOrCreateTotalRewardEntity,
-  _loadOrCreateTotalsEntity,
+  _loadLidoTransferEntity,
+  _loadSharesEntity,
+  _loadStatsEntity,
+  _loadTotalRewardEntity,
+  _loadTotalsEntity,
   _updateHolders,
   _updateTransferBalances,
   _updateTransferShares,
@@ -72,7 +72,7 @@ export function handleSubmitted(event: SubmittedEvent): void {
   entity.referral = event.params.referral
 
   // Loading totals
-  const totals = _loadOrCreateTotalsEntity()
+  const totals = _loadTotalsEntity()
 
   /**
    Use 1:1 ether-shares ratio when:
@@ -124,7 +124,7 @@ export function handleSubmitted(event: SubmittedEvent): void {
     }
   }
 
-  const sharesEntity = _loadOrCreateSharesEntity(event.params.sender)
+  const sharesEntity = _loadSharesEntity(event.params.sender)
 
   entity.sharesBefore = sharesEntity.shares
   entity.sharesAfter = entity.sharesBefore.plus(shares)
@@ -146,10 +146,10 @@ export function handleSubmitted(event: SubmittedEvent): void {
 }
 
 export function handleTransfer(event: TransferEvent): void {
-  const entity = _loadOrCreateLidoTransferEntity(event)
+  const entity = _loadLidoTransferEntity(event)
 
   // Entity is already created at this point
-  const totals = _loadOrCreateTotalsEntity()
+  const totals = _loadTotalsEntity()
   assert(!totals.totalPooledEther.isZero(), 'Transfer at zero totalPooledEther')
 
   entity.totalPooledEther = totals.totalPooledEther
@@ -385,11 +385,11 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
   entity.save()
 
   // if (event.params.account != ZERO_ADDRESS) {
-  const shares = _loadOrCreateSharesEntity(event.params.account)
+  const shares = _loadSharesEntity(event.params.account)
   shares.shares = shares.shares.minus(event.params.sharesAmount)
   shares.save()
 
-  const totals = _loadOrCreateTotalsEntity()
+  const totals = _loadTotalsEntity()
   totals.totalShares = totals.totalShares.minus(event.params.sharesAmount)
   totals.save()
 
@@ -399,7 +399,7 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
   if (holder) {
     if (holder.hasBalance && balanceAfterDecrease.isZero()) {
       holder.hasBalance = false
-      const stats = _loadOrCreateStatsEntity()
+      const stats = _loadStatsEntity()
       stats.uniqueHolders = stats.uniqueHolders.minus(ONE)
       stats.save()
     }
@@ -428,7 +428,7 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
     return
   }
 
-  const totals = _loadOrCreateTotalsEntity()
+  const totals = _loadTotalsEntity()
   if (totals.totalPooledEther != tokenRebasedEvent.params.preTotalEther) {
     log.warning('unexpected totalPooledEther {} {} ', [
       totals.totalPooledEther.toString(),
@@ -446,7 +446,7 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
   assert(totals.totalPooledEther == tokenRebasedEvent.params.preTotalEther, 'Unexpected totalPooledEther!')
   assert(totals.totalShares == tokenRebasedEvent.params.preTotalShares, 'Unexpected totalPooledEther!')
 
-  const totalRewardsEntity = _loadOrCreateTotalRewardEntity(event)
+  const totalRewardsEntity = _loadTotalRewardEntity(event)
   totalRewardsEntity.totalPooledEtherBefore = totals.totalPooledEther
   totalRewardsEntity.totalSharesBefore = totals.totalShares
 
@@ -528,7 +528,7 @@ export function handleTokenRebase(event: TokenRebasedEvent): void {
     return
   }
 
-  const totalRewardsEntity = _loadOrCreateTotalRewardEntity(event)
+  const totalRewardsEntity = _loadTotalRewardEntity(event)
 
   // extracting only 'Transfer' and 'TransferShares' pairs between ETHDistributed to TokenRebased
   // assuming the ETHDistributed and TokenRebased events are presents in tx only once
@@ -710,8 +710,8 @@ export function handleWithdrawalCredentialsSet(event: WithdrawalCredentialsSetEv
   _saveLidoConfig(entity, event)
 
   // Cropping unused keys on withdrawal credentials change
-  const keys = wcKeyCrops.get(event.params.withdrawalCredentials.toHexString())
-  if (keys) {
+  if (wcKeyCrops.has(event.params.withdrawalCredentials.toHexString())) {
+    const keys = wcKeyCrops.get(event.params.withdrawalCredentials.toHexString())
     for (let i = 0; i < keys.length; i++) {
       store.remove('NodeOperatorSigningKey', keys[i])
     }
@@ -749,7 +749,7 @@ export function handleBeaconValidatorsUpdated(_event: BeaconValidatorsUpdatedEve
 
 function _fixTotalPooledEther(): void {
   const realPooledEther = Lido.bind(getAddress('LIDO')).getTotalPooledEther()
-  const totals = _loadOrCreateTotalsEntity()
+  const totals = _loadTotalsEntity()
   totals.totalPooledEther = realPooledEther
   totals.save()
 }

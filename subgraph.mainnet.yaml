@@ -99,16 +99,6 @@ dataSources:
       entities:
         - OracleCompleted
         - OracleMember
-        # - OracleQuorumChange
-        # - SharesToStethRatio
-        # - OracleVersion
-        # - AllowedBeaconBalanceRelativeDecrease
-        # - AllowedBeaconBalanceAnnualRelativeIncrease
-        # - OracleExpectedEpoch
-        # - OracleTotalShares
-        # - BeaconReport
-        # - BeaconSpec
-        # - BeaconReportReceiver
       abis:
         - name: LegacyOracle
           file: ./abis/LegacyOracle.json

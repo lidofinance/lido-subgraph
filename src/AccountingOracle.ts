@@ -8,8 +8,8 @@ import { NodeOperatorsShares, NodeOperatorFees } from '../generated/schema'
 import { ZERO, getAddress } from './constants'
 
 import {
-  _loadOrCreateOracleReport,
-  _loadOrCreateTotalRewardEntity,
+  _loadOracleReport,
+  _loadTotalRewardEntity,
   _updateHolders,
   _updateTransferShares,
   isOracleV2
@@ -18,7 +18,7 @@ import { extractPairedEvent, getParsedEvent, parseEventLogs } from './parser'
 
 export function handleProcessingStarted(event: ProcessingStartedEvent): void {
   // OracleReport could exists already at this moment in case repeated report for some epoch
-  let oracleReportEntity = _loadOrCreateOracleReport(event.params.refSlot)
+  let oracleReportEntity = _loadOracleReport(event.params.refSlot)
   // link to totalReward
   oracleReportEntity.totalReward = event.transaction.hash
   oracleReportEntity.hash = event.params.hash
@@ -27,7 +27,7 @@ export function handleProcessingStarted(event: ProcessingStartedEvent): void {
 
 export function handleExtraDataSubmitted(event: ExtraDataSubmittedEvent): void {
   // OracleReport should exists at this moment
-  const oracleReportEntity = _loadOrCreateOracleReport(event.params.refSlot)
+  const oracleReportEntity = _loadOracleReport(event.params.refSlot)
 
   oracleReportEntity.itemsProcessed = event.params.itemsProcessed
   oracleReportEntity.itemsCount = event.params.itemsCount

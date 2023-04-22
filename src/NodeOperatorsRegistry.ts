@@ -15,34 +15,48 @@ import { NodeOperatorSigningKey, NodeOperator, NodeOperatorKeysOpIndex } from '.
 import { ZERO, ZERO_ADDRESS } from './constants'
 
 export function handleSigningKeyAdded(event: SigningKeyAddedEvent): void {
-  const entity = _loadOperator(event.params.operatorId.toString())
-  const keyEntity = new NodeOperatorSigningKey(event.params.pubkey)
+  const noEntity = _loadOperator(event.params.operatorId.toString())
+  const entity = new NodeOperatorSigningKey(event.params.pubkey)
 
-  keyEntity.operatorId = event.params.operatorId
-  keyEntity.operator = entity.id
-  keyEntity.pubkey = event.params.pubkey
-  keyEntity.removed = false
-  keyEntity.save()
+  entity.operatorId = event.params.operatorId
+  entity.operator = noEntity.id
+  entity.pubkey = event.params.pubkey
+  entity.removed = false
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
+  entity.save()
 }
 
 export function handleSigningKeyRemoved(event: SigningKeyRemovedEvent): void {
-  const entity = _loadOperator(event.params.operatorId.toString())
-  let keyEntity = NodeOperatorSigningKey.load(event.params.pubkey)
+  const noEntity = _loadOperator(event.params.operatorId.toString())
+  let entity = NodeOperatorSigningKey.load(event.params.pubkey)
 
-  if (keyEntity == null) {
-    keyEntity = new NodeOperatorSigningKey(event.params.pubkey)
-    keyEntity.operatorId = event.params.operatorId
-    keyEntity.operator = entity.id
-    keyEntity.pubkey = event.params.pubkey
+  if (entity == null) {
+    entity = new NodeOperatorSigningKey(event.params.pubkey)
+    entity.operatorId = event.params.operatorId
+    entity.operator = noEntity.id
+    entity.pubkey = event.params.pubkey
   }
 
-  keyEntity.removed = true
-  keyEntity.save()
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
+
+  entity.removed = true
+  entity.save()
 }
 
 export function handleKeysOpIndexSet(event: KeysOpIndexSetEvent): void {
   const entity = new NodeOperatorKeysOpIndex(event.transaction.hash.concatI32(event.logIndex.toI32()))
   entity.index = event.params.keysOpIndex
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
+
   entity.save()
 }
 
