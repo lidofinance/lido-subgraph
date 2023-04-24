@@ -1,14 +1,5 @@
-import { store, Bytes, ethereum, BigInt, log } from '@graphprotocol/graph-ts'
-import {
-  Total,
-  Share,
-  Stat,
-  LidoTransfer,
-  TotalReward,
-  Holder,
-  OracleReport,
-  AppVersion
-} from '../generated/schema'
+import { Bytes, ethereum, BigInt } from '@graphprotocol/graph-ts'
+import { Total, Share, Stat, LidoTransfer, TotalReward, Holder, OracleReport, AppVersion } from '../generated/schema'
 import {
   CALCULATION_UNIT,
   E27_PRECISION_BASE,
@@ -42,31 +33,40 @@ export function _loadLidoTransferEntity(event: Transfer): LidoTransfer {
     entity.totalPooledEther = ZERO
     entity.totalShares = ZERO
 
-    entity.balanceAfterDecrease = ZERO
-    entity.balanceAfterIncrease = ZERO
+    // from acc
     entity.sharesBeforeDecrease = ZERO
     entity.sharesAfterDecrease = ZERO
-    entity.sharesBeforeDecrease = ZERO
+    entity.balanceAfterDecrease = ZERO
+
+    // to acc
+    entity.sharesBeforeIncrease = ZERO
     entity.sharesAfterIncrease = ZERO
+    entity.balanceAfterIncrease = ZERO
+
     entity.mintWithoutSubmission = false
   }
   return entity
 }
 
-export function _loadOracleReport(refSLot: BigInt): OracleReport {
+export function _loadOracleReport(refSLot: BigInt, event: ethereum.Event, create: bool = false): OracleReport | null {
   let entity = OracleReport.load(refSLot.toString())
-  if (!entity) {
+  if (!entity && create) {
     entity = new OracleReport(refSLot.toString())
+    entity.itemsProcessed = ZERO
+    entity.itemsCount = ZERO
+
+    entity.block = event.block.number
+    entity.blockTime = event.block.timestamp
+    entity.transactionHash = event.transaction.hash
+    entity.logIndex = event.logIndex
   }
-  entity.itemsProcessed = ZERO
-  entity.itemsCount = ZERO
 
   return entity
 }
 
-export function _loadTotalRewardEntity(event: ethereum.Event): TotalReward {
+export function _loadTotalRewardEntity(event: ethereum.Event, create: bool = false): TotalReward | null {
   let entity = TotalReward.load(event.transaction.hash)
-  if (!entity) {
+  if (!entity && create) {
     entity = new TotalReward(event.transaction.hash)
 
     entity.block = event.block.number
@@ -125,9 +125,9 @@ export function _loadStatsEntity(): Stat {
   return stats
 }
 
-export function _loadTotalsEntity(): Total {
+export function _loadTotalsEntity(create: bool = false): Total | null {
   let totals = Total.load('')
-  if (!totals) {
+  if (!totals && create) {
     totals = new Total('')
     totals.totalPooledEther = ZERO
     totals.totalShares = ZERO
@@ -135,9 +135,9 @@ export function _loadTotalsEntity(): Total {
   return totals
 }
 
-export function _loadSharesEntity(id: Bytes): Share {
+export function _loadSharesEntity(id: Bytes, create: bool = false): Share | null {
   let entity = Share.load(id)
-  if (!entity) {
+  if (!entity && create) {
     entity = new Share(id)
     entity.shares = ZERO
   }
@@ -155,24 +155,15 @@ export function _updateTransferBalances(entity: LidoTransfer): void {
 }
 
 export function _updateTransferShares(entity: LidoTransfer): void {
-  const stats = _loadStatsEntity()
-
   // Decreasing from address shares
   if (entity.from != ZERO_ADDRESS) {
     // Address must already have shares, HOWEVER:
     // Someone can and managed to produce events of 0 to 0 transfers
-    const sharesFromEntity = _loadSharesEntity(entity.from)
+    const sharesFromEntity = _loadSharesEntity(entity.from, true)!
     entity.sharesBeforeDecrease = sharesFromEntity.shares
 
-    if (entity.from != entity.to) {
-      if (entity.shares > sharesFromEntity.shares) {
-        log.critical('acc: {}, shares: {}, transfer: {}', [
-          entity.from.toHexString(),
-          sharesFromEntity.shares.toString(),
-          entity.shares.toString()
-        ])
-      }
-      assert(sharesFromEntity.shares >= entity.shares, 'Abnormal shares decrease!')
+    if (entity.from != entity.to && !entity.shares.isZero()) {
+      assert(sharesFromEntity.shares >= entity.shares, 'negative shares decrease on transfer')
       sharesFromEntity.shares = sharesFromEntity.shares.minus(entity.shares)
       sharesFromEntity.save()
     }
@@ -180,9 +171,9 @@ export function _updateTransferShares(entity: LidoTransfer): void {
   }
   // Increasing to address shares
   if (entity.to != ZERO_ADDRESS) {
-    const sharesToEntity = _loadSharesEntity(entity.to)
+    const sharesToEntity = _loadSharesEntity(entity.to, true)!
     entity.sharesBeforeIncrease = sharesToEntity.shares
-    if (entity.to != entity.from) {
+    if (entity.to != entity.from && !entity.shares.isZero()) {
       sharesToEntity.shares = sharesToEntity.shares.plus(entity.shares)
       sharesToEntity.save()
     }
@@ -199,7 +190,6 @@ export function _updateHolders(entity: LidoTransfer): void {
     let holder = Holder.load(entity.to)
     if (!holder) {
       holder = new Holder(entity.to)
-      // @todo remove
       holder.address = entity.to
       holder.hasBalance = false
 
@@ -220,9 +210,6 @@ export function _updateHolders(entity: LidoTransfer): void {
         stats.uniqueHolders = stats.uniqueHolders.minus(ONE)
       }
       holder.save()
-      // @todo delete holder
-      // @todo check id correctness
-      // store.remove('Holder', entity.from.toString())
     } // else should not be
   }
   stats.save()
@@ -281,30 +268,25 @@ export function _calcAPR_v2(
   timeElapsed: BigInt
 ): void {
   // Lido v2 new approach
+  // https://hackmd.io/@lido/rJ8HaBxZ3#How-to-get-APR
 
-  // APR without subtracting fees and without any compensations
-  entity.aprRaw = postTotalEther
-    .toBigDecimal()
-    .div(preTotalEther.toBigDecimal())
-    .minus(BigInt.fromI32(1).toBigDecimal())
-    .times(BigInt.fromI32(100).toBigDecimal())
-    .times(BigInt.fromI32(365).toBigDecimal())
-
-  let preShareRate = preTotalEther
+  const preShareRate = preTotalEther
     .toBigDecimal()
     .times(E27_PRECISION_BASE)
     .div(preTotalShares.toBigDecimal())
-  let postShareRate = postTotalEther
+
+  const postShareRate = postTotalEther
     .toBigDecimal()
     .times(E27_PRECISION_BASE)
     .div(postTotalShares.toBigDecimal())
-  let secondsInYear = BigInt.fromI32(60 * 60 * 24 * 365).toBigDecimal()
+  const secondsInYear = BigInt.fromI32(60 * 60 * 24 * 365).toBigDecimal()
 
   entity.apr = secondsInYear
     .times(postShareRate.minus(preShareRate))
     .div(preShareRate)
     .div(timeElapsed.toBigDecimal())
 
+  entity.aprRaw = entity.apr
   entity.aprBeforeFees = entity.apr
 }
 
@@ -330,11 +312,3 @@ export function isOracleV2(): bool {
 export function isNORV2(): bool {
   return checkAppVer(NOR_APP_ID, UPG_V2_BETA)
 }
-
-// export function logEventInfo(event: ethereum.Event): void {
-//   log.warning('block: {} txHash: {} logIdx: {}', [
-//     event.block.number.toString(),
-//     event.transaction.hash.toHexString(),
-//     event.logIndex.toString()
-//   ])
-// }

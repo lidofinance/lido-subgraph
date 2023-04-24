@@ -6,7 +6,7 @@ import { ZERO, getAddress } from './constants'
 
 export function handleFrameConfigSet(event: FrameConfigSetEvent): void {
 
-  const chainConfig = HashConsensus.bind(getAddress('HASH_CONSENSUS')).getChainConfig()
+  const chainConfig = HashConsensus.bind(event.address).getChainConfig()
 
   const entity = _loadOracleConfig()
   entity.epochsPerFrame = event.params.newEpochsPerFrame

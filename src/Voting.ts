@@ -59,15 +59,15 @@ export function handleExecuteVote(event: ExecuteVoteEvent): void {
   This one-off operation allows us not to enable tracing.
    **/
   if (event.transaction.hash.toHexString() == '0x55eb29bda8d96a9a92295c358edbcef087d09f24bd684e6b4e88b166c99ea6a7') {
-    let accToBurn = Address.fromString('0x3e40d73eb977dc6a537af587d48316fee66e9c8c')
-    let sharesToSubtract = BigInt.fromString('32145684728326685744')
+    const accToBurn = Address.fromString('0x3e40d73eb977dc6a537af587d48316fee66e9c8c')
+    const sharesToSubtract = BigInt.fromString('32145684728326685744')
 
-    let shares = _loadSharesEntity(accToBurn)
+    const shares = _loadSharesEntity(accToBurn)!
     shares.shares = shares.shares.minus(sharesToSubtract)
     assert(shares.shares >= ZERO, 'Negative shares.hares!')
     shares.save()
 
-    let totals = _loadTotalsEntity()
+    const totals = _loadTotalsEntity()!
     totals.totalShares = totals.totalShares.minus(sharesToSubtract)
     assert(totals.totalShares >= ZERO, 'Negative totals.totalShares!')
     totals.save()

@@ -33,7 +33,8 @@ import {
   LidoApproval,
   Total,
   SharesBurn,
-  LidoConfig
+  LidoConfig,
+  LidoTransfer
 } from '../generated/schema'
 
 import { ZERO, getAddress, ONE, CALCULATION_UNIT, ZERO_ADDRESS } from './constants'
@@ -42,7 +43,8 @@ import {
   extractPairedEvent,
   getParsedEventByName,
   getRightPairedEventByLeftLogIndex,
-  getParsedEvent
+  getParsedEvent,
+  ParsedEvent
 } from './parser'
 import {
   _calcAPR_v2,
@@ -63,69 +65,55 @@ import { wcKeyCrops } from './wcKeyCrops'
 export function handleSubmitted(event: SubmittedEvent): void {
   let entity = new LidoSubmission(event.transaction.hash.concatI32(event.logIndex.toI32()))
 
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-  entity.logIndex = event.logIndex
   entity.sender = event.params.sender
   entity.amount = event.params.amount
   entity.referral = event.params.referral
 
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
+
   // Loading totals
-  const totals = _loadTotalsEntity()
+  const totals = _loadTotalsEntity(true)!
 
-  /**
-   Use 1:1 ether-shares ratio when:
-   1. Nothing was staked yet
-   2. Someone staked something, but shares got rounded to 0 eg staking 1 wei
-  **/
-
-  // Check if contract has no ether or shares yet
-  let shares = totals.totalPooledEther.isZero()
-    ? event.params.amount
-    : event.params.amount.times(totals.totalShares).div(totals.totalPooledEther)
-
-  // Someone staked > 0 wei, but shares to mint got rounded to 0
-  if (shares.equals(ZERO)) {
-    shares = event.params.amount
-  }
-  entity.shares = shares
-
+  let shares: BigInt
+  // after TransferShares event has been added just take shares value from it
+  // calc shares value otherwise
   if (isLidoTransferShares()) {
+    // limit parsing by 2 next events
+    // such approach cover both cases when Transfer was emitted before and wise versa
     const parsedEvents = parseEventLogs(event, event.address, event.logIndex, event.logIndex.plus(BigInt.fromI32(2)))
     // extracting only 'Transfer' and 'TransferShares' pairs
-    const transferEventPairs = extractPairedEvent(
-      parsedEvents,
-      'Transfer',
-      'TransferShares',
-      event.logIndex // start from event itself and to the end of tx receipt
-    )
+    const transferEventPairs = extractPairedEvent(parsedEvents, 'Transfer', 'TransferShares')
 
-    // expecting at least one Transfer events pair
-    assert(transferEventPairs.length > 0, 'Not found events pair Transfer/TransferShares')
+    // expecting at only one Transfer events pair
+    assert(transferEventPairs.length == 1, 'no Transfer/TransferShares events on submit')
 
-    // take only 1st
     // const eventTransfer = getParsedEvent<Transfer>(transferEventPairs[0], 0)
     const eventTransferShares = getParsedEvent<TransferSharesEvent>(transferEventPairs[0], 1)
-    if (eventTransferShares.params.sharesValue != shares) {
-      log.critical(
-        'Unexpected shares in TransferShares event! calc shares: {} event shares: {} totalShares: {} totalPooledEth: {} block: {} txHash: {} logIdx(Transfer): {} logIdx(TransferShares): {}',
-        [
-          shares.toString(),
-          eventTransferShares.params.sharesValue.toString(),
-          totals.totalShares.toString(),
-          totals.totalPooledEther.toString(),
-          event.block.number.toString(),
-          event.transaction.hash.toHexString(),
-          event.logIndex.toString(),
-          eventTransferShares.logIndex.toString()
-        ]
-      )
+    shares = eventTransferShares.params.sharesValue
+  } else {
+    /**
+     * Use 1:1 ether-shares ratio when:
+     * 1. Nothing was staked yet
+     * 2. Someone staked something, but shares got rounded to 0 eg staking 1 wei
+     **/
+
+    // Check if contract has no ether or shares yet
+    shares = totals.totalPooledEther.isZero()
+      ? event.params.amount
+      : event.params.amount.times(totals.totalShares).div(totals.totalPooledEther)
+
+    // handle the case when staked amount ~1 wei, that shares to mint got rounded to 0
+    if (shares.isZero()) {
+      shares = event.params.amount
     }
   }
 
-  const sharesEntity = _loadSharesEntity(event.params.sender)
+  entity.shares = shares
 
+  const sharesEntity = _loadSharesEntity(event.params.sender, true)!
   entity.sharesBefore = sharesEntity.shares
   entity.sharesAfter = entity.sharesBefore.plus(shares)
 
@@ -149,8 +137,8 @@ export function handleTransfer(event: TransferEvent): void {
   const entity = _loadLidoTransferEntity(event)
 
   // Entity is already created at this point
-  const totals = _loadTotalsEntity()
-  assert(!totals.totalPooledEther.isZero(), 'Transfer at zero totalPooledEther')
+  const totals = _loadTotalsEntity()!
+  assert(totals.totalPooledEther > ZERO, 'transfer with zero totalPooledEther')
 
   entity.totalPooledEther = totals.totalPooledEther
   entity.totalShares = totals.totalShares
@@ -159,20 +147,11 @@ export function handleTransfer(event: TransferEvent): void {
   // now we should parse the whole tx receipt to be sure pair extraction is accurate
   if (isLidoTransferShares()) {
     const parsedEvents = parseEventLogs(event, event.address)
+    // TransferShares should exists after according upgrade
     eventTransferShares = getRightPairedEventByLeftLogIndex<TransferSharesEvent>(
       extractPairedEvent(parsedEvents, 'Transfer', 'TransferShares'),
       event.logIndex
-    )
-    // TransferShares should exists after according upgrade
-    if (!eventTransferShares) {
-      log.critical('Paired TRansferShares event not found! block: {} txHash: {} logIdx: {}', [
-        event.block.number.toString(),
-        event.transaction.hash.toHexString(),
-        event.logIndex.toString()
-      ])
-      return
-    }
-    // eventTransferShares = transferEventPair[1]
+    )!
     entity.shares = eventTransferShares.params.sharesValue
 
     // skip handling if nothing to handle
@@ -187,66 +166,50 @@ export function handleTransfer(event: TransferEvent): void {
   if (entity.from == ZERO_ADDRESS) {
     // process mint transfers
 
-    const isV2 = isLidoV2()
     // check if totalReward record exists, so assuming it's mint during Oracle report
     const totalRewardsEntity = TotalReward.load(event.transaction.hash)
     if (totalRewardsEntity) {
       /// @deprecated
       entity.mintWithoutSubmission = true
 
-      // if (isLidoV2()) {
-      //   // after V2 upgrade, TotalReward is handled by handleETHDistributed
-      // } else {
-      /**
-       * Handling fees during oracle report, in order:
-       * 1. Insurance Fund Transfer
-       * 2. Node Operator Reward Transfers
-       * 3. Treasury Fund Transfer with remaining dust or just rounding dust
-       **/
+      if (isLidoV2()) {
+        // after V2 upgrade, TotalReward is handled by handleETHDistributed
+      } else {
+        /**
+         * Handling fees during oracle report, in order:
+         * 1. Insurance Fund Transfer
+         * 2. Node Operator Reward Transfers
+         * 3. Treasury Fund Transfer with remaining dust or just rounding dust
+         **/
 
-      // in case TreasureAddress = InsuranceAddress and insuranceFeeBasisPoints no zero assuming the first tx should go to Insurance
-      if (
-        !isV2 &&
-        entity.to == getAddress('INSURANCE_FUND') &&
-        !totalRewardsEntity.insuranceFeeBasisPoints.isZero() &&
-        totalRewardsEntity.insuranceFee.isZero()
-      ) {
-        // Handling the Insurance Fee transfer event
-        totalRewardsEntity.insuranceFee = totalRewardsEntity.insuranceFee.plus(entity.value)
+        // in case TreasureAddress = InsuranceAddress and insuranceFeeBasisPoints no zero assuming the first tx should go to Insurance
+        if (
+          entity.to == getAddress('INSURANCE_FUND') &&
+          !totalRewardsEntity.insuranceFeeBasisPoints.isZero() &&
+          totalRewardsEntity.insuranceFee.isZero()
+        ) {
+          // Handling the Insurance Fee transfer event
+          totalRewardsEntity.insuranceFee = totalRewardsEntity.insuranceFee.plus(entity.value)
 
-        // sanity assertion
-        if (eventTransferShares) {
-          // assert(entity.shares == totalRewardsEntity.sharesToInsuranceFund, 'Unexpected sharesToInsuranceFund')
-          if (entity.shares != totalRewardsEntity.sharesToInsuranceFund) {
-            log.critical(
-              'Unexpected sharesToInsuranceFund! shares: {} entity share: {} event shares: {} totalShares: {} totalPooledEth: {} block: {} txHash: {} logIdx(Transfer): {} logIdx(TransferShares): {}',
-              [
-                totalRewardsEntity.sharesToInsuranceFund.toString(),
-                entity.shares.toString(),
-                eventTransferShares.params.sharesValue.toString(),
-                totals.totalShares.toString(),
-                totals.totalPooledEther.toString(),
-                event.block.number.toString(),
-                event.transaction.hash.toHexString(),
-                event.logIndex.toString(),
-                eventTransferShares.logIndex.toString()
-              ]
-            )
+          // sanity assertion
+          if (eventTransferShares) {
+            assert(entity.shares == totalRewardsEntity.sharesToInsuranceFund, 'Unexpected sharesToInsuranceFund')
+          } else {
+            // overriding calculated value
+            entity.shares = totalRewardsEntity.sharesToInsuranceFund
           }
-        } else {
-          // overriding calculated value
-          entity.shares = totalRewardsEntity.sharesToInsuranceFund
-        }
+        } else if (entity.to == getAddress('TREASURE')) {
+          // Handling the Treasury Fund transfer event
 
-        assert(totalRewardsEntity.totalRewards >= entity.value, 'Total rewards < Insurance fee')
-      } else if (entity.to == getAddress('TREASURE')) {
-        // Handling the Treasury Fund transfer event
+          log.warning('before: treasuryFee {} dust {}', [
+            totalRewardsEntity.treasuryFee.toString(),
+            totalRewardsEntity.dust.toString()
+          ])
+          log.warning('before: sharesToTreasury {} dustSharesToTreasury {}', [
+            totalRewardsEntity.sharesToTreasury.toString(),
+            totalRewardsEntity.dustSharesToTreasury.toString()
+          ])
 
-        if (isV2) {
-          // just updating counter as they zeros by default
-          totalRewardsEntity.treasuryFee = totalRewardsEntity.treasuryFee.plus(entity.value)
-          totalRewardsEntity.sharesToTreasury
-        } else {
           let shares: BigInt
           // Dust exists only when treasuryFeeBasisPoints is 0 and prior Lido v2
           if (totalRewardsEntity.treasuryFeeBasisPoints.isZero()) {
@@ -257,36 +220,30 @@ export function handleTransfer(event: TransferEvent): void {
             shares = totalRewardsEntity.sharesToTreasury
           }
 
+          log.warning('entity.value {} entity.shares {} shares {}', [
+            entity.value.toString(),
+            entity.shares.toString(),
+            shares.toString()
+          ])
+          log.warning('after: treasuryFee {} dust {}', [
+            totalRewardsEntity.treasuryFee.toString(),
+            totalRewardsEntity.dust.toString()
+          ])
+          log.warning('after: sharesToTreasury {} dustSharesToTreasury {}', [
+            totalRewardsEntity.sharesToTreasury.toString(),
+            totalRewardsEntity.dustSharesToTreasury.toString()
+          ])
+
           if (eventTransferShares) {
-            // assert(entity.shares == shares, 'Unexpected sharesToTreasury')
-            if (entity.shares != shares) {
-              log.critical(
-                'Unexpected sharesToTreasury! shares: {} entity share: {} event shares: {} totalShares: {} totalPooledEth: {} block: {} txHash: {} logIdx(Transfer): {} logIdx(TransferShares): {}',
-                [
-                  shares.toString(),
-                  entity.shares.toString(),
-                  eventTransferShares.params.sharesValue.toString(),
-                  totals.totalShares.toString(),
-                  totals.totalPooledEther.toString(),
-                  event.block.number.toString(),
-                  event.transaction.hash.toHexString(),
-                  event.logIndex.toString(),
-                  eventTransferShares.logIndex.toString()
-                ]
-              )
-            }
+            assert(entity.shares == shares, 'Unexpected sharesToTreasury')
           } else {
             // overriding calculated value
             entity.shares = shares
           }
-        }
+        } else {
+          // Handling fee transfer to node operator prior v2 upgrade
+          // after v2 there are only transfers to SR modules
 
-        assert(totalRewardsEntity.totalRewards >= entity.value, 'Total rewards < Treasure fee')
-      } else {
-        //
-        if (!isV2) {
-          // Handling fee transfer to node operator only prior v2 upgrade
-          // After v2 there are only transfer to SR modules
           const nodeOperatorFees = new NodeOperatorFees(event.transaction.hash.concatI32(event.logIndex.toI32()))
           // Reference to TotalReward entity
           nodeOperatorFees.totalReward = totalRewardsEntity.id
@@ -294,42 +251,25 @@ export function handleTransfer(event: TransferEvent): void {
           nodeOperatorFees.fee = entity.value
           nodeOperatorFees.save()
 
-          // Entity should exists at this point
-          const nodeOperatorsShares = NodeOperatorsShares.load(event.transaction.hash.concat(entity.to))
-
-          // assert(entity.shares == nodeOperatorsShares!.shares, 'Unexpected nodeOperatorsShares')
+          // Entity should already exists at this point
+          const nodeOperatorsShares = NodeOperatorsShares.load(event.transaction.hash.concat(entity.to))!
           if (eventTransferShares) {
-            if (entity.shares != nodeOperatorsShares!.shares) {
-              log.critical(
-                'Unexpected nodeOperatorsShares! shares: {} tx share: {}  event shares: {} totalShares: {} totalPooledEth: {} block: {} txHash: {} logIdx(Transfer): {} logIdx(TransferShares): {}',
-                [
-                  nodeOperatorsShares!.shares.toString(),
-                  entity.shares.toString(),
-                  eventTransferShares.params.sharesValue.toString(),
-                  totals.totalShares.toString(),
-                  totals.totalPooledEther.toString(),
-                  event.block.number.toString(),
-                  event.transaction.hash.toHexString(),
-                  event.logIndex.toString(),
-                  eventTransferShares.logIndex.toString()
-                ]
-              )
-            }
+            assert(entity.shares == nodeOperatorsShares.shares, 'Unexpected nodeOperatorsShares')
           } else {
-            entity.shares = nodeOperatorsShares!.shares
+            entity.shares = nodeOperatorsShares.shares
           }
+          totalRewardsEntity.operatorsFee = totalRewardsEntity.operatorsFee.plus(entity.value)
         }
-        // but in both cases summarizing operator's rewards
-        totalRewardsEntity.operatorsFee = totalRewardsEntity.operatorsFee.plus(entity.value)
-        assert(totalRewardsEntity.totalRewards >= totalRewardsEntity.operatorsFee, 'Total rewards < NO fee')
-      }
 
-      // decreasing saved total rewards to (remainder will be users reward)
-      totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(entity.value)
-      // increasing total system fee value
-      totalRewardsEntity.totalFee = totalRewardsEntity.totalFee.plus(entity.value)
-      totalRewardsEntity.save()
-      // }
+        if (!entity.value.isZero()) {
+          // decreasing saved total rewards to (remainder will be users reward)
+          assert(totalRewardsEntity.totalRewards >= entity.value, 'negative totalRewards')
+          totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(entity.value)
+          // increasing total system fee value
+          totalRewardsEntity.totalFee = totalRewardsEntity.totalFee.plus(entity.value)
+          totalRewardsEntity.save()
+        }
+      }
     } else {
       // transfer after submit
       /// @deprecated
@@ -337,30 +277,13 @@ export function handleTransfer(event: TransferEvent): void {
 
       if (!eventTransferShares) {
         // prior TransferShares logic
-        // try get shares from Submission entity from the previous logIndex (as mint Transfer occurs only after Submit event)
-        let submissionEntity = LidoSubmission.load(event.transaction.hash.concatI32(event.logIndex.minus(ONE).toI32()))
+        // Submission entity should exists with the previous logIndex (as mint Transfer occurs only after Submit event)
+        let submissionEntity = LidoSubmission.load(event.transaction.hash.concatI32(event.logIndex.minus(ONE).toI32()))!
         // throws error if no submissionEntity
-        entity.shares = submissionEntity!.shares
-
-        // assert(entity.shares == submissionEntity!.shares, 'unexpected Submission/Transfer shares')
-        // if (entity.shares != submissionEntity!.shares) {
-        //   log.critical(
-        //     'Unexpected submissionEntity shares! shares: {} tx share: {} totalShares: {} totalPooledEth: {} block: {} txHash: {} logIdx(Transfer): {} ',
-        //     [
-        //       submissionEntity!.shares.toString(),
-        //       entity.shares.toString(),
-        //       totals.totalShares.toString(),
-        //       totals.totalPooledEther.toString(),
-        //       event.block.number.toString(),
-        //       event.transaction.hash.toHexString(),
-        //       event.logIndex.toString()
-        //     ]
-        //   )
-        // }
+        entity.shares = submissionEntity.shares
       }
     }
   }
-
   // upd account's shares and stats
   _updateTransferShares(entity)
   _updateTransferBalances(entity)
@@ -384,28 +307,66 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
   entity.sharesAmount = event.params.sharesAmount
   entity.save()
 
-  // if (event.params.account != ZERO_ADDRESS) {
-  const shares = _loadSharesEntity(event.params.account)
-  shares.shares = shares.shares.minus(event.params.sharesAmount)
-  shares.save()
-
-  const totals = _loadTotalsEntity()
+  // Totals should be already non-null here
+  const totals = _loadTotalsEntity()!
   totals.totalShares = totals.totalShares.minus(event.params.sharesAmount)
+  assert(totals.totalShares > ZERO, 'negative totalShares after shares burn')
   totals.save()
 
-  const balanceAfterDecrease = shares.shares.times(totals.totalPooledEther).div(totals.totalShares)
+  // create Transfer event
+  const txEntity = new LidoTransfer(id)
+  txEntity.from = event.params.account
+  txEntity.to = ZERO_ADDRESS
+  txEntity.block = event.block.number
+  txEntity.blockTime = event.block.timestamp
+  txEntity.transactionHash = event.transaction.hash
+  txEntity.logIndex = event.logIndex
 
-  const holder = Holder.load(event.params.account)
-  if (holder) {
-    if (holder.hasBalance && balanceAfterDecrease.isZero()) {
-      holder.hasBalance = false
-      const stats = _loadStatsEntity()
-      stats.uniqueHolders = stats.uniqueHolders.minus(ONE)
-      stats.save()
-    }
-    holder.save()
-  } // else should not to be
+  txEntity.value = event.params.postRebaseTokenAmount
+  txEntity.shares = event.params.sharesAmount
+  txEntity.totalPooledEther = totals.totalPooledEther
+  txEntity.totalShares = totals.totalShares
+
+  // from acc
+  // txEntity.sharesBeforeDecrease = ZERO
+  // txEntity.sharesAfterDecrease = ZERO
+  // txEntity.balanceAfterDecrease = ZERO
+
+  // to acc
+  txEntity.sharesBeforeIncrease = ZERO
+  txEntity.sharesAfterIncrease = ZERO
+  // txEntity.balanceAfterIncrease = ZERO
+
+  txEntity.mintWithoutSubmission = false
+
+  // upd account's shares and stats
+  _updateTransferShares(txEntity)
+  _updateTransferBalances(txEntity)
+  _updateHolders(txEntity)
+
+  txEntity.save()
+  // if (event.params.account != ZERO_ADDRESS) {
+  // account should have shares
+  // const shares = _loadSharesEntity(event.params.account)!
+  // shares.shares = shares.shares.minus(event.params.sharesAmount)
+  // assert(shares.shares > ZERO, 'negative account shares after shares burn')
+  // shares.save()
+
+  // const balanceAfterDecrease = shares.shares.times(totals.totalPooledEther).div(totals.totalShares)
+
+  // const holder = Holder.load(event.params.account)
+  // if (holder) {
+  //   if (holder.hasBalance && balanceAfterDecrease.isZero()) {
+  //     holder.hasBalance = false
+  //     const stats = _loadStatsEntity()
+  //     stats.uniqueHolders = stats.uniqueHolders.minus(ONE)
+  //     stats.save()
+  //   }
+  //   holder.save()
+  // } // else should not to be
+
   // }
+
 }
 
 // only for Lido v2
@@ -428,32 +389,19 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
     return
   }
 
-  const totals = _loadTotalsEntity()
-  if (totals.totalPooledEther != tokenRebasedEvent.params.preTotalEther) {
-    log.warning('unexpected totalPooledEther {} {} ', [
-      totals.totalPooledEther.toString(),
-      tokenRebasedEvent.params.preTotalEther.toString()
-    ])
-  }
-
-  if (totals.totalShares != tokenRebasedEvent.params.preTotalShares) {
-    log.warning('unexpected totalPooledEther {} {} ', [
-      totals.totalShares.toString(),
-      tokenRebasedEvent.params.preTotalShares.toString()
-    ])
-  }
-
-  assert(totals.totalPooledEther == tokenRebasedEvent.params.preTotalEther, 'Unexpected totalPooledEther!')
-  assert(totals.totalShares == tokenRebasedEvent.params.preTotalShares, 'Unexpected totalPooledEther!')
-
-  const totalRewardsEntity = _loadTotalRewardEntity(event)
-  totalRewardsEntity.totalPooledEtherBefore = totals.totalPooledEther
-  totalRewardsEntity.totalSharesBefore = totals.totalShares
+  // Totals should be already non-null on oracle report
+  const totals = _loadTotalsEntity()!
+  assert(
+    totals.totalPooledEther == tokenRebasedEvent.params.preTotalEther,
+    "totalPooledEther mismatch report's preTotalEther"
+  )
+  assert(totals.totalShares == tokenRebasedEvent.params.preTotalShares, "totalShares mismatch report's preTotalShares")
 
   // update totalPooledEther for correct SharesBurnt
   totals.totalPooledEther = tokenRebasedEvent.params.postTotalEther
   totals.save()
 
+  // @note saved Transfer event from WQ to Burner will contain wrong totalPooledEther value due to internal update of CL_BALANCE without event
   // try to find and handle SharesBurnt event which expect not yet changed totalShares
   const sharesBurntEvent = getParsedEventByName<SharesBurntEvent>(
     parsedEvents,
@@ -476,59 +424,42 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
   totals.totalShares = tokenRebasedEvent.params.postTotalShares
   totals.save()
 
-  // @todo check zero
+  // Don’t mint/distribute any protocol fee on the non-profitable Lido oracle report
+  // (when consensus layer balance delta is zero or negative).
+  // See LIP-12 for details:
+  // https://research.lido.fi/t/lip-12-on-chain-part-of-the-rewards-distribution-after-the-merge/1625
   const postCLTotalBalance = event.params.postCLBalance.plus(event.params.withdrawalsWithdrawn)
-  const totalRewards =
-    postCLTotalBalance > event.params.preCLBalance
-      ? postCLTotalBalance.minus(event.params.preCLBalance).plus(event.params.executionLayerRewardsWithdrawn)
-      : ZERO
+  if (postCLTotalBalance <= event.params.preCLBalance) {
+    return
+  }
+
+  const totalRewards = postCLTotalBalance
+    .minus(event.params.preCLBalance)
+    .plus(event.params.executionLayerRewardsWithdrawn)
+
+  const totalRewardsEntity = _loadTotalRewardEntity(event, true)!
 
   totalRewardsEntity.totalRewards = totalRewards
   totalRewardsEntity.totalRewardsWithFees = totalRewardsEntity.totalRewards
   totalRewardsEntity.mevFee = event.params.executionLayerRewardsWithdrawn
 
-  totalRewardsEntity.totalPooledEtherAfter = totals.totalPooledEther
-  totalRewardsEntity.totalSharesAfter = totals.totalShares
-
-  totalRewardsEntity.shares2mint = tokenRebasedEvent.params.sharesMintedAsFees
-  totalRewardsEntity.timeElapsed = tokenRebasedEvent.params.timeElapsed
-
-  // APR
-  _calcAPR_v2(
-    totalRewardsEntity,
-    tokenRebasedEvent.params.preTotalEther,
-    tokenRebasedEvent.params.postTotalEther,
-    tokenRebasedEvent.params.preTotalShares,
-    tokenRebasedEvent.params.postTotalShares,
-    tokenRebasedEvent.params.timeElapsed
-  )
+  _processTokenRebase(totalRewardsEntity, event, tokenRebasedEvent, parsedEvents)
 
   totalRewardsEntity.save()
 }
 
-export function handleTokenRebase(event: TokenRebasedEvent): void {
-  // we should process token rebase here as TokenRebased event fired last
-
-  // parse all events from tx receipt
-  const parsedEvents = parseEventLogs(event, event.address)
-
-  // find preceding ETHDistributed event
-  const ethDistributedEvent = getParsedEventByName<ETHDistributedEvent>(
-    parsedEvents,
-    'ETHDistributed',
-    ZERO,
-    event.logIndex
-  )
-  if (!ethDistributedEvent) {
-    log.critical('Event ETHDistributed not found when TokenRebased! block: {} txHash: {} logIdx: {} ', [
-      event.block.number.toString(),
-      event.transaction.hash.toHexString(),
-      event.logIndex.toString()
-    ])
-    return
-  }
-
-  const totalRewardsEntity = _loadTotalRewardEntity(event)
+export function _processTokenRebase(
+  entity: TotalReward,
+  ethDistributedEvent: ETHDistributedEvent,
+  tokenRebasedEvent: TokenRebasedEvent,
+  parsedEvents: ParsedEvent[]
+): void {
+  entity.totalPooledEtherBefore = tokenRebasedEvent.params.preTotalEther
+  entity.totalSharesBefore = tokenRebasedEvent.params.preTotalShares
+  entity.totalPooledEtherAfter = tokenRebasedEvent.params.postTotalEther
+  entity.totalSharesAfter = tokenRebasedEvent.params.postTotalShares
+  entity.shares2mint = tokenRebasedEvent.params.sharesMintedAsFees
+  entity.timeElapsed = tokenRebasedEvent.params.timeElapsed
 
   // extracting only 'Transfer' and 'TransferShares' pairs between ETHDistributed to TokenRebased
   // assuming the ETHDistributed and TokenRebased events are presents in tx only once
@@ -536,8 +467,8 @@ export function handleTokenRebase(event: TokenRebasedEvent): void {
     parsedEvents,
     'Transfer',
     'TransferShares',
-    ethDistributedEvent.logIndex, // start from ETHDistributed event itself
-    event.logIndex // and to the TokenRebased event
+    ethDistributedEvent.logIndex, // start from ETHDistributed event
+    tokenRebasedEvent.logIndex // and to the TokenRebased event
   )
 
   let sharesToTreasury = ZERO
@@ -555,15 +486,19 @@ export function handleTokenRebase(event: TokenRebasedEvent): void {
     // process only mint events
     if (eventTransfer.params.from == ZERO_ADDRESS) {
       log.warning('eventTransfer.params.to {}', [eventTransfer.params.to.toHexString()])
+
       if (eventTransfer.params.to == treasureAddress) {
+        // mint to treasure
         sharesToTreasury = sharesToTreasury.plus(eventTransferShares.params.sharesValue)
         treasuryFee = treasuryFee.plus(eventTransfer.params.value)
+
         log.warning('sharesToTreasury": transfer  {} total {} totalFee {}', [
           eventTransferShares.params.sharesValue.toString(),
           sharesToTreasury.toString(),
           treasuryFee.toString()
         ])
       } else {
+        // mint to SR module
         sharesToOperators = sharesToOperators.plus(eventTransferShares.params.sharesValue)
         operatorsFee = operatorsFee.plus(eventTransfer.params.value)
 
@@ -576,48 +511,144 @@ export function handleTokenRebase(event: TokenRebasedEvent): void {
     }
   }
 
-  // totalRewardsEntity.sharesToTreasury = sharesToTreasury
-  // totalRewardsEntity.treasuryFee = treasuryFee
-  // totalRewardsEntity.sharesToOperators = sharesToOperators
-  // totalRewardsEntity.operatorsFee = operatorsFee
-  // totalRewardsEntity.totalFee = treasuryFee.plus(operatorsFee)
-  // totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewardsWithFees.minus(totalRewardsEntity.totalFee)
-  if (totalRewardsEntity.sharesToTreasury != sharesToTreasury) {
-    log.warning('totalRewardsEntity.sharesToTreasury != sharesToTreasury: {} != {}', [
-      totalRewardsEntity.sharesToTreasury.toString(),
-      sharesToTreasury.toString()
-    ])
-  }
-  if (totalRewardsEntity.sharesToOperators != sharesToOperators) {
-    log.warning('totalRewardsEntity.sharesToOperators != sharesToOperators: {} != {}', [
-      totalRewardsEntity.sharesToOperators.toString(),
-      sharesToOperators.toString()
-    ])
-  }
+  entity.sharesToTreasury = sharesToTreasury
+  entity.treasuryFee = treasuryFee
+  entity.sharesToOperators = sharesToOperators
+  entity.operatorsFee = operatorsFee
+  entity.totalFee = treasuryFee.plus(operatorsFee)
+  entity.totalRewards = entity.totalRewardsWithFees.minus(entity.totalFee)
 
-  if (totalRewardsEntity.shares2mint != sharesToTreasury.plus(sharesToOperators)) {
+  if (entity.shares2mint != sharesToTreasury.plus(sharesToOperators)) {
     log.critical(
       'totalRewardsEntity.shares2mint != sharesToTreasury + sharesToOperators: shares2mint {} sharesToTreasury {} sharesToOperators {}',
-      [totalRewardsEntity.shares2mint.toString(), sharesToTreasury.toString(), sharesToOperators.toString()]
+      [entity.shares2mint.toString(), sharesToTreasury.toString(), sharesToOperators.toString()]
     )
   }
+  // @todo calc for compatibility
+  // entity.feeBasis =
+  // entity.treasuryFeeBasisPoints =
+  // entity.insuranceFeeBasisPoints =
+  // entity.operatorsFeeBasisPoints =
 
-  assert(
-    totalRewardsEntity.shares2mint == sharesToTreasury.plus(sharesToOperators),
-    "shares2mint doesn't match sharesToTreasury+sharesToOperators"
+  // APR
+  _calcAPR_v2(
+    entity,
+    tokenRebasedEvent.params.preTotalEther,
+    tokenRebasedEvent.params.postTotalEther,
+    tokenRebasedEvent.params.preTotalShares,
+    tokenRebasedEvent.params.postTotalShares,
+    tokenRebasedEvent.params.timeElapsed
   )
 
-  // @todo calc
-  // totalRewardsEntity.feeBasis = CurrentFee.feeBasisPoints!
-  // totalRewardsEntity.treasuryFeeBasisPoints =
-  //   CurrentFee.treasuryFeeBasisPoints!
-  // totalRewardsEntity.insuranceFeeBasisPoints =
-  //   CurrentFee.insuranceFeeBasisPoints!
-  // totalRewardsEntity.operatorsFeeBasisPoints =
-  //   CurrentFee.operatorsFeeBasisPoints!
-
-  totalRewardsEntity.save()
+  entity.save()
 }
+// export function handleTokenRebase(event: TokenRebasedEvent): void {
+//   // we should process token rebase here as TokenRebased event fired last
+//   const totalRewardsEntity = _loadTotalRewardEntity(event)
+//   if (!totalRewardsEntity) {
+//     return
+//   }
+
+//   // parse all events from tx receipt
+//   const parsedEvents = parseEventLogs(event, event.address)
+
+//   // find preceding ETHDistributed event
+//   const ethDistributedEvent = getParsedEventByName<ETHDistributedEvent>(
+//     parsedEvents,
+//     'ETHDistributed',
+//     ZERO,
+//     event.logIndex
+//   )
+//   if (!ethDistributedEvent) {
+//     log.critical('Event ETHDistributed not found when TokenRebased! block: {} txHash: {} logIdx: {} ', [
+//       event.block.number.toString(),
+//       event.transaction.hash.toHexString(),
+//       event.logIndex.toString()
+//     ])
+//     return
+//   }
+
+//   // extracting only 'Transfer' and 'TransferShares' pairs between ETHDistributed to TokenRebased
+//   // assuming the ETHDistributed and TokenRebased events are presents in tx only once
+//   const transferEventPairs = extractPairedEvent(
+//     parsedEvents,
+//     'Transfer',
+//     'TransferShares',
+//     ethDistributedEvent.logIndex, // start from ETHDistributed event itself
+//     event.logIndex // and to the TokenRebased event
+//   )
+
+//   let sharesToTreasury = ZERO
+//   let sharesToOperators = ZERO
+//   let treasuryFee = ZERO
+//   let operatorsFee = ZERO
+
+//   // NB: there is no insurance fund anymore since v2
+//   for (let i = 0; i < transferEventPairs.length; i++) {
+//     const eventTransfer = getParsedEvent<TransferEvent>(transferEventPairs[i], 0)
+//     const eventTransferShares = getParsedEvent<TransferSharesEvent>(transferEventPairs[i], 1)
+
+//     const treasureAddress = getAddress('TREASURE')
+//     log.warning('treasureAddress {}', [treasureAddress.toHexString()])
+//     // process only mint events
+//     if (eventTransfer.params.from == ZERO_ADDRESS) {
+//       log.warning('eventTransfer.params.to {}', [eventTransfer.params.to.toHexString()])
+
+//       if (eventTransfer.params.to == treasureAddress) {
+//         sharesToTreasury = sharesToTreasury.plus(eventTransferShares.params.sharesValue)
+//         treasuryFee = treasuryFee.plus(eventTransfer.params.value)
+
+//         log.warning('sharesToTreasury": transfer  {} total {} totalFee {}', [
+//           eventTransferShares.params.sharesValue.toString(),
+//           sharesToTreasury.toString(),
+//           treasuryFee.toString()
+//         ])
+//       } else {
+//         sharesToOperators = sharesToOperators.plus(eventTransferShares.params.sharesValue)
+//         operatorsFee = operatorsFee.plus(eventTransfer.params.value)
+
+//         log.warning('operatorsFee: transfer {} total {} totalFee {}', [
+//           eventTransferShares.params.sharesValue.toString(),
+//           sharesToOperators.toString(),
+//           operatorsFee.toString()
+//         ])
+//       }
+//     }
+//   }
+
+//   // totalRewardsEntity.sharesToTreasury = sharesToTreasury
+//   // totalRewardsEntity.treasuryFee = treasuryFee
+//   // totalRewardsEntity.sharesToOperators = sharesToOperators
+//   // totalRewardsEntity.operatorsFee = operatorsFee
+//   // totalRewardsEntity.totalFee = treasuryFee.plus(operatorsFee)
+//   // totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewardsWithFees.minus(totalRewardsEntity.totalFee)
+//   if (totalRewardsEntity.sharesToTreasury != sharesToTreasury) {
+//     log.critical('totalRewardsEntity.sharesToTreasury != sharesToTreasury: {} != {}', [
+//       totalRewardsEntity.sharesToTreasury.toString(),
+//       sharesToTreasury.toString()
+//     ])
+//   }
+//   if (totalRewardsEntity.sharesToOperators != sharesToOperators) {
+//     log.critical('totalRewardsEntity.sharesToOperators != sharesToOperators: {} != {}', [
+//       totalRewardsEntity.sharesToOperators.toString(),
+//       sharesToOperators.toString()
+//     ])
+//   }
+
+//   if (totalRewardsEntity.shares2mint != sharesToTreasury.plus(sharesToOperators)) {
+//     log.critical(
+//       'totalRewardsEntity.shares2mint != sharesToTreasury + sharesToOperators: shares2mint {} sharesToTreasury {} sharesToOperators {}',
+//       [totalRewardsEntity.shares2mint.toString(), sharesToTreasury.toString(), sharesToOperators.toString()]
+//     )
+//   }
+
+//   assert(
+//     totalRewardsEntity.shares2mint == sharesToTreasury.plus(sharesToOperators),
+//     "shares2mint doesn't match sharesToTreasury+sharesToOperators"
+//   )
+
+//   totalRewardsEntity.save()
+// }
 
 export function handleApproval(event: ApprovalEvent): void {
   let entity = new LidoApproval(event.transaction.hash.concatI32(event.logIndex.toI32()))
@@ -749,7 +780,7 @@ export function handleBeaconValidatorsUpdated(_event: BeaconValidatorsUpdatedEve
 
 function _fixTotalPooledEther(): void {
   const realPooledEther = Lido.bind(getAddress('LIDO')).getTotalPooledEther()
-  const totals = _loadTotalsEntity()
+  const totals = _loadTotalsEntity(true)!
   totals.totalPooledEther = realPooledEther
   totals.save()
 }

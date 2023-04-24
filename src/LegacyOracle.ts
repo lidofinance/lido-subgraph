@@ -2,7 +2,7 @@ import {
   AllowedBeaconBalanceAnnualRelativeIncreaseSet as AllowedBeaconBalanceAnnualRelativeIncreaseSetEvent,
   AllowedBeaconBalanceRelativeDecreaseSet as AllowedBeaconBalanceRelativeDecreaseSetEvent,
   BeaconReportReceiverSet as BeaconReportReceiverSetEvent,
-  BeaconReported,
+  // BeaconReported,
   BeaconSpecSet as BeaconSpecSetEvent,
   Completed as CompletedEvent,
   ContractVersionSet as ContractVersionSetEvent,
@@ -28,20 +28,19 @@ import {
   _loadStatsEntity,
   _loadTotalRewardEntity,
   _loadTotalsEntity,
-  _updateHolders,
-  _updateTransferShares,
-  isOracleV2
+  isLidoV2
 } from './helpers'
-import { ELRewardsReceived, MevTxFeeReceived, TokenRebased } from '../generated/Lido/Lido'
+import { ELRewardsReceived, MevTxFeeReceived } from '../generated/Lido/Lido'
 import { getParsedEventByName, parseEventLogs } from './parser'
 import { ethereum } from '@graphprotocol/graph-ts'
 
 export function handleCompleted(event: CompletedEvent): void {
-  let stats = _loadStatsEntity()
-  let previousCompleted = OracleCompleted.load(stats.lastOracleCompletedId.toString())
+  // keep backward compatibility
+  const stats = _loadStatsEntity()
+  const previousCompleted = OracleCompleted.load(stats.lastOracleCompletedId.toString())
   stats.lastOracleCompletedId = stats.lastOracleCompletedId.plus(ONE)
 
-  let newCompleted = new OracleCompleted(stats.lastOracleCompletedId.toString())
+  const newCompleted = new OracleCompleted(stats.lastOracleCompletedId.toString())
   newCompleted.epochId = event.params.epochId
   newCompleted.beaconBalance = event.params.beaconBalance
   newCompleted.beaconValidators = event.params.beaconValidators
@@ -53,7 +52,6 @@ export function handleCompleted(event: CompletedEvent): void {
   newCompleted.save()
   stats.save()
 
-  // backward compatibility
   const config = _loadOracleConfig()
 
   const beaconReportEntity = new BeaconReport(event.transaction.hash.concatI32(event.logIndex.toI32()))
@@ -67,29 +65,13 @@ export function handleCompleted(event: CompletedEvent): void {
   expectedEpochEntity.epochId = event.params.epochId.plus(config.epochsPerFrame)
   expectedEpochEntity.save()
 
-
-  if (isOracleV2()) {
-    // skip future totalRewards processing
+  if (isLidoV2()) {
+    // skip in favor of ETHDistributed event handler
     return
   }
 
-  // Totals are already non-null on first oracle report
-  const totals = _loadTotalsEntity()
-
-  // Create an empty TotalReward entity that will be filled on Transfer events
-  // We know that in this transaction there will be Transfer events which we can identify by existence of TotalReward entity with transaction hash as its id
-  const totalRewardsEntity = _loadTotalRewardEntity(event)
-
-  // save prev values
-  totalRewardsEntity.totalPooledEtherBefore = totals.totalPooledEther
-  totalRewardsEntity.totalSharesBefore = totals.totalShares
-
-  // calc reward
-  let oldBeaconValidators = previousCompleted ? previousCompleted.beaconValidators : ZERO
-  let oldBeaconBalance = previousCompleted ? previousCompleted.beaconBalance : ZERO
-  let newBeaconValidators = event.params.beaconValidators
-  let newBeaconBalance = event.params.beaconBalance
-  let appearedValidators = newBeaconValidators.minus(oldBeaconValidators)
+  // Totals should be already non-null on first oracle report
+  const totals = _loadTotalsEntity()!
 
   /**
    Appeared validators can be negative if active keys are deleted, which can happen on Testnet.
@@ -115,39 +97,48 @@ export function handleCompleted(event: CompletedEvent): void {
    This would increase totalPooledEther until an oracle report is made.
   **/
 
-  let appearedValidatorsDeposits = appearedValidators.gt(ZERO) ? appearedValidators.times(DEPOSIT_AMOUNT) : ZERO
-  let rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
-  let rewards = newBeaconBalance.minus(rewardBase)
+  const oldBeaconValidators = previousCompleted ? previousCompleted.beaconValidators : ZERO
+  const oldBeaconBalance = previousCompleted ? previousCompleted.beaconBalance : ZERO
+  const newBeaconValidators = event.params.beaconValidators
+  const newBeaconBalance = event.params.beaconBalance
 
-  // parse all events from tx receipt
+  const appearedValidators = newBeaconValidators.minus(oldBeaconValidators)
+  const appearedValidatorsDeposits = appearedValidators > ZERO ? appearedValidators.times(DEPOSIT_AMOUNT) : ZERO
+  const rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
+
+  // try to find MEV rewards, parse all events from tx receipt
   const parsedEvents = parseEventLogs(event)
-  const elRewardsReceivedEvent = getParsedEventByName<ELRewardsReceived>(
-    parsedEvents,
-    'ELRewardsReceived',
-    event.logIndex
-  )
-  const mevTxFeeReceivedEvent = getParsedEventByName<MevTxFeeReceived>(parsedEvents, 'MevTxFeeReceived', event.logIndex)
+  const elRewardsEvent = getParsedEventByName<ELRewardsReceived>(parsedEvents, 'ELRewardsReceived', event.logIndex)
+  const mevTxFeeEvent = getParsedEventByName<MevTxFeeReceived>(parsedEvents, 'MevTxFeeReceived', event.logIndex)
+  const mevFee = elRewardsEvent ? elRewardsEvent.params.amount : mevTxFeeEvent ? mevTxFeeEvent.params.amount : ZERO
 
-  totalRewardsEntity.mevFee = elRewardsReceivedEvent
-    ? elRewardsReceivedEvent.params.amount
-    : mevTxFeeReceivedEvent
-    ? mevTxFeeReceivedEvent.params.amount
-    : ZERO
-  rewards = rewards.plus(totalRewardsEntity.mevFee)
+  const rewards = newBeaconBalance.minus(rewardBase).plus(mevFee)
 
-  // Increasing or decreasing totals
+  // Keeping data before increase
+  const totalPooledEtherBefore = totals.totalPooledEther
+  const totalSharesBefore = totals.totalShares
+
+  // totalPooledEtherAfter
   totals.totalPooledEther = totals.totalPooledEther.plus(rewards)
-  totalRewardsEntity.totalPooledEtherAfter = totals.totalPooledEther
 
   // Don’t mint/distribute any protocol fee on the non-profitable Lido oracle report
   // (when beacon chain balance delta is zero or negative).
   // See ADR #3 for details: https://research.lido.fi/t/rewards-distribution-after-the-merge-architecture-decision-record/1535
-  if (newBeaconBalance.le(rewardBase)) {
+  if (newBeaconBalance <= rewardBase) {
     totals.save()
-    totalRewardsEntity.totalSharesAfter = totals.totalShares
-    totalRewardsEntity.save()
     return
   }
+
+  // Create an empty TotalReward entity that will be filled on Transfer events
+  // We know that in this transaction there will be Transfer events which we can identify by existence of TotalReward entity with transaction hash as its id
+  const totalRewardsEntity = _loadTotalRewardEntity(event, true)!
+
+  // save prev values
+  totalRewardsEntity.totalPooledEtherBefore = totalPooledEtherBefore
+  totalRewardsEntity.totalSharesBefore = totalSharesBefore
+  totalRewardsEntity.totalPooledEtherAfter = totals.totalPooledEther
+
+  totalRewardsEntity.mevFee = mevFee
 
   totalRewardsEntity.totalRewardsWithFees = rewards
   // Setting totalRewards to totalRewardsWithFees so we can subtract fees from it
@@ -226,34 +217,68 @@ export function handleCompleted(event: CompletedEvent): void {
     totalRewardsEntity.dustSharesToTreasury = ZERO
   }
 
-  // find PostTotalShares logIndex
-  // if event absent, we should calc values
-  const postTotalSharesEvent = getParsedEventByName<PostTotalSharesEvent>(
-    parsedEvents,
-    'PostTotalShares',
-    event.logIndex
+  // calc preliminarily APR
+  // will be recalculated in PostTotalShares handler
+  const timeElapsed = previousCompleted ? newCompleted.blockTime.minus(previousCompleted.blockTime) : ZERO
+  totalRewardsEntity.timeElapsed = timeElapsed
+  _calcAPR_v1(
+    totalRewardsEntity,
+    totalRewardsEntity.totalPooledEtherBefore,
+    totalRewardsEntity.totalPooledEtherAfter,
+    timeElapsed,
+    totalRewardsEntity.feeBasis
   )
-  // todo assert require if upgraded to PostTotalShares
-  if (postTotalSharesEvent) {
-    totalRewardsEntity.timeElapsed = postTotalSharesEvent.params.timeElapsed
-    _calcAPR_v1(
-      totalRewardsEntity,
-      postTotalSharesEvent.params.preTotalPooledEther,
-      postTotalSharesEvent.params.postTotalPooledEther,
-      postTotalSharesEvent.params.timeElapsed,
-      curFee.feeBasisPoints
-    )
-  } else {
-    const timeElapsed = previousCompleted ? newCompleted.blockTime.minus(previousCompleted.blockTime) : ZERO
-    totalRewardsEntity.timeElapsed = timeElapsed
-    _calcAPR_v1(
-      totalRewardsEntity,
-      totalRewardsEntity.totalPooledEtherBefore,
-      totalRewardsEntity.totalPooledEtherAfter,
-      timeElapsed,
-      curFee.feeBasisPoints
-    )
+
+  // // find PostTotalShares logIndex
+  // // if event absent, we should calc values
+  // const postTotalSharesEvent = getParsedEventByName<PostTotalSharesEvent>(
+  //   parsedEvents,
+  //   'PostTotalShares',
+  //   event.logIndex
+  // )
+  // // todo assert require if upgraded to PostTotalShares
+  // if (postTotalSharesEvent) {
+  //   totalRewardsEntity.timeElapsed = postTotalSharesEvent.params.timeElapsed
+  //   _calcAPR_v1(
+  //     totalRewardsEntity,
+  //     postTotalSharesEvent.params.preTotalPooledEther,
+  //     postTotalSharesEvent.params.postTotalPooledEther,
+  //     postTotalSharesEvent.params.timeElapsed,
+  //     curFee.feeBasisPoints
+  //   )
+  // } else {
+  //   const timeElapsed = previousCompleted ? newCompleted.blockTime.minus(previousCompleted.blockTime) : ZERO
+  //   totalRewardsEntity.timeElapsed = timeElapsed
+  //   _calcAPR_v1(
+  //     totalRewardsEntity,
+  //     totalRewardsEntity.totalPooledEtherBefore,
+  //     totalRewardsEntity.totalPooledEtherAfter,
+  //     timeElapsed,
+  //     curFee.feeBasisPoints
+  //   )
+  // }
+  totalRewardsEntity.save()
+}
+
+export function handlePostTotalShares(event: PostTotalSharesEvent): void {
+  if (isLidoV2()) {
+    // skip in favor of TokenRebased event handler
+    return
   }
+
+  const totalRewardsEntity = _loadTotalRewardEntity(event)
+  if (!totalRewardsEntity) {
+    return
+  }
+
+  totalRewardsEntity.timeElapsed = event.params.timeElapsed
+  _calcAPR_v1(
+    totalRewardsEntity,
+    event.params.preTotalPooledEther,
+    event.params.postTotalPooledEther,
+    event.params.timeElapsed,
+    totalRewardsEntity.feeBasis
+  )
   totalRewardsEntity.save()
 }
 
