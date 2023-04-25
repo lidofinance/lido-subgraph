@@ -24,7 +24,7 @@ import { ZERO, ZERO_ADDRESS } from './constants'
 export function handleMotionCreated(event: MotionCreatedEvent): void {
   const entity = new Motion(event.params._motionId.toString())
 
-  let config = _loadConfig()
+  let config = _loadETConfig()
 
   entity.snapshotBlock = event.block.number
   entity.startDate = event.block.timestamp
@@ -136,44 +136,50 @@ export function handleRoleRevoked(event: RoleRevokedEvent): void {
 }
 
 export function handleEVMScriptExecutorChanged(event: EVMScriptExecutorChangedEvent): void {
-  const entity = _loadConfig()
+  const entity = _loadETConfig()
   entity.evmScriptExecutor = event.params._evmScriptExecutor
-  _saveConfig(entity, event)
+  entity.save()
+  // _saveETConfig(entity, event)
 }
 
 export function handleMotionDurationChanged(event: MotionDurationChangedEvent): void {
-  const entity = _loadConfig()
+  const entity = _loadETConfig()
   entity.motionDuration = event.params._motionDuration
-  _saveConfig(entity, event)
+  entity.save()
+  //_saveETConfig(entity, event)
 }
 
 export function handleMotionsCountLimitChanged(event: MotionsCountLimitChangedEvent): void {
-  const entity = _loadConfig()
+  const entity = _loadETConfig()
   entity.motionsCountLimit = event.params._newMotionsCountLimit
-  _saveConfig(entity, event)
+  entity.save()
+  //_saveETConfig(entity, event)
 }
 
 export function handleObjectionsThresholdChanged(event: ObjectionsThresholdChangedEvent): void {
-  const entity = _loadConfig()
+  const entity = _loadETConfig()
   entity.objectionsThreshold = event.params._newThreshold
-  _saveConfig(entity, event)
+  entity.save()
+  //_saveETConfig(entity, event)
 }
 
 export function handlePaused(event: PausedEvent): void {
-  const entity = _loadConfig()
+  const entity = _loadETConfig()
   entity.isPaused = true
-  _saveConfig(entity, event)
+  entity.save()
+  //_saveETConfig(entity, event)
 }
 
 export function handleUnpaused(event: UnpausedEvent): void {
-  const entity = _loadConfig()
+  const entity = _loadETConfig()
   entity.isPaused = false
-  _saveConfig(entity, event)
+  entity.save()
+  //_saveETConfig(entity, event)
 }
 
 export function handleRoleAdminChanged(_event: RoleAdminChangedEvent): void {}
 
-function _loadConfig(): EasyTrackConfig {
+function _loadETConfig(): EasyTrackConfig {
   let entity = EasyTrackConfig.load('')
   if (!entity) {
     entity = new EasyTrackConfig('')
@@ -187,10 +193,10 @@ function _loadConfig(): EasyTrackConfig {
   return entity
 }
 
-function _saveConfig(entity: EasyTrackConfig, event: ethereum.Event): void {
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-  entity.logIndex = event.logIndex
-  entity.save()
-}
+// function _saveETConfig(entity: EasyTrackConfig, event: ethereum.Event): void {
+//   entity.block = event.block.number
+//   entity.blockTime = event.block.timestamp
+//   entity.transactionHash = event.transaction.hash
+//   entity.logIndex = event.logIndex
+//   entity.save()
+// }

@@ -8,11 +8,12 @@ import {
   ONE,
   ORACLE_APP_ID,
   SECONDS_PER_YEAR,
-  UPG_V1_SHARES,
-  UPG_V2_BETA,
+  PROTOCOL_UPG_IDX_V1_SHARES,
+  PROTOCOL_UPG_IDX_V2,
   ZERO,
   ZERO_ADDRESS,
-  isAppVerMatchUpgId
+  isAppVerMatchUpgId,
+  isBlockMatchUpgId
 } from './constants'
 import { Transfer } from '../generated/Lido/Lido'
 
@@ -26,7 +27,9 @@ export function _loadLidoTransferEntity(event: Transfer): LidoTransfer {
     entity.block = event.block.number
     entity.blockTime = event.block.timestamp
     entity.transactionHash = event.transaction.hash
+    entity.transactionIndex = event.transaction.index
     entity.logIndex = event.logIndex
+    entity.transactionLogIndex = event.logIndex
 
     entity.value = event.params.value
     entity.shares = ZERO
@@ -55,10 +58,10 @@ export function _loadOracleReport(refSLot: BigInt, event: ethereum.Event, create
     entity.itemsProcessed = ZERO
     entity.itemsCount = ZERO
 
-    entity.block = event.block.number
-    entity.blockTime = event.block.timestamp
-    entity.transactionHash = event.transaction.hash
-    entity.logIndex = event.logIndex
+    // entity.block = event.block.number
+    // entity.blockTime = event.block.timestamp
+    // entity.transactionHash = event.transaction.hash
+    // entity.logIndex = event.logIndex
   }
 
   return entity
@@ -72,7 +75,9 @@ export function _loadTotalRewardEntity(event: ethereum.Event, create: bool = fal
     entity.block = event.block.number
     entity.blockTime = event.block.timestamp
     entity.transactionHash = event.transaction.hash
+    entity.transactionIndex = event.transaction.index
     entity.logIndex = event.logIndex
+    entity.transactionLogIndex = event.logIndex
 
     entity.feeBasis = ZERO
     entity.treasuryFeeBasisPoints = ZERO
@@ -290,25 +295,29 @@ export function _calcAPR_v2(
   entity.aprBeforeFees = entity.apr
 }
 
-export const checkAppVer = (appId: Bytes | null, minUpgId: i32): bool => {
+export const checkAppVer = (block: BigInt, appId: Bytes | null, minUpgId: i32): bool => {
+  // first we check block for faster detection
+  // if block check fails, try to check app ver
+  if (!block.isZero() && isBlockMatchUpgId(block, minUpgId)) return true
+  // if no appId provided or there is no records about appId in DB, assuming check pass
   if (!appId) return true
   const appVer = AppVersion.load(appId)
   if (!appVer) return true
   return isAppVerMatchUpgId(appId, appVer.major, minUpgId)
 }
 
-export function isLidoV2(): bool {
-  return checkAppVer(LIDO_APP_ID, UPG_V2_BETA)
+export function isLidoV2(block: BigInt = ZERO): bool {
+  return checkAppVer(block, LIDO_APP_ID, PROTOCOL_UPG_IDX_V2)
 }
 
-export function isLidoTransferShares(): bool {
-  return checkAppVer(LIDO_APP_ID, UPG_V1_SHARES)
+export function isLidoTransferShares(block: BigInt = ZERO): bool {
+  return checkAppVer(block, LIDO_APP_ID, PROTOCOL_UPG_IDX_V1_SHARES)
 }
 
-export function isOracleV2(): bool {
-  return checkAppVer(ORACLE_APP_ID, UPG_V2_BETA)
-}
+// export function isOracleV2(): bool {
+//   return checkAppVer(ORACLE_APP_ID, UPG_V2_BETA)
+// }
 
-export function isNORV2(): bool {
-  return checkAppVer(NOR_APP_ID, UPG_V2_BETA)
-}
+// export function isNORV2(): bool {
+//   return checkAppVer(NOR_APP_ID, UPG_V2_BETA)
+// }

@@ -15,7 +15,7 @@ import { NodeOperatorsRegistry } from '../generated/LegacyOracle/NodeOperatorsRe
 import {
   BeaconReport,
   CurrentFee,
-  NodeOperatorsShares,
+  NodeOperatorsShare,
   OracleCompleted,
   OracleConfig,
   OracleExpectedEpoch,
@@ -65,7 +65,7 @@ export function handleCompleted(event: CompletedEvent): void {
   expectedEpochEntity.epochId = event.params.epochId.plus(config.epochsPerFrame)
   expectedEpochEntity.save()
 
-  if (isLidoV2()) {
+  if (isLidoV2(event.block.number)) {
     // skip in favor of ETHDistributed event handler
     return
   }
@@ -193,13 +193,13 @@ export function handleCompleted(event: CompletedEvent): void {
     // Incrementing total of actual shares distributed
     sharesToOperatorsActual = sharesToOperatorsActual.plus(shares)
 
-    const nodeOperatorsShares = new NodeOperatorsShares(event.transaction.hash.concat(addr))
-    nodeOperatorsShares.totalReward = event.transaction.hash
+    const nodeOperatorsShare = new NodeOperatorsShare(event.transaction.hash.concat(addr))
+    nodeOperatorsShare.totalReward = event.transaction.hash
 
-    nodeOperatorsShares.address = addr
-    nodeOperatorsShares.shares = shares
+    nodeOperatorsShare.address = addr
+    nodeOperatorsShare.shares = shares
 
-    nodeOperatorsShares.save()
+    nodeOperatorsShare.save()
   }
 
   // sharesToTreasury either:w11
@@ -261,7 +261,7 @@ export function handleCompleted(event: CompletedEvent): void {
 }
 
 export function handlePostTotalShares(event: PostTotalSharesEvent): void {
-  if (isLidoV2()) {
+  if (isLidoV2(event.block.number)) {
     // skip in favor of TokenRebased event handler
     return
   }
@@ -310,19 +310,22 @@ export function handleMemberRemoved(event: MemberRemovedEvent): void {
 export function handleQuorumChanged(event: QuorumChangedEvent): void {
   const entity = _loadOracleConfig()
   entity.quorum = event.params.quorum
-  _saveOracleConfig(entity, event)
+  entity.save()
+  //_saveOracleConfig(entity, event)
 }
 
 export function handleContractVersionSet(event: ContractVersionSetEvent): void {
   const entity = _loadOracleConfig()
   entity.contractVersion = event.params.version
-  _saveOracleConfig(entity, event)
+  entity.save()
+  //_saveOracleConfig(entity, event)
 }
 
 export function handleBeaconReportReceiverSet(event: BeaconReportReceiverSetEvent): void {
   const entity = _loadOracleConfig()
   entity.beaconReportReceiver = event.params.callback
-  _saveOracleConfig(entity, event)
+  entity.save()
+  //_saveOracleConfig(entity, event)
 }
 
 export function handleBeaconSpecSet(event: BeaconSpecSetEvent): void {
@@ -331,7 +334,8 @@ export function handleBeaconSpecSet(event: BeaconSpecSetEvent): void {
   entity.slotsPerEpoch = event.params.slotsPerEpoch
   entity.secondsPerSlot = event.params.secondsPerSlot
   entity.genesisTime = event.params.genesisTime
-  _saveOracleConfig(entity, event)
+  entity.save()
+  //_saveOracleConfig(entity, event)
 }
 
 export function handleAllowedBeaconBalanceRelativeDecreaseSet(
@@ -339,7 +343,8 @@ export function handleAllowedBeaconBalanceRelativeDecreaseSet(
 ): void {
   const entity = _loadOracleConfig()
   entity.allowedBeaconBalanceRelativeDecrease = event.params.value
-  _saveOracleConfig(entity, event)
+  entity.save()
+  //_saveOracleConfig(entity, event)
 }
 
 export function handleAllowedBeaconBalanceAnnualRelativeIncreaseSet(
@@ -347,7 +352,8 @@ export function handleAllowedBeaconBalanceAnnualRelativeIncreaseSet(
 ): void {
   const entity = _loadOracleConfig()
   entity.allowedBeaconBalanceAnnualRelativeIncrease = event.params.value
-  _saveOracleConfig(entity, event)
+  entity.save()
+  //_saveOracleConfig(entity, event)
 }
 
 export function _loadOracleConfig(): OracleConfig {
@@ -371,10 +377,10 @@ export function _loadOracleConfig(): OracleConfig {
   return entity
 }
 
-export function _saveOracleConfig(entity: OracleConfig, event: ethereum.Event): void {
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-  entity.logIndex = event.logIndex
-  entity.save()
-}
+// export function _saveOracleConfig(entity: OracleConfig, event: ethereum.Event): void {
+//   entity.block = event.block.number
+//   entity.blockTime = event.block.timestamp
+//   entity.transactionHash = event.transaction.hash
+//   entity.logIndex = event.logIndex
+//   entity.save()
+// }

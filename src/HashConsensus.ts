@@ -1,7 +1,8 @@
 import { FrameConfigSet as FrameConfigSetEvent , HashConsensus} from '../generated/HashConsensus/HashConsensus'
-import { NodeOperatorsShares, NodeOperatorFees } from '../generated/schema'
-import { _loadOracleConfig, _saveOracleConfig } from './LegacyOracle'
-import { ZERO, getAddress } from './constants'
+import {
+  _loadOracleConfig,
+  // _saveOracleConfig
+} from './LegacyOracle'
 
 
 export function handleFrameConfigSet(event: FrameConfigSetEvent): void {
@@ -13,5 +14,6 @@ export function handleFrameConfigSet(event: FrameConfigSetEvent): void {
   entity.slotsPerEpoch = chainConfig.getSlotsPerEpoch()
   entity.secondsPerSlot = chainConfig.getGenesisTime()
   entity.genesisTime = chainConfig.getGenesisTime()
-  _saveOracleConfig(entity, event)
+  entity.save()
+  //_saveOracleConfig(entity, event)
 }

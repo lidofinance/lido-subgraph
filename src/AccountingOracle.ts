@@ -4,7 +4,7 @@ import {
   ProcessingStarted as ProcessingStartedEvent
 } from '../generated/AccountingOracle/AccountingOracle'
 import { StakingRouter } from '../generated/AccountingOracle/StakingRouter'
-import { NodeOperatorsShares, NodeOperatorFees } from '../generated/schema'
+import { NodeOperatorsShare, NodeOperatorFee } from '../generated/schema'
 import { ZERO, getAddress } from './constants'
 
 import { _loadOracleReport } from './helpers'
@@ -38,29 +38,34 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmittedEvent): void {
 
   const burnerAddress = getAddress('BURNER')
   for (let i = 0; i < transferEventPairs.length; i++) {
-    const eventTransfer = getParsedEvent<TransferEvent>(transferEventPairs[0], 0)
-    const eventTransferShares = getParsedEvent<TransferSharesEvent>(transferEventPairs[0], 1)
+    const eventTransfer = getParsedEvent<TransferEvent>(transferEventPairs[i], 0)
+    const eventTransferShares = getParsedEvent<TransferSharesEvent>(transferEventPairs[i], 1)
 
     // creating reward records for NOs to preserve data structure compatibility
     for (let j = 0; j < modules.length; j++) {
       // process transfers from module's addresses, excluding transfers to burner
       if (eventTransfer.params.from == modules[j].stakingModuleAddress && eventTransfer.params.to != burnerAddress) {
-        const nodeOperatorFees = new NodeOperatorFees(
-          eventTransfer.transaction.hash.concatI32(eventTransfer.logIndex.toI32())
-        )
-        // Reference to TotalReward entity
-        nodeOperatorFees.totalReward = oracleReportEntity.hash
-        nodeOperatorFees.address = eventTransfer.params.to
-        nodeOperatorFees.fee = eventTransfer.params.value
-        nodeOperatorFees.save()
+        let id = eventTransfer.transaction.hash.concatI32(eventTransfer.logIndex.toI32())
 
-        const nodeOperatorsShares = new NodeOperatorsShares(event.transaction.hash.concat(eventTransfer.params.to))
+        // @todo merge NodeOperatorFee & NodeOperatorsShare ?
+        const nodeOperatorFee = new NodeOperatorFee(id)
         // Reference to TotalReward entity
-        nodeOperatorsShares.totalReward = oracleReportEntity.hash
-        nodeOperatorsShares.address = eventTransfer.params.to
-        nodeOperatorsShares.shares = eventTransferShares.params.sharesValue
-        nodeOperatorsShares.save()
-        break
+        nodeOperatorFee.totalReward = oracleReportEntity.totalReward
+        nodeOperatorFee.address = eventTransfer.params.to
+        nodeOperatorFee.fee = eventTransfer.params.value
+        nodeOperatorFee.save()
+
+        id = event.transaction.hash.concat(eventTransfer.params.to)
+        let nodeOperatorsShare = NodeOperatorsShare.load(id)
+        if (!nodeOperatorsShare) {
+          nodeOperatorsShare = new NodeOperatorsShare(id)
+          // Reference to TotalReward entity
+          nodeOperatorsShare.totalReward = oracleReportEntity.totalReward
+          nodeOperatorsShare.address = eventTransfer.params.to
+          nodeOperatorsShare.shares = ZERO
+        }
+        nodeOperatorsShare.shares = nodeOperatorsShare.shares.plus(eventTransferShares.params.sharesValue)
+        nodeOperatorsShare.save()
       }
     }
   }

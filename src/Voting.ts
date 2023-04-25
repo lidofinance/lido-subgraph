@@ -81,25 +81,29 @@ export function handleExecuteVote(event: ExecuteVoteEvent): void {
 export function handleChangeSupportRequired(event: ChangeSupportRequiredEvent): void {
   const entity = _loadVotingConfig()
   entity.supportRequiredPct = event.params.supportRequiredPct
-  _saveVotingConfig(entity, event)
+  entity.save()
+  //_saveVotingConfig(entity, event)
 }
 
 export function handleChangeMinQuorum(event: ChangeMinQuorumEvent): void {
   const entity = _loadVotingConfig()
   entity.minAcceptQuorumPct = event.params.minAcceptQuorumPct
-  _saveVotingConfig(entity, event)
+  entity.save()
+  //_saveVotingConfig(entity, event)
 }
 
 export function handleChangeVoteTime(event: ChangeVoteTimeEvent): void {
   const entity = _loadVotingConfig()
   entity.voteTime = event.params.voteTime
-  _saveVotingConfig(entity, event)
+  entity.save()
+  //_saveVotingConfig(entity, event)
 }
 
 export function handleChangeObjectionPhaseTime(event: ChangeObjectionPhaseTimeEvent): void {
   const entity = _loadVotingConfig()
   entity.objectionPhaseTime = event.params.objectionPhaseTime
-  _saveVotingConfig(entity, event)
+  entity.save()
+  //_saveVotingConfig(entity, event)
 }
 
 function _loadVotingConfig(): VotingConfig {
@@ -116,10 +120,10 @@ function _loadVotingConfig(): VotingConfig {
   return entity
 }
 
-function _saveVotingConfig(entity: VotingConfig, event: ethereum.Event): void {
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-  entity.logIndex = event.logIndex
-  entity.save()
-}
+// function _saveVotingConfig(entity: VotingConfig, event: ethereum.Event): void {
+//   entity.block = event.block.number
+//   entity.blockTime = event.block.timestamp
+//   entity.transactionHash = event.transaction.hash
+//   entity.logIndex = event.logIndex
+//   entity.save()
+// }

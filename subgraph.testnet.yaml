@@ -4,7 +4,7 @@ features:
   - grafting
   # - nonFatalErrors
 # graft:
-#   base: QmQiBdcerEFf1zLpk56YrF9Boe1HHESNrkdaZnKKRTV7VU # Subgraph ID of base subgraph
+#   base: QmcGgtMtH6qDxv1VQGzmwDpsYxLkLNaPTFw8aj2g1Rh2px # Subgraph ID of base subgraph
 #   block: 8710746 # Block number
 schema:
   file: ./schema.graphql
@@ -50,7 +50,7 @@ dataSources:
         - LidoTransfer
         - LidoSubmission
         - SharesBurn
-        - LidoApproval
+        # - LidoApproval
         # - LidoUnbuffered
         # - LidoWithdrawal
       abis:
@@ -106,8 +106,8 @@ dataSources:
           handler: handleStakingResumed
         - event: StakingPaused()
           handler: handleStakingPaused
-        - event: Approval(indexed address,indexed address,uint256)
-          handler: handleApproval
+        # - event: Approval(indexed address,indexed address,uint256)
+        #   handler: handleApproval
         - event: FeeSet(uint16)
           handler: handleFeeSet
         - event: FeeDistributionSet(uint16,uint16,uint16)
@@ -134,6 +134,7 @@ dataSources:
     source:
       address: '0x24d8451BC07e7aF4Ba94F69aCDD9ad3c6579D9FB'
       abi: LegacyOracle
+
       # startBlock: 8710746
       startBlock: 4533286
     mapping:
@@ -360,6 +361,7 @@ dataSources:
     source:
       address: '0xa3Dbd317E53D363176359E10948BA0b1c0A4c820'
       abi: StakingRouter
+      # startBlock: 8710746
       startBlock: 8710746
     mapping:
       kind: ethereum/events
@@ -381,6 +383,7 @@ dataSources:
     source:
       address: '0x76f358A842defa0E179a8970767CFf668Fc134d6'
       abi: AccountingOracle
+      # startBlock: 8710746
       startBlock: 8710746
     mapping:
       kind: ethereum/events
@@ -408,6 +411,7 @@ dataSources:
       address: '0xcf117961421ca9e546cd7f50bc73abcdb3039533'
       abi: WithdrawalQueue
       startBlock: 8710746
+      # startBlock: 8710746
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -447,6 +451,7 @@ dataSources:
       address: '0x8d87A8BCF8d4e542fd396D1c50223301c164417b'
       abi: HashConsensus
       startBlock: 8710746
+      # startBlock: 8710746
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

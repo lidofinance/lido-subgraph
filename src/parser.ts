@@ -57,7 +57,7 @@ export function parseEventLogs(
         if (!decodeFinished) {
           const decoded = ethereum.decode('(' + notIndexedParams.join(',') + ')', receipt.logs[i].data)
           if (!decoded) {
-            log.warning('params decode fai for event: {} tuple: {} data: {} block: {} txHash: {} logIdx: {}', [
+            log.warning('params decode fail for event: {} tuple: {} data: {} block: {} txHash: {} logIdx: {}', [
               eventParserOpts[0],
               notIndexedParams.join(','),
               receipt.logs[i].data.toHexString(),
