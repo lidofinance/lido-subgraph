@@ -198,20 +198,3 @@ PROTOCOL_UPG_APP_VERS.set(ORACLE_APP_ID_GOERLI, [
 ])
 PROTOCOL_UPG_APP_VERS.set(VOTING_APP_ID_MAINNET, [])
 PROTOCOL_UPG_APP_VERS.set(VOTING_APP_ID_GOERLI, [])
-
-export const isBlockMatchUpgId = (block: BigInt, minUpgId: i32): bool => {
-  const upgBlocks = PROTOCOL_UPG_BLOCKS.get(network)
-  if (!upgBlocks || upgBlocks.length == 0) return true
-  // note: we need a block strictly larger than upgBlock, since it
-  // is possible that there are transactions in the same block before and after the upgrade
-  return minUpgId < upgBlocks.length && upgBlocks[minUpgId] < block
-}
-
-export const isAppVerMatchUpgId = (appId: Bytes, curVer: i32, minUpgId: i32): bool => {
-  const upgVers = PROTOCOL_UPG_APP_VERS.get(appId)
-  // if no upgrades defined assuming subgraph code fully compatible with deployed contracts
-  if (!upgVers || upgVers.length == 0 || minUpgId >= upgVers.length) return true
-
-  // check requested minUpgId is defined and it's contract version is below requested curVer
-  return minUpgId < upgVers.length && upgVers[minUpgId] <= curVer
-}

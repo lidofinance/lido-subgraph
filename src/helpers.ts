@@ -1,4 +1,4 @@
-import { Bytes, ethereum, BigInt } from '@graphprotocol/graph-ts'
+import { Bytes, ethereum, BigInt, log } from '@graphprotocol/graph-ts'
 import { Total, Share, Stat, LidoTransfer, TotalReward, Holder, OracleReport, AppVersion } from '../generated/schema'
 import {
   CALCULATION_UNIT,
@@ -12,13 +12,15 @@ import {
   PROTOCOL_UPG_IDX_V2,
   ZERO,
   ZERO_ADDRESS,
-  isAppVerMatchUpgId,
-  isBlockMatchUpgId
+  PROTOCOL_UPG_APP_VERS,
+  PROTOCOL_UPG_BLOCKS,
+  network
 } from './constants'
 import { Transfer } from '../generated/Lido/Lido'
 
 export function _loadLidoTransferEntity(event: Transfer): LidoTransfer {
   const id = event.transaction.hash.concatI32(event.logIndex.toI32())
+  // const id = event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   let entity = LidoTransfer.load(id)
   if (!entity) {
     entity = new LidoTransfer(id)
@@ -168,6 +170,19 @@ export function _updateTransferShares(entity: LidoTransfer): void {
     entity.sharesBeforeDecrease = sharesFromEntity.shares
 
     if (entity.from != entity.to && !entity.shares.isZero()) {
+      // if (sharesFromEntity.shares < entity.shares) {
+      //   log.critical(
+      //     'negative shares decrease on transfer: from {} to {} sharesBefore {} sharesAfter {} tx {} log {}',
+      //     [
+      //       entity.from.toHexString(),
+      //       entity.to.toHexString(),
+      //       sharesFromEntity.shares.toString(),
+      //       entity.shares.toString(),
+      //       entity.transactionHash.toHexString(),
+      //       entity.logIndex.toString()
+      //     ]
+      //   )
+      // }
       assert(sharesFromEntity.shares >= entity.shares, 'negative shares decrease on transfer')
       sharesFromEntity.shares = sharesFromEntity.shares.minus(entity.shares)
       sharesFromEntity.save()
@@ -298,12 +313,27 @@ export function _calcAPR_v2(
 export const checkAppVer = (block: BigInt, appId: Bytes | null, minUpgId: i32): bool => {
   // first we check block for faster detection
   // if block check fails, try to check app ver
-  if (!block.isZero() && isBlockMatchUpgId(block, minUpgId)) return true
+  if (!block.isZero()) {
+    const upgBlocks = PROTOCOL_UPG_BLOCKS.get(network)
+    if (upgBlocks && minUpgId < upgBlocks.length && upgBlocks[minUpgId] != block) {
+      // note: we need a block strictly larger than upgBlock, since it
+      // is possible that there are transactions in the same block before and after the upgrade
+      return upgBlocks[minUpgId] < block
+    }
+  }
+
   // if no appId provided or there is no records about appId in DB, assuming check pass
   if (!appId) return true
+
   const appVer = AppVersion.load(appId)
   if (!appVer) return true
-  return isAppVerMatchUpgId(appId, appVer.major, minUpgId)
+
+  const upgVers = PROTOCOL_UPG_APP_VERS.get(appId)
+  // if no upgrades defined assuming subgraph code fully compatible with deployed contracts
+  if (!upgVers || upgVers.length == 0 || minUpgId >= upgVers.length) return true
+
+  // check requested minUpgId is defined and it's contract version is below requested curVer
+  return upgVers[minUpgId] <= appVer.major
 }
 
 export function isLidoV2(block: BigInt = ZERO): bool {
@@ -314,10 +344,10 @@ export function isLidoTransferShares(block: BigInt = ZERO): bool {
   return checkAppVer(block, LIDO_APP_ID, PROTOCOL_UPG_IDX_V1_SHARES)
 }
 
-// export function isOracleV2(): bool {
-//   return checkAppVer(ORACLE_APP_ID, UPG_V2_BETA)
+// export function isOracleV2(block: BigInt = ZERO): bool {
+//   return checkAppVer(block, ORACLE_APP_ID, UPG_V2_BETA)
 // }
 
-// export function isNORV2(): bool {
-//   return checkAppVer(NOR_APP_ID, UPG_V2_BETA)
+// export function isNORV2(block: BigInt = ZERO): bool {
+//   return checkAppVer(block, NOR_APP_ID, UPG_V2_BETA)
 // }

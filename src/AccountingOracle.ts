@@ -46,6 +46,7 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmittedEvent): void {
       // process transfers from module's addresses, excluding transfers to burner
       if (eventTransfer.params.from == modules[j].stakingModuleAddress && eventTransfer.params.to != burnerAddress) {
         let id = eventTransfer.transaction.hash.concatI32(eventTransfer.logIndex.toI32())
+        // let id = event.transaction.hash.toHex() + '-' + eventTransfer.logIndex.toString()
 
         // @todo merge NodeOperatorFee & NodeOperatorsShare ?
         const nodeOperatorFee = new NodeOperatorFee(id)
@@ -56,6 +57,7 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmittedEvent): void {
         nodeOperatorFee.save()
 
         id = event.transaction.hash.concat(eventTransfer.params.to)
+        // id = event.transaction.hash.toHex() + '-' + eventTransfer.params.to.toHexString()
         let nodeOperatorsShare = NodeOperatorsShare.load(id)
         if (!nodeOperatorsShare) {
           nodeOperatorsShare = new NodeOperatorsShare(id)

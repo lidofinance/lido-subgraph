@@ -194,6 +194,8 @@ export function handleCompleted(event: CompletedEvent): void {
     sharesToOperatorsActual = sharesToOperatorsActual.plus(shares)
 
     const nodeOperatorsShare = new NodeOperatorsShare(event.transaction.hash.concat(addr))
+    // const nodeOperatorsShare = new NodeOperatorsShare(event.transaction.hash.toHex() + '-' + addr.toHexString())
+
     nodeOperatorsShare.totalReward = event.transaction.hash
 
     nodeOperatorsShare.address = addr

@@ -62,6 +62,7 @@ import { wcKeyCrops } from './wcKeyCrops'
 
 export function handleSubmitted(event: SubmittedEvent): void {
   let entity = new LidoSubmission(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  // let entity = new LidoSubmission(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
 
   entity.sender = event.params.sender
   entity.amount = event.params.amount
@@ -245,6 +246,8 @@ export function handleTransfer(event: TransferEvent): void {
           // after v2 there are only transfers to SR modules
 
           const nodeOperatorFee = new NodeOperatorFee(event.transaction.hash.concatI32(event.logIndex.toI32()))
+          // const nodeOperatorFee = new NodeOperatorFee(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
+
           // Reference to TotalReward entity
           nodeOperatorFee.totalReward = totalRewardsEntity.id
           nodeOperatorFee.address = entity.to
@@ -253,6 +256,8 @@ export function handleTransfer(event: TransferEvent): void {
 
           // Entity should already exists at this point
           const nodeOperatorsShare = NodeOperatorsShare.load(event.transaction.hash.concat(entity.to))!
+          // const nodeOperatorsShare = NodeOperatorsShare.load(event.transaction.hash.toHex() + '-' + entity.to.toHexString())!
+
           if (eventTransferShares) {
             assert(entity.shares == nodeOperatorsShare.shares, 'Unexpected nodeOperatorsShares')
           } else {
@@ -279,6 +284,11 @@ export function handleTransfer(event: TransferEvent): void {
         // prior TransferShares logic
         // Submission entity should exists with the previous logIndex (as mint Transfer occurs only after Submit event)
         let submissionEntity = LidoSubmission.load(event.transaction.hash.concatI32(event.logIndex.minus(ONE).toI32()))!
+        // let submissionEntity = LidoSubmission.load(
+        //   event.transaction.hash.toHex() + '-' + event.logIndex.minus(ONE).toString()
+        // )!
+
+
         // throws error if no submissionEntity
         entity.shares = submissionEntity.shares
       }
@@ -294,6 +304,7 @@ export function handleTransfer(event: TransferEvent): void {
 export function handleSharesBurnt(event: SharesBurntEvent): void {
   // shares are burned only during oracle report from LidoBurner contract
   const id = event.transaction.hash.concatI32(event.logIndex.toI32())
+  // const id = event.transaction.hash.toHex() + '-' + event.logIndex.toString()
   let entity = SharesBurn.load(id)
   // process totals only if entity not yet exists, i.e. not yet handled before
   if (!!entity) {
@@ -332,14 +343,14 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
   txEntity.totalShares = totals.totalShares
 
   // from acc
-  // txEntity.sharesBeforeDecrease = ZERO
-  // txEntity.sharesAfterDecrease = ZERO
-  // txEntity.balanceAfterDecrease = ZERO
+  txEntity.sharesBeforeDecrease = ZERO
+  txEntity.sharesAfterDecrease = ZERO
+  txEntity.balanceAfterDecrease = ZERO
 
   // to acc
-  txEntity.sharesBeforeIncrease = ZERO
-  txEntity.sharesAfterIncrease = ZERO
-  txEntity.balanceAfterIncrease = ZERO
+  // txEntity.sharesBeforeIncrease = ZERO
+  // txEntity.sharesAfterIncrease = ZERO
+  // txEntity.balanceAfterIncrease = ZERO
 
   // txEntity.mintWithoutSubmission = false
 
