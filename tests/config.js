@@ -1,5 +1,8 @@
 export const RPC = process.env.RPC
 export const GRAPH = process.env.GRAPH
+export const GRAPH_BASIC_AUTH_USER = process.env.GRAPH_BASIC_AUTH_USER || ''
+export const GRAPH_BASIC_AUTH_PASSWORD = process.env.GRAPH_BASIC_AUTH_PASSWORD || ''
+export const GRAPH_AUTH_COOKIE = process.env.GRAPH_AUTH_COOKIE || ''
 export const LIDO_ADDRESS = process.env.LIDO_ADDRESS
 export const NOP_ADDRESS = process.env.NOP_ADDRESS
 export const ARAGON_ADDRESS = process.env.ARAGON_ADDRESS
