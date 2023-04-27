@@ -346,9 +346,9 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
   txEntity.balanceAfterDecrease = ZERO
 
   // to acc, will be set later
-  // txEntity.sharesBeforeIncrease = ZERO
-  // txEntity.sharesAfterIncrease = ZERO
-  // txEntity.balanceAfterIncrease = ZERO
+  txEntity.sharesBeforeIncrease = ZERO
+  txEntity.sharesAfterIncrease = ZERO
+  txEntity.balanceAfterIncrease = ZERO
 
   // upd account's shares and stats
   _updateTransferShares(txEntity)
