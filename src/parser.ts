@@ -32,7 +32,7 @@ export function parseEventLogs(
         const event = new ethereum.Event(
           receipt.logs[i].address,
           receipt.logs[i].logIndex,
-          receipt.logs[i].transactionLogIndex,
+          receipt.logs[i].logIndex, //transactionLogIndex=logIndex, https://github.com/graphprotocol/graph-node/pull/1618
           receipt.logs[i].logType,
           baseEvent.block,
           baseEvent.transaction,
@@ -89,7 +89,6 @@ export function parseEventLogs(
   return events
 }
 
-
 export function extractPairedEvent(
   events: ParsedEvent[],
   leftName: string,
@@ -136,7 +135,6 @@ export function extractPairedEvent(
 
   return eventPairs
 }
-
 
 export function getRightPairedEventByLeftLogIndex<T>(events: ParsedEvent[][], logIndex: BigInt): T | null {
   for (let i = 0; i < events.length; i++) {

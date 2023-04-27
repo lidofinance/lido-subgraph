@@ -25,19 +25,17 @@ import {
 } from '../generated/Lido/Lido'
 import {
   LidoSubmission,
-  Holder,
   CurrentFee,
   TotalReward,
   NodeOperatorsShare,
   NodeOperatorFee,
-  // LidoApproval,
-  Total,
+  LidoApproval,
   SharesBurn,
   LidoConfig,
   LidoTransfer
 } from '../generated/schema'
 
-import { ZERO, getAddress, ONE, CALCULATION_UNIT, ZERO_ADDRESS } from './constants'
+import { ZERO, getAddress, ONE, CALCULATION_UNIT, ZERO_ADDRESS, network } from './constants'
 import {
   parseEventLogs,
   extractPairedEvent,
@@ -74,7 +72,7 @@ export function handleSubmitted(event: SubmittedEvent): void {
   entity.transactionHash = event.transaction.hash
   entity.transactionIndex = event.transaction.index
   entity.logIndex = event.logIndex
-  entity.transactionLogIndex = event.logIndex
+  // entity.transactionLogIndex = event.logIndex
 
   // Loading totals
   const totals = _loadTotalsEntity(true)!
@@ -172,7 +170,7 @@ export function handleTransfer(event: TransferEvent): void {
     const totalRewardsEntity = TotalReward.load(event.transaction.hash)
     if (totalRewardsEntity) {
       /// @deprecated
-      entity.mintWithoutSubmission = true
+      // entity.mintWithoutSubmission = true
 
       if (isLidoV2(event.block.number)) {
         // after V2 upgrade, TotalReward is handled by handleETHDistributed
@@ -275,7 +273,7 @@ export function handleTransfer(event: TransferEvent): void {
     } else {
       // transfer after submit
       /// @deprecated
-      entity.mintWithoutSubmission = false
+      // entity.mintWithoutSubmission = false
 
       if (!eventTransferShares) {
         // prior TransferShares logic
@@ -326,7 +324,7 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
   txEntity.transactionIndex = event.transaction.index
 
   txEntity.logIndex = event.logIndex
-  txEntity.transactionLogIndex = event.logIndex
+  // txEntity.transactionLogIndex = event.logIndex
 
   txEntity.value = event.params.postRebaseTokenAmount
   txEntity.shares = event.params.sharesAmount
@@ -334,16 +332,16 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
   txEntity.totalShares = totals.totalShares
 
   // from acc
-  txEntity.sharesBeforeDecrease = ZERO
-  txEntity.sharesAfterDecrease = ZERO
-  txEntity.balanceAfterDecrease = ZERO
+  // txEntity.sharesBeforeDecrease = ZERO
+  // txEntity.sharesAfterDecrease = ZERO
+  // txEntity.balanceAfterDecrease = ZERO
 
   // to acc
   txEntity.sharesBeforeIncrease = ZERO
   txEntity.sharesAfterIncrease = ZERO
   txEntity.balanceAfterIncrease = ZERO
 
-  txEntity.mintWithoutSubmission = false
+  // txEntity.mintWithoutSubmission = false
 
   // upd account's shares and stats
   _updateTransferShares(txEntity)
@@ -552,6 +550,14 @@ export function _processTokenRebase(
   entity.save()
 }
 
+export function handleApproval(event: ApprovalEvent): void {
+  let entity = new LidoApproval(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  entity.owner = event.params.owner
+  entity.spender = event.params.spender
+  entity.value = event.params.value
+  entity.save()
+}
+
 export function handleFeeSet(event: FeeSetEvent): void {
   const curFee = _loadCurrentFee(event)
   curFee.feeBasisPoints = BigInt.fromI32(event.params.feeBasisPoints)
@@ -675,7 +681,7 @@ export function handleTestnetBlock(block: ethereum.Block): void {
     network == 'goerli' &&
     (block.number.toString() == '6014681' ||
       block.number.toString() == '6014696' ||
-    block.number.toString() == '7225143'
+      block.number.toString() == '7225143')
     // 7225313
   ) {
     _fixTotalPooledEther()

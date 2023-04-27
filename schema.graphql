@@ -40,7 +40,7 @@ type LidoTransfer @entity(immutable: true) {
   sharesBeforeIncrease: BigInt
   sharesAfterIncrease: BigInt
 
-  mintWithoutSubmission: Boolean
+  # mintWithoutSubmission: Boolean
 
   totalPooledEther: BigInt!
   totalShares: BigInt!
@@ -53,16 +53,16 @@ type LidoTransfer @entity(immutable: true) {
   transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  transactionLogIndex: BigInt!
+  # transactionLogIndex: BigInt!
 }
 
-# type LidoApproval @entity(immutable: true) {
-#   id: Bytes!
+type LidoApproval @entity(immutable: true) {
+  id: Bytes!
 
-#   owner: Bytes!
-#   spender: Bytes!
-#   value: BigInt!
-# }
+  owner: Bytes!
+  spender: Bytes!
+  value: BigInt!
+}
 
 # type LidoWithdrawalCredential @entity(immutable: true) {
 #   id: Bytes!
@@ -99,7 +99,7 @@ type LidoSubmission @entity(immutable: true) {
   transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  transactionLogIndex: BigInt!
+  # transactionLogIndex: BigInt!
 }
 
 type NodeOperatorFee @entity(immutable: true) {
@@ -292,7 +292,7 @@ type TotalReward @entity {
   transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  transactionLogIndex: BigInt!
+  # transactionLogIndex: BigInt!
 }
 
 type OracleMember @entity {
