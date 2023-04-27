@@ -214,12 +214,12 @@ for (let i = 0; i < opAddresses.length; i++) {
   let nodeOperatorFees = new NodeOperatorFees(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  nodeOperatorsShares.totalReward = event.transaction.hash.toHex()
+  nodeOperatorFee.totalReward = event.transaction.hash.toHex()
 
-  nodeOperatorsShares.address = addr
-  nodeOperatorsShares.shares = shares
+  nodeOperatorFee.address = addr
+  nodeOperatorFee.shares = shares
 
-  nodeOperatorsShares.save()
+  nodeOperatorFee.save()
 }
 ```
 
@@ -256,8 +256,6 @@ First, identify if this transaction includes rewards distribution. As we save To
 let totalRewardsEntity = TotalReward.load(event.transaction.hash.toHex())
 
 // We know that for rewards distribution shares are minted with same from 0x0 address as staking
-// We can save this indicator which helps us distinguish such mints from staking events
-entity.mintWithoutSubmission = totalRewardsEntity ? true : false
 ```
 
 We can easily identify mints:
@@ -349,23 +347,23 @@ else if (totalRewardsEntity && fromZeros) {
 	// Handling node operator fee transfer to node operator
 
 	// Entity should be existent at this point
-    let nodeOperatorFees =  NodeOperatorsShares.load(
+    let nodeOperatorsShare =  NodeOperatorsShare.load(
     event.transaction.hash.concat(event.params.to)
-  ) as NodeOperatorsShares
+  ) as NodeOperatorsShare
 
-	let sharesToOperator = nodeOperatorsShares.shares
+	let sharesToOperator = nodeOperatorsShare.shares
 
 	entity.shares = sharesToOperator
 
-  let nodeOperatorFees = new NodeOperatorFees(
+  let nodeOperatorFee = new NodeOperatorFee(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
 
 	// Reference to TotalReward entity
-	nodeOperatorFees.totalReward = event.transaction.hash.toHex()
+	nodeOperatorFee.totalReward = event.transaction.hash
 
-	nodeOperatorFees.address = event.params.to
-	nodeOperatorFees.fee = event.params.value
+	nodeOperatorFee.address = event.params.to
+	nodeOperatorFee.fee = event.params.value
 
 	totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
 	  event.params.value
@@ -375,7 +373,7 @@ else if (totalRewardsEntity && fromZeros) {
 	)
 
 	totalRewardsEntity.save()
-	nodeOperatorFees.save()
+	nodeOperatorFee.save()
   }
 ```
 
@@ -388,11 +386,11 @@ if (entity.shares) {
 	// Decreasing from address shares
 	// No point in changing 0x0 shares
 	if (!fromZeros) {
-	  let sharesFromEntity = Shares.load(event.params.from.toHexString())
+	  let sharesFromEntity = Share.load(event.params.from
 	  // Address must already have shares, HOWEVER:
 	  // Someone can and managed to produce events of 0 to 0 transfers
 	  if (!sharesFromEntity) {
-		sharesFromEntity = new Shares(event.params.from.toHexString())
+		sharesFromEntity = new Share(event.params.from
 		sharesFromEntity.shares = ZERO
 	  }
 
@@ -409,10 +407,10 @@ if (entity.shares) {
 	}
 
 	// Increasing to address shares
-	let sharesToEntity = Shares.load(event.params.to.toHexString())
+	let sharesToEntity = Share.load(event.params.to
 
 	if (!sharesToEntity) {
-	  sharesToEntity = new Shares(event.params.to.toHexString())
+	  sharesToEntity = new Share(event.params.to
 	  sharesToEntity.shares = ZERO
 	}
 
@@ -462,10 +460,10 @@ If Shares entity doesn’t yet exist for this address, create it with id `event.
 
 ```javascript
 // Increasing address shares
-let sharesEntity = Shares.load(event.params.sender.toHexString())
+let sharesEntity = Share.load(event.params.sender)
 
 if (!sharesEntity) {
-  sharesEntity = new Shares(event.params.sender.toHexString())
+  sharesEntity = new Share(event.params.sender)
   sharesEntity.shares = ZERO
 }
 
@@ -500,19 +498,17 @@ entity.balanceAfter = entity.sharesAfter
 
 ```graphql
 type LidoTransfer @entity {
-  id: ID!
+  id: Bytes!
 
   from: Bytes!
   to: Bytes!
   value: BigInt!
 
-  shares: BigInt
+  shares: BigInt!
   sharesBeforeDecrease: BigInt
   sharesAfterDecrease: BigInt
   sharesBeforeIncrease: BigInt
   sharesAfterIncrease: BigInt
-
-  mintWithoutSubmission: Boolean!
 
   totalPooledEther: BigInt!
   totalShares: BigInt!
@@ -530,7 +526,7 @@ type LidoTransfer @entity {
 
 ```graphql
 type LidoSubmission @entity {
-  id: ID!
+  id: Bytes!
 
   sender: Bytes!
   amount: BigInt!
@@ -556,7 +552,7 @@ type LidoSubmission @entity {
 ```
 
 ```graphql
-type Totals @entity {
+type Total @entity {
   id: ID!
 
   totalPooledEther: BigInt!
@@ -565,8 +561,8 @@ type Totals @entity {
 ```
 
 ```graphql
-type Shares @entity {
-  id: ID!
+type Share @entity {
+  id: Bytes!
 
   shares: BigInt!
 }
@@ -583,44 +579,52 @@ type OracleCompleted @entity {
   block: BigInt!
   blockTime: BigInt!
   transactionHash: Bytes!
-}
-```
+  logIndex: BigInt!
+}```
 
 ```graphql
 type TotalReward @entity {
-  id: ID!
+  id: Bytes!
 
   totalRewards: BigInt!
   totalRewardsWithFees: BigInt!
 
+  mevFee: BigInt!
+
+  feeBasis: BigInt!
+  treasuryFeeBasisPoints: BigInt!
+  insuranceFeeBasisPoints: BigInt!
+  operatorsFeeBasisPoints: BigInt!
+
   totalFee: BigInt!
-  nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
-  insuranceFee: BigInt
-  treasuryFee: BigInt
-  dust: BigInt
+  nodeOperatorFees: [NodeOperatorFee!] @derivedFrom(field: "totalReward")
+  insuranceFee: BigInt!
+  operatorsFee: BigInt!
+  treasuryFee: BigInt!
+  dust: BigInt!
 
   shares2mint: BigInt!
 
   sharesToInsuranceFund: BigInt!
   sharesToOperators: BigInt!
   sharesToTreasury: BigInt!
-  nodeOperatorsShares: [NodeOperatorsShares!] @derivedFrom(field: "totalReward")
+  nodeOperatorsShares: [NodeOperatorsShare!] @derivedFrom(field: "totalReward")
+  dustSharesToTreasury: BigInt!
 
   totalPooledEtherBefore: BigInt!
   totalPooledEtherAfter: BigInt!
   totalSharesBefore: BigInt!
   totalSharesAfter: BigInt!
 
-  postTotalPooledEther: BigInt
-  preTotalPooledEther: BigInt
-  timeElapsed: BigInt
-  totalShares: BigInt
+  timeElapsed: BigInt!
 
-  aprBeforeFees: BigDecimal
-  apr: BigDecimal
+  aprRaw: BigDecimal!
+  aprBeforeFees: BigDecimal!
+  apr: BigDecimal!
 
   block: BigInt!
   blockTime: BigInt!
+  transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
 }

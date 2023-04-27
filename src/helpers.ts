@@ -31,7 +31,6 @@ export function _loadLidoTransferEntity(event: Transfer): LidoTransfer {
     entity.transactionHash = event.transaction.hash
     entity.transactionIndex = event.transaction.index
     entity.logIndex = event.logIndex
-    // entity.transactionLogIndex = event.logIndex
 
     entity.value = event.params.value
     entity.shares = ZERO
@@ -79,7 +78,6 @@ export function _loadTotalRewardEntity(event: ethereum.Event, create: bool = fal
     entity.transactionHash = event.transaction.hash
     entity.transactionIndex = event.transaction.index
     entity.logIndex = event.logIndex
-    // entity.transactionLogIndex = event.logIndex
 
     entity.feeBasis = ZERO
     entity.treasuryFeeBasisPoints = ZERO

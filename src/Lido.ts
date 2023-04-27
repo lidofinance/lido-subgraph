@@ -73,7 +73,6 @@ export function handleSubmitted(event: SubmittedEvent): void {
   entity.transactionHash = event.transaction.hash
   entity.transactionIndex = event.transaction.index
   entity.logIndex = event.logIndex
-  // entity.transactionLogIndex = event.logIndex
 
   // Loading totals
   const totals = _loadTotalsEntity(true)!
@@ -335,7 +334,6 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
   txEntity.transactionIndex = event.transaction.index
 
   txEntity.logIndex = event.logIndex
-  // txEntity.transactionLogIndex = event.logIndex
 
   txEntity.value = event.params.postRebaseTokenAmount
   txEntity.shares = event.params.sharesAmount
@@ -347,12 +345,10 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
   txEntity.sharesAfterDecrease = ZERO
   txEntity.balanceAfterDecrease = ZERO
 
-  // to acc
+  // to acc, will be set later
   // txEntity.sharesBeforeIncrease = ZERO
   // txEntity.sharesAfterIncrease = ZERO
   // txEntity.balanceAfterIncrease = ZERO
-
-  // txEntity.mintWithoutSubmission = false
 
   // upd account's shares and stats
   _updateTransferShares(txEntity)

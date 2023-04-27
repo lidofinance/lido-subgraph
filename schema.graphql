@@ -53,7 +53,6 @@ type LidoTransfer @entity(immutable: true) {
   transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  # transactionLogIndex: BigInt!
 }
 
 type LidoApproval @entity(immutable: true) {
@@ -99,7 +98,6 @@ type LidoSubmission @entity(immutable: true) {
   transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  # transactionLogIndex: BigInt!
 }
 
 type NodeOperatorFee @entity(immutable: true) {
@@ -292,7 +290,6 @@ type TotalReward @entity {
   transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  # transactionLogIndex: BigInt!
 }
 
 type OracleMember @entity {
