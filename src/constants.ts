@@ -1,7 +1,7 @@
 import { BigInt, Address, TypedMap, Bytes, dataSource } from '@graphprotocol/graph-ts'
 import { LidoConfig } from '../generated/schema'
 
-const network = dataSource.network()
+export const network = dataSource.network()
 
 /**
 Units

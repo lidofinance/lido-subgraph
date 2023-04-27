@@ -672,8 +672,9 @@ export function handleWithdrawalCredentialsSet(event: WithdrawalCredentialsSetEv
 
 export function handleTestnetBlock(block: ethereum.Block): void {
   if (
-    block.number.toString() == '6014681' ||
-    block.number.toString() == '6014696' ||
+    network == 'goerli' &&
+    (block.number.toString() == '6014681' ||
+      block.number.toString() == '6014696' ||
     block.number.toString() == '7225143'
     // 7225313
   ) {
