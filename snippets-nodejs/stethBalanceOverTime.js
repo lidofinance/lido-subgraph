@@ -1,4 +1,5 @@
 import { subgraphFetch, gql, getBalanceFromShares } from './utils.js'
+import { BigNumber } from 'ethers'
 
 const rpcMode = false
 
@@ -39,7 +40,7 @@ const sharesChecks = [
   '17253336101171480', // 70usd
   '453884371982397608502', // 2mil usd
   '22253111414175281724765', // 90mil usd
-].map((x) => BigInt(x))
+].map((x) => BigNumber.from(x))
 
 for (const shares of sharesChecks) {
   console.log('Checking shares:', shares.toString())
@@ -74,8 +75,8 @@ for (const shares of sharesChecks) {
   }
 
   let fluctuationsNumber = 0
-  let largestFluctuation = BigInt(0)
-  let totalOfFluctuations = BigInt(0)
+  let largestFluctuation = BigNumber.from(0)
+  let totalOfFluctuations = BigNumber.from(0)
 
   for (const period of periods) {
     let firstBalance = null
