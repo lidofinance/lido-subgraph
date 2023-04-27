@@ -25,13 +25,13 @@
     "deploy-local-testnet": "env-cmd --use-shell graph deploy --node '$GRAPH_NODE' --ipfs '$GRAPH_IPFS' lidofinance/lido-testnet --network goerli -l v2.0.0"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "0.47.1",
+    "@graphprotocol/graph-cli": "^0.48.0",
     "@graphprotocol/graph-ts": "0.29.3",
     "ethers": "^5.7.2"
   },
   "devDependencies": {
     "@jest/types": "29.5.0",
-    "@types/node": "^18.16.0",
+    "@types/node": "^18.16.1",
     "dotenv": "16.0.3",
     "env-cmd": "10.1.0",
     "graphql": "16.6.0",
