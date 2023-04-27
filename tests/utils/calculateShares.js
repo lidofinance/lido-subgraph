@@ -1,4 +1,5 @@
 import { gql } from 'graphql-request'
+import { BigNumber } from 'ethers'
 import { subgraphFetch } from './index.js'
 
 export const calculateShares = async (address) => {
@@ -66,13 +67,13 @@ export const calculateShares = async (address) => {
     })),
   ].sort((a, b) => a.block - b.block)
 
-  let shares = BigInt(0)
+  let shares = BigNumber.from(0)
 
   for (const item of together) {
     const isStaking = item.type === 'submission'
     const isOut = !isStaking && item.direction === 'outbound'
 
-    const txShares = item.shares || BigInt(0)
+    const txShares = item.shares || BigNumber.from(0)
 
     shares = isOut ? shares.sub(txShares) : shares.add(txShares)
   }

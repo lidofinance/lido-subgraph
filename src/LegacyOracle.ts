@@ -23,13 +23,7 @@ import {
 } from '../generated/schema'
 import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ONE, ZERO, ZERO_ADDRESS, getAddress } from './constants'
 
-import {
-  _calcAPR_v1,
-  _loadStatsEntity,
-  _loadTotalRewardEntity,
-  _loadTotalsEntity,
-  isLidoV2
-} from './helpers'
+import { _calcAPR_v1, _loadStatsEntity, _loadTotalRewardEntity, _loadTotalsEntity, isLidoV2 } from './helpers'
 import { ELRewardsReceived, MevTxFeeReceived } from '../generated/Lido/Lido'
 import { getParsedEventByName, parseEventLogs } from './parser'
 import { ethereum } from '@graphprotocol/graph-ts'
@@ -297,14 +291,17 @@ export function handleMemberAdded(event: MemberAddedEvent): void {
   let entity = new OracleMember(event.params.member)
   entity.member = event.params.member
   entity.removed = false
+
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
+
   entity.save()
 }
 
 export function handleMemberRemoved(event: MemberRemovedEvent): void {
-  let entity = OracleMember.load(event.params.member)
-  if (entity == null) {
-    entity = new OracleMember(event.params.member)
-  }
+  let entity = OracleMember.load(event.params.member)!
   entity.removed = true
   entity.save()
 }

@@ -15,7 +15,7 @@ import { NodeOperatorSigningKey, NodeOperator, NodeOperatorKeysOpIndex } from '.
 import { ZERO, ZERO_ADDRESS } from './constants'
 
 export function handleSigningKeyAdded(event: SigningKeyAddedEvent): void {
-  const noEntity = _loadOperator(event.params.operatorId.toString())
+  const noEntity = _loadOperator(event.params.operatorId.toString())!
   const entity = new NodeOperatorSigningKey(event.params.pubkey)
 
   entity.operatorId = event.params.operatorId
@@ -30,7 +30,7 @@ export function handleSigningKeyAdded(event: SigningKeyAddedEvent): void {
 }
 
 export function handleSigningKeyRemoved(event: SigningKeyRemovedEvent): void {
-  const noEntity = _loadOperator(event.params.operatorId.toString())
+  const noEntity = _loadOperator(event.params.operatorId.toString())!
   let entity = NodeOperatorSigningKey.load(event.params.pubkey)
 
   if (entity == null) {
@@ -61,55 +61,61 @@ export function handleKeysOpIndexSet(event: KeysOpIndexSetEvent): void {
 }
 
 export function handleNodeOperatorAdded(event: NodeOperatorAddedEvent): void {
-  const entity = _loadOperator(event.params.id.toString())
+  const entity = _loadOperator(event.params.id.toString(), true)!
   entity.name = event.params.name
   entity.rewardAddress = event.params.rewardAddress
   entity.stakingLimit = event.params.stakingLimit
   entity.active = true
-  _saveOperator(entity, event)
+
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
+
+  entity.save()
 }
 
 export function handleNodeOperatorActiveSet(event: NodeOperatorActiveSetEvent): void {
-  const entity = _loadOperator(event.params.id.toString())
+  const entity = _loadOperator(event.params.id.toString())!
   entity.active = event.params.active
-  _saveOperator(entity, event)
+  entity.save()
 }
 
 export function handleNodeOperatorNameSet(event: NodeOperatorNameSetEvent): void {
-  const entity = _loadOperator(event.params.id.toString())
+  const entity = _loadOperator(event.params.id.toString())!
   entity.name = event.params.name
-  _saveOperator(entity, event)
+  entity.save()
 }
 
 export function handleNodeOperatorRewardAddressSet(event: NodeOperatorRewardAddressSetEvent): void {
-  const entity = _loadOperator(event.params.id.toString())
+  const entity = _loadOperator(event.params.id.toString())!
   entity.rewardAddress = event.params.rewardAddress
-  _saveOperator(entity, event)
+  entity.save()
 }
 
 export function handleNodeOperatorTotalKeysTrimmed(event: NodeOperatorTotalKeysTrimmedEvent): void {
-  const entity = _loadOperator(event.params.id.toString())
+  const entity = _loadOperator(event.params.id.toString())!
   entity.totalKeysTrimmed = event.params.totalKeysTrimmed
-  _saveOperator(entity, event)
+  entity.save()
 }
 
 export function handleNodeOperatorStakingLimitSet(event: NodeOperatorStakingLimitSetEvent): void {
-  const entity = _loadOperator(event.params.id.toString())
+  const entity = _loadOperator(event.params.id.toString())!
   entity.stakingLimit = event.params.stakingLimit
-  _saveOperator(entity, event)
+  entity.save()
 }
 
 export function handleNodeOperatorTotalStoppedValidatorsReported(
   event: NodeOperatorTotalStoppedValidatorsReportedEvent
 ): void {
-  const entity = _loadOperator(event.params.id.toString())
+  const entity = _loadOperator(event.params.id.toString())!
   entity.totalStoppedValidators = event.params.totalStopped
-  _saveOperator(entity, event)
+  entity.save()
 }
 
-function _loadOperator(id: string): NodeOperator {
+function _loadOperator(id: string, create: bool = false): NodeOperator | null {
   let entity = NodeOperator.load(id)
-  if (!entity) {
+  if (!entity && create) {
     entity = new NodeOperator(id)
 
     entity.name = ''
@@ -122,12 +128,4 @@ function _loadOperator(id: string): NodeOperator {
     entity.nonce = ZERO
   }
   return entity
-}
-
-function _saveOperator(entity: NodeOperator, event: ethereum.Event): void {
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-  entity.logIndex = event.logIndex
-  entity.save()
 }

@@ -7,37 +7,36 @@ import {
   getLidoEvents,
   getLidoOracleEvents,
   getNopRegistryEvents,
-  subgraphFetch,
-  makeBytesId
+  subgraphFetch
 } from './utils'
 
 const SECS_PER_BLOCK = 12
 const BLOCKS_RANGE_3HOURS = Math.floor((3 * 60 * 60) / SECS_PER_BLOCK)
-const BLOCKS_RANGE_3MONTHS = Math.floor(
-  (30 * 24 * 60 * 60 * 3) / SECS_PER_BLOCK
-)
+const BLOCKS_RANGE_3MONTHS = Math.floor((30 * 24 * 60 * 60 * 3) / SECS_PER_BLOCK)
 
 const TIMEOUT = 30_000
 
 test(
   'LidoTransfer',
   async () => {
-    const startBlock = getBlock() - BLOCKS_RANGE_3HOURS
-    const someTransfers = await getLidoEvents('Transfer', startBlock)
-    const event = someTransfers.pop()
-    expect(event).toBeDefined()
-
-    const id =  makeBytesId(event.transactionHash, event.logIndex)
     const query = gql`
-      query ($id: ID!) {
-        lidoTransfer(id: $id) {
+      {
+        lidoTransfers(first: 1, orderBy: block, orderDirection: desc) {
+          id
+          transactionHash
           block
         }
       }
     `
-    const response = await subgraphFetch(query, { id })
+    const response = await subgraphFetch(query)
+    const transfer = response?.lidoTransfers?.pop()
+    expect(transfer).toBeDefined()
 
-    expect(response?.lidoTransfer?.block).toEqual(String(event.blockNumber))
+    const block = parseInt(transfer.block)
+    expect(block >= getBlock() - BLOCKS_RANGE_3HOURS).toBe(true)
+    const events = await getLidoEvents('Transfer', block, block)
+    const event = events?.find(e => e.transactionHash == transfer.transactionHash)
+    expect(event).toBeDefined()
   },
   TIMEOUT
 )
@@ -45,20 +44,23 @@ test(
 test(
   'OracleMember',
   async () => {
-    const events = await getLidoOracleEvents('MemberAdded')
-    const event = events.pop()
-
-    const id = event.args.member
     const query = gql`
-      query ($id: ID!) {
-        oracleMember(id: $id) {
+      {
+        oracleMembers(first: 1, orderBy: block, orderDirection: desc) {
+          id
           member
+          block
         }
       }
     `
-    const response = await subgraphFetch(query, { id })
+    const response = await subgraphFetch(query)
+    const member = response?.oracleMembers?.pop()
+    expect(member).toBeDefined()
 
-    expect(response?.oracleMember?.member).toEqual(id.toLowerCase())
+    const block = parseInt(member.block)
+    const events = await getLidoOracleEvents('MemberAdded', block, block)
+    const event = events?.find(e => e.args.member.toLowerCase() == member.member.toLowerCase())
+    expect(event).toBeDefined()
   },
   TIMEOUT
 )
@@ -66,21 +68,24 @@ test(
 test(
   'NodeOperator',
   async () => {
-    const events = await getNopRegistryEvents('NodeOperatorAdded')
-    const event = events.pop()
-
-    const id = event.args.id.toString()
-
     const query = gql`
-      query ($id: ID!) {
-        nodeOperator(id: $id) {
+      {
+        nodeOperators(first: 1, orderBy: id, orderDirection: desc) {
+          id
           name
+          block
         }
       }
     `
-    const response = await subgraphFetch(query, { id })
+    const response = await subgraphFetch(query)
+    const operator = response?.nodeOperators?.pop()
+    expect(operator).toBeDefined()
 
-    expect(response?.nodeOperator?.name).toEqual(event.args.name)
+    const block = parseInt(operator.block)
+    const events = await getNopRegistryEvents('NodeOperatorAdded', block, block)
+    const event = events?.find(e => e.args.name == operator.name)
+
+    expect(event).toBeDefined()
   },
   TIMEOUT
 )
@@ -88,23 +93,24 @@ test(
 test(
   'AragonVoting',
   async () => {
-    const startBlock = getBlock() - BLOCKS_RANGE_3MONTHS
-    const events = await getAragonEvents('StartVote', startBlock)
-    const event = events.pop()
-    expect(event).toBeDefined()
-
-    const id = event.args.voteId.toString()
-
     const query = gql`
-      query ($id: ID!) {
-        voting(id: $id) {
+      {
+        votings(first: 1, orderBy: block, orderDirection: desc) {
+          id
           creator
+          block
         }
       }
     `
-    const response = await subgraphFetch(query, { id })
+    const response = await subgraphFetch(query)
+    const voting = response?.votings?.pop()
+    expect(voting).toBeDefined()
 
-    expect(response?.voting?.creator).toEqual(event.args.creator.toLowerCase())
+    const block = parseInt(voting.block)
+    expect(block >= getBlock() - BLOCKS_RANGE_3MONTHS).toBe(true)
+    const events = await getAragonEvents('StartVote', block, block)
+    const event = events?.find(e => e.args.creator.toLowerCase() == voting.creator.toLowerCase())
+    expect(event).toBeDefined()
   },
   TIMEOUT
 )
@@ -112,23 +118,25 @@ test(
 test(
   'EasyTrack',
   async () => {
-    const startBlock = getBlock() - BLOCKS_RANGE_3MONTHS
-    const events = await getEasyTrackEvents('MotionCreated', startBlock)
-    const event = events.pop()
-    expect(event).toBeDefined()
-
-    const id = event.args._motionId.toString()
-
     const query = gql`
-      query ($id: ID!) {
-        motion(id: $id) {
+      {
+        motions(first: 1, orderBy: block, orderDirection: desc) {
+          id
           creator
+          block
         }
       }
     `
-    const response = await subgraphFetch(query, { id })
+    const response = await subgraphFetch(query)
+    const motion = response?.motions?.pop()
+    expect(motion).toBeDefined()
 
-    expect(response?.motion?.creator).toEqual(event.args._creator.toLowerCase())
+    const block = parseInt(motion.block)
+    expect(block >= getBlock() - BLOCKS_RANGE_3MONTHS).toBe(true)
+    const events = await getEasyTrackEvents('MotionCreated', block, block)
+    const event = events?.find(e => e.args._creator.toLowerCase() == motion.creator.toLowerCase())
+
+    expect(event).toBeDefined()
   },
   TIMEOUT
 )
@@ -136,21 +144,23 @@ test(
 test(
   'DepositSecurityModule Guardian',
   async () => {
-    const events = await getDSMEvents('GuardianAdded')
-    const event = events.pop()
-
-    const id = event.args.guardian.toLowerCase()
-
     const query = gql`
-      query ($id: ID!) {
-        guardian(id: $id) {
+      {
+        guardians(first: 1, orderBy: block, orderDirection: desc) {
+          id
+          address
           block
         }
       }
     `
-    const response = await subgraphFetch(query, { id })
+    const response = await subgraphFetch(query)
+    const guardian = response?.guardians?.pop()
+    expect(guardian).toBeDefined()
 
-    expect(response?.guardian?.block).toEqual(String(event.blockNumber))
+    const block = parseInt(guardian.block)
+    const events = await getDSMEvents('GuardianAdded', block, block)
+    const event = events?.find(e => e.args.guardian.toLowerCase() == guardian.address.toLowerCase())
+    expect(event).toBeDefined()
   },
   TIMEOUT
 )

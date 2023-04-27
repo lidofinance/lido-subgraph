@@ -1,4 +1,5 @@
 import { gql } from 'graphql-request'
+import { BigNumber } from 'ethers'
 import { subgraphFetch } from './index.js'
 
 export const calculateAddressBalance = async address => {
@@ -20,8 +21,6 @@ export const calculateAddressBalance = async address => {
       value
 			shares
 			to
-
-      # mintWithoutSubmission
 
 			block
       transactionIndex
@@ -109,7 +108,7 @@ export const calculateAddressBalance = async address => {
       const shares = item.shares || 0
 
       return item.direction !== 'outbound' ? aсс.add(shares) : aсс.sub(shares)
-    }, BigInt(0))
+    }, BigNumber.from(0))
 
     const balanceBefore = sumOfShares
       .mul(report.totalPooledEtherBefore)
@@ -136,7 +135,7 @@ export const calculateAddressBalance = async address => {
     const amount = item.value || item.rewards || 0
 
     return item.direction !== 'outbound' ? acc.add(amount) : acc.sub(amount)
-  }, BigInt(0))
+  }, BigNumber.from(0))
 
   return balance
 }

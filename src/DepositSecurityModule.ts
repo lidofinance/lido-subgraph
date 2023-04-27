@@ -42,11 +42,12 @@ export function handleGuardianAdded(event: GuardianAddedEvent): void {
   let entity = new Guardian(event.params.guardian.toHexString())
 
   entity.address = event.params.guardian
+  entity.removed = false
+
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
   entity.transactionHash = event.block.hash
   entity.logIndex = event.logIndex
-  entity.removed = false
 
   entity.save()
 }

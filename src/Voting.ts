@@ -21,6 +21,10 @@ export function handleStartVote(event: StartVoteEvent): void {
   entity.metadata = event.params.metadata
   entity.executed = false
 
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
   entity.save()
 }
 
@@ -46,11 +50,7 @@ export function handleCastObjection(event: CastObjectionEvent): void {
 }
 
 export function handleExecuteVote(event: ExecuteVoteEvent): void {
-  let entity = Voting.load(event.params.voteId.toString())
-
-  if (entity == null) {
-    entity = new Voting(event.params.voteId.toString())
-  }
+  let entity = Voting.load(event.params.voteId.toString())!
 
   entity.executed = true
 

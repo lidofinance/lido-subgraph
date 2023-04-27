@@ -297,6 +297,11 @@ type OracleMember @entity {
 
   member: Bytes!
   removed: Boolean!
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
 }
 
 type OracleExpectedEpoch @entity(immutable: true) {
@@ -388,6 +393,11 @@ type Voting @entity {
 
   votes: [Vote!]! @derivedFrom(field: "voting")
   objections: [VotingObjection!]! @derivedFrom(field: "voting")
+
+  block: BigInt!
+  blockTime: BigInt!
+  transactionHash: Bytes!
+  logIndex: BigInt!
 }
 
 type Vote @entity(immutable: true) {

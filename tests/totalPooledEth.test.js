@@ -3,7 +3,7 @@ import { lidoFuncCall, subgraphFetch } from './utils/index.js'
 
 const query = gql`
   query($block: Block_height) {
-    totals(block: $block) {
+    total(id: "", block: $block) {
       totalPooledEther
     }
   }
@@ -11,7 +11,7 @@ const query = gql`
 
 test('totalPooledEther', async () => {
   const realTotalShares = (await lidoFuncCall('getTotalPooledEther')).toString()
-  const subgraphTotalShares = (await subgraphFetch(query)).totals[0].totalPooledEther
+  const subgraphTotalShares = (await subgraphFetch(query)).total.totalPooledEther
 
   expect(subgraphTotalShares).toEqual(realTotalShares)
 })

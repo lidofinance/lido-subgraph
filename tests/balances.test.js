@@ -4,6 +4,7 @@ import {
   loadAddressShares,
   getTotals
 } from './utils/index.js'
+import { BigNumber } from 'ethers'
 
 const ADDRESSES_TO_TEST = 30
 const timePerAddress = 5 // seconds
@@ -22,7 +23,7 @@ test(
 
       const shares = await loadAddressShares(address)
 
-      const subgraphBalance = BigInt(shares)
+      const subgraphBalance = BigNumber.from(shares)
         .mul(totalPooledEther)
         .div(totalShares)
         .toString()
