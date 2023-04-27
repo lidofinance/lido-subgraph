@@ -1,5 +1,4 @@
 import { gql } from 'graphql-request'
-import { BigNumber } from 'ethers'
 import { getBalanceFromShares, subgraphFetch } from './utils/index.js'
 
 const ADDRESSES_TO_TEST = 3
@@ -15,7 +14,7 @@ const sharesChecks = [
   '17253336101171480', // 70usd
   '453884371982397608502', // 2mil usd
   '22253111414175281724765' // 90mil usd
-].map(x => BigNumber.from(x))
+].map(x => BigInt(x))
 
 const ratioQuery = gql`
   query($first: Int, $skip: Int, $block: Block_height) {
@@ -64,7 +63,7 @@ test(
           blockTag: parseInt(report.block)
         })
 
-        const rewardsReal = BigNumber.from(balanceAfterReal)
+        const rewardsReal = BigInt(balanceAfterReal)
           .sub(balanceBeforeReal)
           .toString()
 

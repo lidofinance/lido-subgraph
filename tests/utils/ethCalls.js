@@ -1,4 +1,4 @@
-import { JsonRpcProvider, Contract } from 'ethers'
+import { providers, Contract } from 'ethers'
 import fs from 'fs'
 
 import {
@@ -11,7 +11,7 @@ import {
   getBlock
 } from '../config.js'
 
-const provider = new JsonRpcProvider(RPC)
+const provider = new providers.JsonRpcProvider(RPC)
 
 const lidoAbi = JSON.parse(fs.readFileSync('abis/Lido.json'))
 const lidoContract = new Contract(LIDO_ADDRESS, lidoAbi, provider)

@@ -7,13 +7,16 @@ import {
   afterEach,
   beforeEach,
   assert,
+  log,
+  newTypedMockEventWithParams
 } from 'matchstick-as/assembly/index'
-import { Total, CurrentFee, OracleCompleted } from '../generated/schema'
+import { Total, CurrentFee, OracleCompleted, Stat } from '../generated/schema'
 import { Completed } from '../generated/LegacyOracle/LegacyOracle'
 import { BigInt, Address, ethereum } from '@graphprotocol/graph-ts'
 import { handleCompleted } from '../src/LegacyOracle'
 
 import { createMockedRewardDistribution } from './mockedFns'
+import { isLidoV2 } from '../src/helpers'
 
 const sampleVals = BigInt.fromI32(10)
 const someVals = sampleVals.times(DEPOSIT_AMOUNT)
@@ -22,36 +25,36 @@ const someRewards = BigInt.fromI32(2).times(ETHER)
 const INITIAL_BEACON_BALANCE = someVals.plus(someRewards)
 const INITIAL_BEACON_VALIDATORS = sampleVals
 
+const lastCompletedId = 1
+
 function createNewCompletedEvent(
   epochId: string,
   beaconBalance: BigInt,
   beaconValidators: BigInt
 ): Completed {
   // @ts-ignore this is AssemblyScript
-  let event = changetype<Completed>(newMockEvent())
+  let event = newTypedMockEventWithParams<Completed>([
+    new ethereum.EventParam(
+      'epochId',
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromString(epochId))
+    ),
+    new ethereum.EventParam(
+      'beaconBalance',
+      ethereum.Value.fromUnsignedBigInt(beaconBalance)
+    ),
+    new ethereum.EventParam(
+      'beaconValidators',
+      ethereum.Value.fromUnsignedBigInt(beaconValidators)
+    )
+  ])
 
-  event.parameters = new Array()
-  let epochIdParam = new ethereum.EventParam(
-    'epochId',
-    ethereum.Value.fromUnsignedBigInt(BigInt.fromString(epochId))
-  )
-  let beaconBalanceParam = new ethereum.EventParam(
-    'beaconBalance',
-    ethereum.Value.fromUnsignedBigInt(beaconBalance)
-  )
-  let beaconValidatorsParam = new ethereum.EventParam(
-    'beaconValidators',
-    ethereum.Value.fromUnsignedBigInt(beaconValidators)
-  )
-
-  event.parameters.push(epochIdParam)
-  event.parameters.push(beaconBalanceParam)
-  event.parameters.push(beaconValidatorsParam)
+  const isV2 = isLidoV2(event.block.number)
+  assert.assertTrue(!isV2)
 
   return event
 }
 
-describe('handleCompleted()', () => {
+describe('handleCompleted() before Lido v2', () => {
   beforeEach(() => {
     let totals = new Total('')
     totals.totalPooledEther = INITIAL_BEACON_BALANCE
@@ -65,12 +68,20 @@ describe('handleCompleted()', () => {
     curFee.treasuryFeeBasisPoints = BigInt.fromI32(5000)
     curFee.save()
 
-    let prevDay = new OracleCompleted('0')
+
+    let stat = new Stat('')
+    stat.uniqueHolders =BigInt.fromI32(0)
+    stat.uniqueAnytimeHolders = BigInt.fromI32(0)
+    stat.lastOracleCompletedId = BigInt.fromI32(lastCompletedId)
+    stat.save()
+
+    let prevDay = new OracleCompleted(lastCompletedId.toString())
     prevDay.epochId = BigInt.fromI32(0)
     prevDay.beaconBalance = INITIAL_BEACON_BALANCE
     prevDay.beaconValidators = INITIAL_BEACON_VALIDATORS
     prevDay.block = BigInt.fromI32(0)
     prevDay.blockTime = BigInt.fromI32(0)
+    prevDay.logIndex = BigInt.fromI32(0)
     prevDay.transactionHash = Address.fromHexString(
       '0xde2667f834746bdbe0872163d632ce79c4930a82ec7c3c11cb015373b691643b'
     )
@@ -82,6 +93,7 @@ describe('handleCompleted()', () => {
   })
 
   test('positive rewards', () => {
+
     let newBalance = INITIAL_BEACON_BALANCE.plus(ETHER)
     let newValidators = INITIAL_BEACON_VALIDATORS
     let event = createNewCompletedEvent('1', newBalance, newValidators)
@@ -182,7 +194,7 @@ describe('handleCompleted()', () => {
     totals.totalShares = BigInt.fromString('7434367928985000000000')
     totals.save()
 
-    let prevDay = OracleCompleted.load('0')!
+    let prevDay = OracleCompleted.load(lastCompletedId.toString())!
     prevDay.beaconBalance = BigInt.fromString('7434367928985000000000')
     prevDay.beaconValidators = BigInt.fromString('232')
     prevDay.save()

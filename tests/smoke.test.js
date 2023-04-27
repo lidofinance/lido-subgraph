@@ -8,6 +8,7 @@ import {
   getLidoOracleEvents,
   getNopRegistryEvents,
   subgraphFetch,
+  makeBytesId
 } from './utils'
 
 const SECS_PER_BLOCK = 12
@@ -26,7 +27,7 @@ test(
     const event = someTransfers.pop()
     expect(event).toBeDefined()
 
-    const id = event.transactionHash + '-' + event.logIndex
+    const id =  makeBytesId(event.transactionHash, event.logIndex)
     const query = gql`
       query ($id: ID!) {
         lidoTransfer(id: $id) {

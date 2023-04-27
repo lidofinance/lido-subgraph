@@ -1,4 +1,3 @@
-import { BigNumber } from 'ethers'
 import {
   lidoFuncCall,
   getTestAddresses,
@@ -23,7 +22,7 @@ test(
 
       const shares = await loadAddressShares(address)
 
-      const subgraphBalance = BigNumber.from(shares)
+      const subgraphBalance = BigInt(shares)
         .mul(totalPooledEther)
         .div(totalShares)
         .toString()
