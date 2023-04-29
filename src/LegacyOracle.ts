@@ -1,3 +1,4 @@
+import { BigInt } from '@graphprotocol/graph-ts'
 import {
   AllowedBeaconBalanceAnnualRelativeIncreaseSet as AllowedBeaconBalanceAnnualRelativeIncreaseSetEvent,
   AllowedBeaconBalanceRelativeDecreaseSet as AllowedBeaconBalanceRelativeDecreaseSetEvent,
@@ -14,19 +15,18 @@ import {
 import { NodeOperatorsRegistry } from '../generated/LegacyOracle/NodeOperatorsRegistry'
 import {
   BeaconReport,
-  CurrentFee,
-  NodeOperatorsShare,
+  CurrentFees,
+  NodeOperatorsShares,
   OracleCompleted,
   OracleConfig,
   OracleExpectedEpoch,
   OracleMember
 } from '../generated/schema'
-import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ONE, ZERO, ZERO_ADDRESS, getAddress } from './constants'
+import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ONE, ZERO, ZERO_ADDRESS, getAddress, network } from './constants'
 
 import { _calcAPR_v1, _loadStatsEntity, _loadTotalRewardEntity, _loadTotalsEntity, isLidoV2 } from './helpers'
 import { ELRewardsReceived, MevTxFeeReceived } from '../generated/Lido/Lido'
 import { getParsedEventByName, parseEventLogs } from './parser'
-import { ethereum } from '@graphprotocol/graph-ts'
 
 export function handleCompleted(event: CompletedEvent): void {
   // keep backward compatibility
@@ -63,9 +63,6 @@ export function handleCompleted(event: CompletedEvent): void {
     // skip in favor of ETHDistributed event handler
     return
   }
-
-  // Totals should be already non-null on first oracle report
-  const totals = _loadTotalsEntity()!
 
   /**
    Appeared validators can be negative if active keys are deleted, which can happen on Testnet.
@@ -108,12 +105,59 @@ export function handleCompleted(event: CompletedEvent): void {
 
   const rewards = newBeaconBalance.minus(rewardBase).plus(mevFee)
 
-  // Keeping data before increase
-  const totalPooledEtherBefore = totals.totalPooledEther
-  const totalSharesBefore = totals.totalShares
+  // Totals should be already non-null on first oracle report
+  const totals = _loadTotalsEntity()!
 
-  // totalPooledEtherAfter
-  totals.totalPooledEther = totals.totalPooledEther.plus(rewards)
+  // save the value before increase
+  let totalPooledEtherBefore = totals.totalPooledEther
+  // pre-calculation
+  let totalPooledEtherAfter = totalPooledEtherBefore.plus(rewards)
+
+  /**
+   * WARNING: this correction should exists for Goerli testnet, otherwise subgraph will break
+   *
+   * Note: Also see the`BeaconValidatorsUpdated` event handler at `Lido` contract
+   */
+  if (network == 'goerli') {
+    // check manually corrected values on testnet
+    // 0 - no correction
+    // 1 - correct value "before"
+    // 2 - correct value "after"
+    let doCorrection = 0
+    if (event.block.number == BigInt.fromI32(6014681)) {
+      // there are direct calls of setValidatorsNumber() without event in blocks: 6014681 and 6014696
+      // But there is no one Transfer or Submission events until the oracle report in block 6014700
+      // https://goerli.etherscan.io/tx/0x0c12d51ac03edd94ed09300336ed62ffc38610dd15744891e6fa1fa02972bfb1#eventlog
+      //
+      // So it's lucky moment to correct totalPooledEtherBefore value!
+      doCorrection = 1
+    } else if (event.block.number == BigInt.fromI32(7225143)) {
+      // At block 7225143 we have broken Oracle report after long broken state:
+      // totalPooledEther was decreased after the report.
+      // https://goerli.etherscan.io/tx/0xde2667f834746bdbe0872163d632ce79c4930a82ec7c3c11cb015373b691643b
+      //
+      // So we handle correction right during report!
+      // Using the similar logic, but correcting totalPooledEtherAfter
+      doCorrection = 2
+    }
+
+    if (doCorrection != 0) {
+      // We know that the correct values are emitted in PostTotalShares event, so we just grab it
+      // find PostTotalShares logIndex, event should exists
+      const postTotalSharesEvent = getParsedEventByName<PostTotalSharesEvent>(
+        parsedEvents,
+        'PostTotalShares',
+        event.logIndex
+      )!
+
+      if (doCorrection == 1) {
+        totalPooledEtherBefore = postTotalSharesEvent.params.preTotalPooledEther
+        totalPooledEtherAfter = totalPooledEtherBefore.plus(rewards)
+      } else if (doCorrection == 2) {
+        totalPooledEtherAfter = postTotalSharesEvent.params.postTotalPooledEther
+      }
+    }
+  }
 
   // Don’t mint/distribute any protocol fee on the non-profitable Lido oracle report
   // (when beacon chain balance delta is zero or negative).
@@ -128,9 +172,9 @@ export function handleCompleted(event: CompletedEvent): void {
   const totalRewardsEntity = _loadTotalRewardEntity(event, true)!
 
   // save prev values
+  totalRewardsEntity.totalSharesBefore = totals.totalShares
   totalRewardsEntity.totalPooledEtherBefore = totalPooledEtherBefore
-  totalRewardsEntity.totalSharesBefore = totalSharesBefore
-  totalRewardsEntity.totalPooledEtherAfter = totals.totalPooledEther
+  totalRewardsEntity.totalPooledEtherAfter = totalPooledEtherAfter
 
   totalRewardsEntity.mevFee = mevFee
 
@@ -138,17 +182,20 @@ export function handleCompleted(event: CompletedEvent): void {
   // Setting totalRewards to totalRewardsWithFees so we can subtract fees from it
   totalRewardsEntity.totalRewards = rewards
 
-  const curFee = CurrentFee.load('')!
+  const curFee = CurrentFees.load('')!
   // Total fee of the protocol eg 1000 / 100 = 10% fee
   // feeBasisPoints = 1000
 
   // Overall shares for all rewards cut
+  // Note, here we use corrected values
   const shares2mint = rewards
     .times(curFee.feeBasisPoints)
-    .times(totals.totalShares)
-    .div(totals.totalPooledEther.times(CALCULATION_UNIT).minus(curFee.feeBasisPoints.times(rewards)))
+    .times(totals.totalShares) // totalSharesBefore
+    .div(totalPooledEtherAfter.times(CALCULATION_UNIT).minus(curFee.feeBasisPoints.times(rewards)))
 
-  totals.totalShares = totals.totalShares.plus(shares2mint)
+  // save the new values
+  totals.totalShares = totals.totalShares.plus(shares2mint) // totalSharesAfter
+  totals.totalPooledEther = totalPooledEtherAfter
   totals.save()
 
   totalRewardsEntity.totalSharesAfter = totals.totalShares
@@ -187,15 +234,15 @@ export function handleCompleted(event: CompletedEvent): void {
     // Incrementing total of actual shares distributed
     sharesToOperatorsActual = sharesToOperatorsActual.plus(shares)
 
-    const nodeOperatorsShare = new NodeOperatorsShare(event.transaction.hash.concat(addr))
-    // const nodeOperatorsShare = new NodeOperatorsShare(event.transaction.hash.toHex() + '-' + addr.toHexString())
+    const nodeOperatorShare = new NodeOperatorsShares(event.transaction.hash.concat(addr))
+    // const nodeOperatorShare = new NodeOperatorsShares(event.transaction.hash.toHex() + '-' + addr.toHexString())
 
-    nodeOperatorsShare.totalReward = event.transaction.hash
+    nodeOperatorShare.totalReward = event.transaction.hash
 
-    nodeOperatorsShare.address = addr
-    nodeOperatorsShare.shares = shares
+    nodeOperatorShare.address = addr
+    nodeOperatorShare.shares = shares
 
-    nodeOperatorsShare.save()
+    nodeOperatorShare.save()
   }
 
   // sharesToTreasury either:w11
@@ -213,7 +260,7 @@ export function handleCompleted(event: CompletedEvent): void {
     totalRewardsEntity.dustSharesToTreasury = ZERO
   }
 
-  // calc preliminarily APR
+  // calc preliminarily APR (if there is no PostTotalShares event yet)
   // will be recalculated in PostTotalShares handler
   const timeElapsed = previousCompleted ? newCompleted.blockTime.minus(previousCompleted.blockTime) : ZERO
   totalRewardsEntity.timeElapsed = timeElapsed
@@ -225,34 +272,6 @@ export function handleCompleted(event: CompletedEvent): void {
     totalRewardsEntity.feeBasis
   )
 
-  // // find PostTotalShares logIndex
-  // // if event absent, we should calc values
-  // const postTotalSharesEvent = getParsedEventByName<PostTotalSharesEvent>(
-  //   parsedEvents,
-  //   'PostTotalShares',
-  //   event.logIndex
-  // )
-  // // todo assert require if upgraded to PostTotalShares
-  // if (postTotalSharesEvent) {
-  //   totalRewardsEntity.timeElapsed = postTotalSharesEvent.params.timeElapsed
-  //   _calcAPR_v1(
-  //     totalRewardsEntity,
-  //     postTotalSharesEvent.params.preTotalPooledEther,
-  //     postTotalSharesEvent.params.postTotalPooledEther,
-  //     postTotalSharesEvent.params.timeElapsed,
-  //     curFee.feeBasisPoints
-  //   )
-  // } else {
-  //   const timeElapsed = previousCompleted ? newCompleted.blockTime.minus(previousCompleted.blockTime) : ZERO
-  //   totalRewardsEntity.timeElapsed = timeElapsed
-  //   _calcAPR_v1(
-  //     totalRewardsEntity,
-  //     totalRewardsEntity.totalPooledEtherBefore,
-  //     totalRewardsEntity.totalPooledEtherAfter,
-  //     timeElapsed,
-  //     curFee.feeBasisPoints
-  //   )
-  // }
   totalRewardsEntity.save()
 }
 

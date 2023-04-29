@@ -100,7 +100,7 @@ type LidoSubmission @entity(immutable: true) {
   logIndex: BigInt!
 }
 
-type NodeOperatorFee @entity(immutable: true) {
+type NodeOperatorFees @entity(immutable: true) {
   id: Bytes!
   totalReward: TotalReward!
 
@@ -116,7 +116,7 @@ type NodeOperatorFee @entity(immutable: true) {
 #   shares: BigInt!
 # }
 
-type NodeOperatorsShare @entity(immutable: true) {
+type NodeOperatorsShares @entity(immutable: true) {
   id: Bytes!
   totalReward: TotalReward!
 
@@ -124,14 +124,14 @@ type NodeOperatorsShare @entity(immutable: true) {
   shares: BigInt!
 }
 
-type Total @entity {
+type Totals @entity {
   id: ID!
 
   totalPooledEther: BigInt!
   totalShares: BigInt!
 }
 
-type Stat @entity {
+type Stats @entity {
   id: ID!
 
   uniqueHolders: BigInt!
@@ -139,7 +139,7 @@ type Stat @entity {
   lastOracleCompletedId: BigInt!
 }
 
-type Share @entity {
+type Shares @entity {
   id: Bytes!
 
   shares: BigInt!
@@ -152,7 +152,7 @@ type Holder @entity {
   hasBalance: Boolean!
 }
 
-type CurrentFee @entity {
+type CurrentFees @entity {
   id: ID!
 
   feeBasisPoints: BigInt!
@@ -250,7 +250,7 @@ type TotalReward @entity {
 
   "Fees and leftover dust after rounding"
   totalFee: BigInt!
-  nodeOperatorFees: [NodeOperatorFee!] @derivedFrom(field: "totalReward")
+  nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
   insuranceFee: BigInt!
   operatorsFee: BigInt!
   treasuryFee: BigInt!
@@ -263,7 +263,7 @@ type TotalReward @entity {
   sharesToTreasury: BigInt!
   sharesToInsuranceFund: BigInt!
   sharesToOperators: BigInt!
-  nodeOperatorsShares: [NodeOperatorsShare!] @derivedFrom(field: "totalReward")
+  nodeOperatorsShares: [NodeOperatorsShares!] @derivedFrom(field: "totalReward")
   dustSharesToTreasury: BigInt!
 
   "State of the pool before and after rewards"

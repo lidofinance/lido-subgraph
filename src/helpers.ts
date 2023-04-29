@@ -1,5 +1,5 @@
 import { Bytes, ethereum, BigInt, log } from '@graphprotocol/graph-ts'
-import { Total, Share, Stat, LidoTransfer, TotalReward, Holder, OracleReport, AppVersion } from '../generated/schema'
+import { Totals,  Shares, Stats, LidoTransfer, TotalReward, Holder, OracleReport, AppVersion } from '../generated/schema'
 import {
   CALCULATION_UNIT,
   E27_PRECISION_BASE,
@@ -118,10 +118,10 @@ export function _loadTotalRewardEntity(event: ethereum.Event, create: bool = fal
   return entity
 }
 
-export function _loadStatsEntity(): Stat {
-  let stats = Stat.load('')
+export function _loadStatsEntity(): Stats {
+  let stats = Stats.load('')
   if (!stats) {
-    stats = new Stat('')
+    stats = new Stats('')
     stats.uniqueHolders = ZERO
     stats.uniqueAnytimeHolders = ZERO
     stats.lastOracleCompletedId = ZERO
@@ -130,20 +130,20 @@ export function _loadStatsEntity(): Stat {
   return stats
 }
 
-export function _loadTotalsEntity(create: bool = false): Total | null {
-  let totals = Total.load('')
+export function _loadTotalsEntity(create: bool = false): Totals | null {
+  let totals = Totals.load('')
   if (!totals && create) {
-    totals = new Total('')
+    totals = new Totals('')
     totals.totalPooledEther = ZERO
     totals.totalShares = ZERO
   }
   return totals
 }
 
-export function _loadSharesEntity(id: Bytes, create: bool = false): Share | null {
-  let entity = Share.load(id)
+export function _loadSharesEntity(id: Bytes, create: bool = false): Shares | null {
+  let entity = Shares.load(id)
   if (!entity && create) {
-    entity = new Share(id)
+    entity = new Shares(id)
     entity.shares = ZERO
   }
   return entity

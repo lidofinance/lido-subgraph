@@ -4,7 +4,7 @@ import {
   ProcessingStarted as ProcessingStartedEvent
 } from '../generated/AccountingOracle/AccountingOracle'
 import { StakingRouter } from '../generated/AccountingOracle/StakingRouter'
-import { NodeOperatorsShare, NodeOperatorFee } from '../generated/schema'
+import { NodeOperatorsShares, NodeOperatorFees } from '../generated/schema'
 import { ZERO, getAddress } from './constants'
 
 import { _loadOracleReport } from './helpers'
@@ -48,26 +48,26 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmittedEvent): void {
         let id = eventTransfer.transaction.hash.concatI32(eventTransfer.logIndex.toI32())
         // let id = event.transaction.hash.toHex() + '-' + eventTransfer.logIndex.toString()
 
-        // @todo merge NodeOperatorFee & NodeOperatorsShare ?
-        const nodeOperatorFee = new NodeOperatorFee(id)
+        // @todo merge NodeOperatorFees & NodeOperatorsShares ?
+        const nodeOperatorFees = new NodeOperatorFees(id)
         // Reference to TotalReward entity
-        nodeOperatorFee.totalReward = oracleReportEntity.totalReward
-        nodeOperatorFee.address = eventTransfer.params.to
-        nodeOperatorFee.fee = eventTransfer.params.value
-        nodeOperatorFee.save()
+        nodeOperatorFees.totalReward = oracleReportEntity.totalReward
+        nodeOperatorFees.address = eventTransfer.params.to
+        nodeOperatorFees.fee = eventTransfer.params.value
+        nodeOperatorFees.save()
 
         id = event.transaction.hash.concat(eventTransfer.params.to)
         // id = event.transaction.hash.toHex() + '-' + eventTransfer.params.to.toHexString()
-        let nodeOperatorsShare = NodeOperatorsShare.load(id)
-        if (!nodeOperatorsShare) {
-          nodeOperatorsShare = new NodeOperatorsShare(id)
+        let nodeOperatorShare = NodeOperatorsShares.load(id)
+        if (!nodeOperatorShare) {
+          nodeOperatorShare = new NodeOperatorsShares(id)
           // Reference to TotalReward entity
-          nodeOperatorsShare.totalReward = oracleReportEntity.totalReward
-          nodeOperatorsShare.address = eventTransfer.params.to
-          nodeOperatorsShare.shares = ZERO
+          nodeOperatorShare.totalReward = oracleReportEntity.totalReward
+          nodeOperatorShare.address = eventTransfer.params.to
+          nodeOperatorShare.shares = ZERO
         }
-        nodeOperatorsShare.shares = nodeOperatorsShare.shares.plus(eventTransferShares.params.sharesValue)
-        nodeOperatorsShare.save()
+        nodeOperatorShare.shares = nodeOperatorShare.shares.plus(eventTransferShares.params.sharesValue)
+        nodeOperatorShare.save()
       }
     }
   }

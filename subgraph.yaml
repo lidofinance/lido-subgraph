@@ -91,10 +91,6 @@ dataSources:
           handler: handleELRewardsVaultSet
         - event: BeaconValidatorsUpdated(uint256)
           handler: handleBeaconValidatorsUpdated
-      blockHandlers:
-        - handler: handleTestnetBlock
-          filter:
-            kind: call
       file: ./src/Lido.ts
   - kind: ethereum/contract
     name: LegacyOracle

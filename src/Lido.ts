@@ -25,10 +25,10 @@ import {
 } from '../generated/Lido/Lido'
 import {
   LidoSubmission,
-  CurrentFee,
+  CurrentFees,
   TotalReward,
-  NodeOperatorsShare,
-  NodeOperatorFee,
+  NodeOperatorsShares,
+  NodeOperatorFees,
   LidoApproval,
   SharesBurn,
   LidoConfig,
@@ -244,8 +244,8 @@ export function handleTransfer(event: TransferEvent): void {
           // Handling fee transfer to node operator prior v2 upgrade
           // after v2 there are only transfers to SR modules
 
-          const nodeOperatorFee = new NodeOperatorFee(event.transaction.hash.concatI32(event.logIndex.toI32()))
-          // const nodeOperatorFee = new NodeOperatorFee(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
+          const nodeOperatorFee = new NodeOperatorFees(event.transaction.hash.concatI32(event.logIndex.toI32()))
+          // const nodeOperatorFee = new NodeOperatorFees(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
 
           // Reference to TotalReward entity
           nodeOperatorFee.totalReward = totalRewardsEntity.id
@@ -254,13 +254,13 @@ export function handleTransfer(event: TransferEvent): void {
           nodeOperatorFee.save()
 
           // Entity should already exists at this point
-          const nodeOperatorsShare = NodeOperatorsShare.load(event.transaction.hash.concat(entity.to))!
-          // const nodeOperatorsShare = NodeOperatorsShare.load(event.transaction.hash.toHex() + '-' + entity.to.toHexString())!
+          const nodeOperatorShare = NodeOperatorsShares.load(event.transaction.hash.concat(entity.to))!
+          // const nodeOperatorShare = NodeOperatorsShares.load(event.transaction.hash.toHex() + '-' + entity.to.toHexString())!
 
           if (eventTransferShares) {
-            assert(entity.shares == nodeOperatorsShare.shares, 'Unexpected nodeOperatorsShares')
+            assert(entity.shares == nodeOperatorShare.shares, 'Unexpected nodeOperatorsShares')
           } else {
-            entity.shares = nodeOperatorsShare.shares
+            entity.shares = nodeOperatorShare.shares
           }
           totalRewardsEntity.operatorsFee = totalRewardsEntity.operatorsFee.plus(entity.value)
         }
@@ -566,13 +566,13 @@ export function handleApproval(event: ApprovalEvent): void {
 }
 
 export function handleFeeSet(event: FeeSetEvent): void {
-  const curFee = _loadCurrentFee(event)
+  const curFee = _loadCurrentFees()
   curFee.feeBasisPoints = BigInt.fromI32(event.params.feeBasisPoints)
   curFee.save()
 }
 
 export function handleFeeDistributionSet(event: FeeDistributionSetEvent): void {
-  const curFee = _loadCurrentFee(event)
+  const curFee = _loadCurrentFees()
   curFee.treasuryFeeBasisPoints = BigInt.fromI32(event.params.treasuryFeeBasisPoints)
   curFee.insuranceFeeBasisPoints = BigInt.fromI32(event.params.insuranceFeeBasisPoints)
   curFee.operatorsFeeBasisPoints = BigInt.fromI32(event.params.operatorsFeeBasisPoints)
@@ -671,47 +671,22 @@ export function handleWithdrawalCredentialsSet(event: WithdrawalCredentialsSetEv
   }
 }
 
-/**
- *  WARNING: this handler should exists for Goerli testnet, otherwise subgraph will break
- */
-
-// Handling manual NOs removal on Testnet in txs:
-// 6014681 0x45b83117a28ba9f6aed3a865004e85aea1e8611998eaef52ca81d47ac43e98d5
-// 6014696 0x5d37899cce4086d7cdf8590f90761e49cd5dcc5c32aebbf2d9a6b2a1c00152c7
-
-// Broken Oracle report after long broken state:
-// First val number went down, but then went up all when reports were not happening.
-// 7225143 0xde2667f834746bdbe0872163d632ce79c4930a82ec7c3c11cb015373b691643b
-
-export function handleTestnetBlock(block: ethereum.Block): void {
-  if (
-    network == 'goerli' &&
-    (block.number.toString() == '6014681' ||
-      block.number.toString() == '6014696' ||
-      block.number.toString() == '7225143')
-    // 7225313
-  ) {
-    _fixTotalPooledEther()
-  }
-}
-
-// Handling validators count correction during the upgrade:
-// 7127807 0xa9111b9bf19777ca08902fbd9c1dc8efc7a5bf61766f92bd469b522477257195
-export function handleBeaconValidatorsUpdated(_event: BeaconValidatorsUpdatedEvent): void {
-  _fixTotalPooledEther()
-}
-
-function _fixTotalPooledEther(): void {
-  const realPooledEther = Lido.bind(getAddress('LIDO')).getTotalPooledEther()
-  const totals = _loadTotalsEntity(true)!
-  totals.totalPooledEther = realPooledEther
+// Handling validators count correction during the upgrade at block 7127807
+// https://goerli.etherscan.io/tx/0xa9111b9bf19777ca08902fbd9c1dc8efc7a5bf61766f92bd469b522477257195#eventlog
+//
+// Note: This event only appears on Goerli testnet, so the handler is not used on Mainnet
+export function handleBeaconValidatorsUpdated(event: BeaconValidatorsUpdatedEvent): void {
+  // Totals entity should exists
+  const totals = _loadTotalsEntity()!
+  // Just grab the correct value from the contract
+  totals.totalPooledEther = Lido.bind(event.address).getTotalPooledEther()
   totals.save()
 }
 
-function _loadCurrentFee(event: ethereum.Event): CurrentFee {
-  let entity = CurrentFee.load('')
+function _loadCurrentFees(): CurrentFees {
+  let entity = CurrentFees.load('')
   if (!entity) {
-    entity = new CurrentFee('')
+    entity = new CurrentFees('')
     entity.treasuryFeeBasisPoints = ZERO
     entity.insuranceFeeBasisPoints = ZERO
     entity.operatorsFeeBasisPoints = ZERO
