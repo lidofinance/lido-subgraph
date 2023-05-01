@@ -1,4 +1,4 @@
-import { BigInt } from '@graphprotocol/graph-ts'
+import { BigInt, log } from '@graphprotocol/graph-ts'
 import {
   AllowedBeaconBalanceAnnualRelativeIncreaseSet as AllowedBeaconBalanceAnnualRelativeIncreaseSetEvent,
   AllowedBeaconBalanceRelativeDecreaseSet as AllowedBeaconBalanceRelativeDecreaseSetEvent,
@@ -124,7 +124,7 @@ export function handleCompleted(event: CompletedEvent): void {
     // 1 - correct value "before"
     // 2 - correct value "after"
     let doCorrection = 0
-    if (event.block.number == BigInt.fromI32(6014681)) {
+    if (event.block.number == BigInt.fromI32(6014700)) {
       // there are direct calls of setValidatorsNumber() without event in blocks: 6014681 and 6014696
       // But there is no one Transfer or Submission events until the oracle report in block 6014700
       // https://goerli.etherscan.io/tx/0x0c12d51ac03edd94ed09300336ed62ffc38610dd15744891e6fa1fa02972bfb1#eventlog
@@ -158,6 +158,9 @@ export function handleCompleted(event: CompletedEvent): void {
       }
     }
   }
+
+  // set the new total pooled eth value
+  totals.totalPooledEther = totalPooledEtherAfter
 
   // Don’t mint/distribute any protocol fee on the non-profitable Lido oracle report
   // (when beacon chain balance delta is zero or negative).
@@ -193,9 +196,8 @@ export function handleCompleted(event: CompletedEvent): void {
     .times(totals.totalShares) // totalSharesBefore
     .div(totalPooledEtherAfter.times(CALCULATION_UNIT).minus(curFee.feeBasisPoints.times(rewards)))
 
-  // save the new values
+  // set the new shares value
   totals.totalShares = totals.totalShares.plus(shares2mint) // totalSharesAfter
-  totals.totalPooledEther = totalPooledEtherAfter
   totals.save()
 
   totalRewardsEntity.totalSharesAfter = totals.totalShares

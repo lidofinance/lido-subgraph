@@ -1,4 +1,4 @@
-import { DEPOSIT_AMOUNT, ETHER, ONE } from '../src/constants'
+import { DEPOSIT_AMOUNT, ETHER, LIDO_APP_ID, ONE, ZERO_ADDRESS } from '../src/constants'
 import {
   describe,
   test,
@@ -10,7 +10,7 @@ import {
   log,
   newTypedMockEventWithParams
 } from 'matchstick-as/assembly/index'
-import { Total, CurrentFee, OracleCompleted, Stat } from '../generated/schema'
+import { Totals, CurrentFees, OracleCompleted, Stats, AppVersion } from '../generated/schema'
 import { Completed } from '../generated/LegacyOracle/LegacyOracle'
 import { BigInt, Address, ethereum } from '@graphprotocol/graph-ts'
 import { handleCompleted } from '../src/LegacyOracle'
@@ -27,25 +27,12 @@ const INITIAL_BEACON_VALIDATORS = sampleVals
 
 const lastCompletedId = 1
 
-function createNewCompletedEvent(
-  epochId: string,
-  beaconBalance: BigInt,
-  beaconValidators: BigInt
-): Completed {
+function createNewCompletedEvent(epochId: string, beaconBalance: BigInt, beaconValidators: BigInt): Completed {
   // @ts-ignore this is AssemblyScript
   let event = newTypedMockEventWithParams<Completed>([
-    new ethereum.EventParam(
-      'epochId',
-      ethereum.Value.fromUnsignedBigInt(BigInt.fromString(epochId))
-    ),
-    new ethereum.EventParam(
-      'beaconBalance',
-      ethereum.Value.fromUnsignedBigInt(beaconBalance)
-    ),
-    new ethereum.EventParam(
-      'beaconValidators',
-      ethereum.Value.fromUnsignedBigInt(beaconValidators)
-    )
+    new ethereum.EventParam('epochId', ethereum.Value.fromUnsignedBigInt(BigInt.fromString(epochId))),
+    new ethereum.EventParam('beaconBalance', ethereum.Value.fromUnsignedBigInt(beaconBalance)),
+    new ethereum.EventParam('beaconValidators', ethereum.Value.fromUnsignedBigInt(beaconValidators))
   ])
 
   const isV2 = isLidoV2(event.block.number)
@@ -56,21 +43,33 @@ function createNewCompletedEvent(
 
 describe('handleCompleted() before Lido v2', () => {
   beforeEach(() => {
-    let totals = new Total('')
+    let appVer = new AppVersion(LIDO_APP_ID!)
+    appVer.impl = ZERO_ADDRESS
+
+    appVer.major = 1
+    appVer.minor = 0
+    appVer.patch = 0
+
+    appVer.block = BigInt.fromI32(0)
+    appVer.blockTime = BigInt.fromI32(0)
+    appVer.logIndex = BigInt.fromI32(0)
+    appVer.transactionHash = Address.fromHexString('0xde2667f834746bdbe0872163d632ce79c4930a82ec7c3c11cb015373b691643b')
+    appVer.save()
+
+    let totals = new Totals('')
     totals.totalPooledEther = INITIAL_BEACON_BALANCE
     totals.totalShares = INITIAL_BEACON_BALANCE
     totals.save()
 
-    let curFee = new CurrentFee('')
+    let curFee = new CurrentFees('')
     curFee.feeBasisPoints = BigInt.fromI32(1000)
     curFee.insuranceFeeBasisPoints = BigInt.fromI32(0)
     curFee.operatorsFeeBasisPoints = BigInt.fromI32(5000)
     curFee.treasuryFeeBasisPoints = BigInt.fromI32(5000)
     curFee.save()
 
-
-    let stat = new Stat('')
-    stat.uniqueHolders =BigInt.fromI32(0)
+    let stat = new Stats('')
+    stat.uniqueHolders = BigInt.fromI32(0)
     stat.uniqueAnytimeHolders = BigInt.fromI32(0)
     stat.lastOracleCompletedId = BigInt.fromI32(lastCompletedId)
     stat.save()
@@ -93,7 +92,6 @@ describe('handleCompleted() before Lido v2', () => {
   })
 
   test('positive rewards', () => {
-
     let newBalance = INITIAL_BEACON_BALANCE.plus(ETHER)
     let newValidators = INITIAL_BEACON_VALIDATORS
     let event = createNewCompletedEvent('1', newBalance, newValidators)
@@ -102,7 +100,7 @@ describe('handleCompleted() before Lido v2', () => {
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE.plus(ETHER)
-    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
   })
 
   test('no rewards and val increase', () => {
@@ -114,12 +112,11 @@ describe('handleCompleted() before Lido v2', () => {
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE
-    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
   })
 
   test('positive rewards with new vals', () => {
-    let newBalance =
-      INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).plus(someRewards)
+    let newBalance = INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).plus(someRewards)
     let newValidators = INITIAL_BEACON_VALIDATORS.plus(ONE)
     let event = createNewCompletedEvent('1', newBalance, newValidators)
 
@@ -127,7 +124,7 @@ describe('handleCompleted() before Lido v2', () => {
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE.plus(someRewards)
-    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
   })
 
   test('negative rewards', () => {
@@ -138,7 +135,7 @@ describe('handleCompleted() before Lido v2', () => {
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE.minus(someRewards)
-    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
   })
 
   test('less vals', () => {
@@ -148,30 +145,27 @@ describe('handleCompleted() before Lido v2', () => {
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT)
-    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
   })
 
   test('negative rewards with less vals', () => {
-    let newBalance =
-      INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(someRewards)
+    let newBalance = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(someRewards)
     let newValidators = INITIAL_BEACON_VALIDATORS.minus(ONE)
     let event = createNewCompletedEvent('1', newBalance, newValidators)
     handleCompleted(event)
 
-    let expected =
-      INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(someRewards)
-    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
+    let expected = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(someRewards)
+    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
   })
 
   test('more vals but negative rewards', () => {
-    let newBalance =
-      INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).minus(someRewards)
+    let newBalance = INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).minus(someRewards)
     let newValidators = INITIAL_BEACON_VALIDATORS.plus(ONE)
     let event = createNewCompletedEvent('1', newBalance, newValidators)
     handleCompleted(event)
 
     let expected = INITIAL_BEACON_BALANCE.minus(someRewards)
-    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
   })
 
   test('less vals but positive rewards', () => {
@@ -185,11 +179,11 @@ describe('handleCompleted() before Lido v2', () => {
     let expected = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT)
       .plus(DEPOSIT_AMOUNT)
       .plus(someRewards)
-    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
   })
 
   test('case block 6014700', () => {
-    let totals = new Total('')
+    let totals = new Totals('')
     totals.totalPooledEther = BigInt.fromString('7434367928985000000000')
     totals.totalShares = BigInt.fromString('7434367928985000000000')
     totals.save()
@@ -206,6 +200,6 @@ describe('handleCompleted() before Lido v2', () => {
 
     let delta = newBalance.minus(prevDay.beaconBalance)
     let expected = prevDay.beaconBalance.plus(delta)
-    assert.fieldEquals('Total', '', 'totalPooledEther', expected.toString())
+    assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
   })
 })

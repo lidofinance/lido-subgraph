@@ -214,12 +214,12 @@ for (let i = 0; i < opAddresses.length; i++) {
   let nodeOperatorFees = new NodeOperatorFees(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  nodeOperatorFee.totalReward = event.transaction.hash.toHex()
+  nodeOperatorFees.totalReward = event.transaction.hash.toHex()
 
-  nodeOperatorFee.address = addr
-  nodeOperatorFee.shares = shares
+  nodeOperatorFees.address = addr
+  nodeOperatorFees.shares = shares
 
-  nodeOperatorFee.save()
+  nodeOperatorFees.save()
 }
 ```
 
@@ -347,23 +347,23 @@ else if (totalRewardsEntity && fromZeros) {
 	// Handling node operator fee transfer to node operator
 
 	// Entity should be existent at this point
-    let nodeOperatorsShare =  NodeOperatorsShare.load(
+    let nodeOperatorsShares =  NodeOperatorsShares.load(
     event.transaction.hash.concat(event.params.to)
-  ) as NodeOperatorsShare
+  ) as NodeOperatorsShares
 
-	let sharesToOperator = nodeOperatorsShare.shares
+	let sharesToOperator = nodeOperatorsShares.shares
 
 	entity.shares = sharesToOperator
 
-  let nodeOperatorFee = new NodeOperatorFee(
+  let nodeOperatorFees = new NodeOperatorFees(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
 
 	// Reference to TotalReward entity
-	nodeOperatorFee.totalReward = event.transaction.hash
+	nodeOperatorFees.totalReward = event.transaction.hash
 
-	nodeOperatorFee.address = event.params.to
-	nodeOperatorFee.fee = event.params.value
+	nodeOperatorFees.address = event.params.to
+	nodeOperatorFees.fee = event.params.value
 
 	totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
 	  event.params.value
@@ -373,7 +373,7 @@ else if (totalRewardsEntity && fromZeros) {
 	)
 
 	totalRewardsEntity.save()
-	nodeOperatorFee.save()
+	nodeOperatorFees.save()
   }
 ```
 
@@ -552,7 +552,7 @@ type LidoSubmission @entity {
 ```
 
 ```graphql
-type Total @entity {
+type Totals @entity {
   id: ID!
 
   totalPooledEther: BigInt!
@@ -597,7 +597,7 @@ type TotalReward @entity {
   operatorsFeeBasisPoints: BigInt!
 
   totalFee: BigInt!
-  nodeOperatorFees: [NodeOperatorFee!] @derivedFrom(field: "totalReward")
+  nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
   insuranceFee: BigInt!
   operatorsFee: BigInt!
   treasuryFee: BigInt!
@@ -608,7 +608,7 @@ type TotalReward @entity {
   sharesToInsuranceFund: BigInt!
   sharesToOperators: BigInt!
   sharesToTreasury: BigInt!
-  nodeOperatorsShares: [NodeOperatorsShare!] @derivedFrom(field: "totalReward")
+  nodeOperatorsShares: [NodeOperatorsShares!] @derivedFrom(field: "totalReward")
   dustSharesToTreasury: BigInt!
 
   totalPooledEtherBefore: BigInt!
