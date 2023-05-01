@@ -331,21 +331,18 @@ export function handleQuorumChanged(event: QuorumChangedEvent): void {
   const entity = _loadOracleConfig()
   entity.quorum = event.params.quorum
   entity.save()
-  //_saveOracleConfig(entity, event)
 }
 
 export function handleContractVersionSet(event: ContractVersionSetEvent): void {
   const entity = _loadOracleConfig()
   entity.contractVersion = event.params.version
   entity.save()
-  //_saveOracleConfig(entity, event)
 }
 
 export function handleBeaconReportReceiverSet(event: BeaconReportReceiverSetEvent): void {
   const entity = _loadOracleConfig()
   entity.beaconReportReceiver = event.params.callback
   entity.save()
-  //_saveOracleConfig(entity, event)
 }
 
 export function handleBeaconSpecSet(event: BeaconSpecSetEvent): void {
@@ -355,7 +352,6 @@ export function handleBeaconSpecSet(event: BeaconSpecSetEvent): void {
   entity.secondsPerSlot = event.params.secondsPerSlot
   entity.genesisTime = event.params.genesisTime
   entity.save()
-  //_saveOracleConfig(entity, event)
 }
 
 export function handleAllowedBeaconBalanceRelativeDecreaseSet(
@@ -364,7 +360,6 @@ export function handleAllowedBeaconBalanceRelativeDecreaseSet(
   const entity = _loadOracleConfig()
   entity.allowedBeaconBalanceRelativeDecrease = event.params.value
   entity.save()
-  //_saveOracleConfig(entity, event)
 }
 
 export function handleAllowedBeaconBalanceAnnualRelativeIncreaseSet(
@@ -373,7 +368,6 @@ export function handleAllowedBeaconBalanceAnnualRelativeIncreaseSet(
   const entity = _loadOracleConfig()
   entity.allowedBeaconBalanceAnnualRelativeIncrease = event.params.value
   entity.save()
-  //_saveOracleConfig(entity, event)
 }
 
 export function _loadOracleConfig(): OracleConfig {
@@ -396,11 +390,3 @@ export function _loadOracleConfig(): OracleConfig {
   }
   return entity
 }
-
-// export function _saveOracleConfig(entity: OracleConfig, event: ethereum.Event): void {
-//   entity.block = event.block.number
-//   entity.blockTime = event.block.timestamp
-//   entity.transactionHash = event.transaction.hash
-//   entity.logIndex = event.logIndex
-//   entity.save()
-// }

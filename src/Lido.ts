@@ -287,7 +287,6 @@ export function handleTransfer(event: TransferEvent): void {
         //   event.transaction.hash.toHex() + '-' + event.logIndex.minus(ONE).toString()
         // )!
 
-
         // throws error if no submissionEntity
         entity.shares = submissionEntity.shares
       }
@@ -583,14 +582,12 @@ export function handleLidoLocatorSet(event: LidoLocatorSetEvent): void {
   const entity = _loadLidoConfig()
   entity.lidoLocator = event.params.lidoLocator
   entity.save()
-  //_saveLidoConfig(entity, event)
 }
 
 export function handleResumed(event: ResumedEvent): void {
   const entity = _loadLidoConfig()
   entity.isStopped = false
   entity.save()
-  //_saveLidoConfig(entity, event)
 }
 
 export function handleStopped(event: StoppedEvent): void {
@@ -598,7 +595,6 @@ export function handleStopped(event: StoppedEvent): void {
   entity.isStopped = true
   entity.save()
   //entity.save()
-  //_saveLidoConfig(entity, event)
 }
 
 export function handleELRewardsVaultSet(event: ELRewardsVaultSetEvent): void {
@@ -606,7 +602,6 @@ export function handleELRewardsVaultSet(event: ELRewardsVaultSetEvent): void {
   entity.elRewardsVault = event.params.executionLayerRewardsVault
   entity.save()
   //entity.save()
-  //_saveLidoConfig(entity, event)
 }
 
 export function handleELRewardsWithdrawalLimitSet(event: ELRewardsWithdrawalLimitSetEvent): void {
@@ -614,7 +609,6 @@ export function handleELRewardsWithdrawalLimitSet(event: ELRewardsWithdrawalLimi
   entity.elRewardsWithdrawalLimitPoints = event.params.limitPoints
   entity.save()
   //entity.save()
-  //_saveLidoConfig(entity, event)
 }
 
 export function handleProtocolContractsSet(event: ProtocolContactsSetEvent): void {
@@ -624,14 +618,12 @@ export function handleProtocolContractsSet(event: ProtocolContactsSetEvent): voi
   entity.treasury = event.params.treasury
   entity.save()
   //entity.save()
-  //_saveLidoConfig(entity, event)
 }
 
 export function handleStakingLimitRemoved(event: StakingLimitRemovedEvent): void {
   const entity = _loadLidoConfig()
   entity.maxStakeLimit = ZERO
   entity.save()
-  //_saveLidoConfig(entity, event)
 }
 
 export function handleStakingLimitSet(event: StakingLimitSetEvent): void {
@@ -639,28 +631,24 @@ export function handleStakingLimitSet(event: StakingLimitSetEvent): void {
   entity.maxStakeLimit = event.params.maxStakeLimit
   entity.stakeLimitIncreasePerBlock = event.params.stakeLimitIncreasePerBlock
   entity.save()
-  //_saveLidoConfig(entity, event)
 }
 
 export function handleStakingResumed(event: StakingResumedEvent): void {
   const entity = _loadLidoConfig()
   entity.isStakingPaused = false
   entity.save()
-  //_saveLidoConfig(entity, event)
 }
 
 export function handleStakingPaused(event: StakingPausedEvent): void {
   const entity = _loadLidoConfig()
   entity.isStakingPaused = true
   entity.save()
-  //_saveLidoConfig(entity, event)
 }
 
 export function handleWithdrawalCredentialsSet(event: WithdrawalCredentialsSetEvent): void {
   const entity = _loadLidoConfig()
   entity.withdrawalCredentials = event.params.withdrawalCredentials
   entity.save()
-  //_saveLidoConfig(entity, event)
 
   // Cropping unused keys on withdrawal credentials change
   if (wcKeyCrops.has(event.params.withdrawalCredentials.toHexString())) {
@@ -723,11 +711,3 @@ export function _loadLidoConfig(): LidoConfig {
   }
   return entity
 }
-
-// export function _saveLidoConfig(entity: LidoConfig, event: ethereum.Event): void {
-//   entity.block = event.block.number
-//   entity.blockTime = event.block.timestamp
-//   entity.transactionHash = event.transaction.hash
-//   entity.logIndex = event.logIndex
-//   entity.save()
-// }

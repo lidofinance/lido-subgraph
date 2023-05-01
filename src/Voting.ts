@@ -1,4 +1,4 @@
-import { BigInt, Address, ethereum } from '@graphprotocol/graph-ts'
+import { BigInt, Address } from '@graphprotocol/graph-ts'
 import {
   StartVote as StartVoteEvent,
   CastVote as CastVoteEvent,
@@ -82,28 +82,24 @@ export function handleChangeSupportRequired(event: ChangeSupportRequiredEvent): 
   const entity = _loadVotingConfig()
   entity.supportRequiredPct = event.params.supportRequiredPct
   entity.save()
-  //_saveVotingConfig(entity, event)
 }
 
 export function handleChangeMinQuorum(event: ChangeMinQuorumEvent): void {
   const entity = _loadVotingConfig()
   entity.minAcceptQuorumPct = event.params.minAcceptQuorumPct
   entity.save()
-  //_saveVotingConfig(entity, event)
 }
 
 export function handleChangeVoteTime(event: ChangeVoteTimeEvent): void {
   const entity = _loadVotingConfig()
   entity.voteTime = event.params.voteTime
   entity.save()
-  //_saveVotingConfig(entity, event)
 }
 
 export function handleChangeObjectionPhaseTime(event: ChangeObjectionPhaseTimeEvent): void {
   const entity = _loadVotingConfig()
   entity.objectionPhaseTime = event.params.objectionPhaseTime
   entity.save()
-  //_saveVotingConfig(entity, event)
 }
 
 function _loadVotingConfig(): VotingConfig {
@@ -119,11 +115,3 @@ function _loadVotingConfig(): VotingConfig {
   }
   return entity
 }
-
-// function _saveVotingConfig(entity: VotingConfig, event: ethereum.Event): void {
-//   entity.block = event.block.number
-//   entity.blockTime = event.block.timestamp
-//   entity.transactionHash = event.transaction.hash
-//   entity.logIndex = event.logIndex
-//   entity.save()
-// }

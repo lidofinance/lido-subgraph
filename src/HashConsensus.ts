@@ -1,12 +1,7 @@
-import { FrameConfigSet as FrameConfigSetEvent , HashConsensus} from '../generated/HashConsensus/HashConsensus'
-import {
-  _loadOracleConfig,
-  // _saveOracleConfig
-} from './LegacyOracle'
-
+import { FrameConfigSet as FrameConfigSetEvent, HashConsensus } from '../generated/HashConsensus/HashConsensus'
+import { _loadOracleConfig } from './LegacyOracle'
 
 export function handleFrameConfigSet(event: FrameConfigSetEvent): void {
-
   const chainConfig = HashConsensus.bind(event.address).getChainConfig()
 
   const entity = _loadOracleConfig()
@@ -15,5 +10,4 @@ export function handleFrameConfigSet(event: FrameConfigSetEvent): void {
   entity.secondsPerSlot = chainConfig.getGenesisTime()
   entity.genesisTime = chainConfig.getGenesisTime()
   entity.save()
-  //_saveOracleConfig(entity, event)
 }

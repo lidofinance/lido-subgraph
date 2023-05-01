@@ -28,14 +28,12 @@ export function handleDepositsPaused(event: DepositsPausedEvent): void {
   const entity = _loadDSMConfig()
   entity.paused = true
   entity.save()
-  //_saveDSMConfig(entity, event)
 }
 
 export function handleDepositsUnpaused(event: DepositsUnpausedEvent): void {
   const entity = _loadDSMConfig()
   entity.paused = false
   entity.save()
-  //_saveDSMConfig(entity, event)
 }
 
 export function handleGuardianAdded(event: GuardianAddedEvent): void {
@@ -56,7 +54,6 @@ export function handleGuardianQuorumChanged(event: GuardianQuorumChangedEvent): 
   const entity = _loadDSMConfig()
   entity.guardianQuorum = event.params.newValue
   entity.save()
-  //_saveDSMConfig(entity, event)
 }
 
 export function handleGuardianRemoved(event: GuardianRemovedEvent): void {
@@ -73,35 +70,30 @@ export function handleMaxDepositsChanged(event: MaxDepositsChangedEvent): void {
   const entity = _loadDSMConfig()
   entity.maxDeposits = event.params.newValue
   entity.save()
-  //_saveDSMConfig(entity, event)
 }
 
 export function handleMinDepositBlockDistanceChanged(event: MinDepositBlockDistanceChangedEvent): void {
   const entity = _loadDSMConfig()
   entity.minDepositBlockDistance = event.params.newValue
   entity.save()
-  //_saveDSMConfig(entity, event)
 }
 
 export function handleNodeOperatorsRegistryChanged(event: NodeOperatorsRegistryChangedEvent): void {
   const entity = _loadDSMConfig()
   entity.nodeOperatorsRegistry = event.params.newValue
   entity.save()
-  //_saveDSMConfig(entity, event)
 }
 
 export function handleOwnerChanged(event: OwnerChangedEvent): void {
   const entity = _loadDSMConfig()
   entity.owner = event.params.newValue
   entity.save()
-  //_saveDSMConfig(entity, event)
 }
 
 export function handlePauseIntentValidityPeriodBlocksChanged(event: PauseIntentValidityPeriodBlocksChangedEvent): void {
   const entity = _loadDSMConfig()
   entity.pauseIntentValidityPeriodBlocks = event.params.newValue
   entity.save()
-  //_saveDSMConfig(entity, event)
 }
 
 function _loadDSMConfig(): DepositSecurityModuleConfig {
@@ -119,11 +111,3 @@ function _loadDSMConfig(): DepositSecurityModuleConfig {
   }
   return entity
 }
-
-// function _saveDSMConfig(entity: DepositSecurityModuleConfig, event: ethereum.Event): void {
-//   entity.block = event.block.number
-//   entity.blockTime = event.block.timestamp
-//   entity.transactionHash = event.transaction.hash
-//   entity.logIndex = event.logIndex
-//   entity.save()
-// }

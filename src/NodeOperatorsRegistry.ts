@@ -52,11 +52,6 @@ export function handleSigningKeyRemoved(event: SigningKeyRemovedEvent): void {
 export function handleKeysOpIndexSet(event: KeysOpIndexSetEvent): void {
   const entity = new NodeOperatorKeysOpIndex(event.transaction.hash.concatI32(event.logIndex.toI32()))
   entity.index = event.params.keysOpIndex
-  // entity.block = event.block.number
-  // entity.blockTime = event.block.timestamp
-  // entity.transactionHash = event.transaction.hash
-  // entity.logIndex = event.logIndex
-
   entity.save()
 }
 

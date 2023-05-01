@@ -139,42 +139,36 @@ export function handleEVMScriptExecutorChanged(event: EVMScriptExecutorChangedEv
   const entity = _loadETConfig()
   entity.evmScriptExecutor = event.params._evmScriptExecutor
   entity.save()
-  // _saveETConfig(entity, event)
 }
 
 export function handleMotionDurationChanged(event: MotionDurationChangedEvent): void {
   const entity = _loadETConfig()
   entity.motionDuration = event.params._motionDuration
   entity.save()
-  //_saveETConfig(entity, event)
 }
 
 export function handleMotionsCountLimitChanged(event: MotionsCountLimitChangedEvent): void {
   const entity = _loadETConfig()
   entity.motionsCountLimit = event.params._newMotionsCountLimit
   entity.save()
-  //_saveETConfig(entity, event)
 }
 
 export function handleObjectionsThresholdChanged(event: ObjectionsThresholdChangedEvent): void {
   const entity = _loadETConfig()
   entity.objectionsThreshold = event.params._newThreshold
   entity.save()
-  //_saveETConfig(entity, event)
 }
 
 export function handlePaused(event: PausedEvent): void {
   const entity = _loadETConfig()
   entity.isPaused = true
   entity.save()
-  //_saveETConfig(entity, event)
 }
 
 export function handleUnpaused(event: UnpausedEvent): void {
   const entity = _loadETConfig()
   entity.isPaused = false
   entity.save()
-  //_saveETConfig(entity, event)
 }
 
 export function handleRoleAdminChanged(_event: RoleAdminChangedEvent): void {}
@@ -192,11 +186,3 @@ function _loadETConfig(): EasyTrackConfig {
   }
   return entity
 }
-
-// function _saveETConfig(entity: EasyTrackConfig, event: ethereum.Event): void {
-//   entity.block = event.block.number
-//   entity.blockTime = event.block.timestamp
-//   entity.transactionHash = event.transaction.hash
-//   entity.logIndex = event.logIndex
-//   entity.save()
-// }

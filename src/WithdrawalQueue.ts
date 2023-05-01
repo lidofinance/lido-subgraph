@@ -1,4 +1,3 @@
-import { ethereum } from '@graphprotocol/graph-ts'
 import {
   BunkerModeDisabled as BunkerModeDisabledEvent,
   BunkerModeEnabled as BunkerModeEnabledEvent,
@@ -75,7 +74,6 @@ export function handleBunkerModeDisabled(event: BunkerModeDisabledEvent): void {
   entity.isBunkerMode = false
   entity.bunkerModeSince = ZERO
   entity.save()
-  //_saveWQConfig(entity, event)
 }
 
 export function handleBunkerModeEnabled(event: BunkerModeEnabledEvent): void {
@@ -83,14 +81,12 @@ export function handleBunkerModeEnabled(event: BunkerModeEnabledEvent): void {
   entity.isBunkerMode = true
   entity.bunkerModeSince = event.params._sinceTimestamp
   entity.save()
-  //_saveWQConfig(entity, event)
 }
 
 export function handleContractVersionSet(event: ContractVersionSetEvent): void {
   const entity = _loadWQConfig()
   entity.contractVersion = event.params.version
   entity.save()
-  //_saveWQConfig(entity, event)
 }
 
 export function handlePaused(event: PausedEvent): void {
@@ -98,7 +94,6 @@ export function handlePaused(event: PausedEvent): void {
   entity.isPaused = true
   entity.pauseDuration = event.params.duration
   entity.save()
-  //_saveWQConfig(entity, event)
 }
 
 export function handleResumed(event: ResumedEvent): void {
@@ -106,7 +101,6 @@ export function handleResumed(event: ResumedEvent): void {
   entity.isPaused = false
   entity.pauseDuration = ZERO
   entity.save()
-  //_saveWQConfig(entity, event)
 }
 
 function _loadWQConfig(): WithdrawalQueueConfig {
@@ -122,11 +116,3 @@ function _loadWQConfig(): WithdrawalQueueConfig {
   }
   return entity
 }
-
-// function _saveWQConfig(entity: WithdrawalQueueConfig, event: ethereum.Event): void {
-//   entity.block = event.block.number
-//   entity.blockTime = event.block.timestamp
-//   entity.transactionHash = event.transaction.hash
-//   entity.logIndex = event.logIndex
-//   entity.save()
-// }

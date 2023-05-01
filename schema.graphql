@@ -20,11 +20,6 @@ type LidoConfig @entity {
   withdrawalCredentials: Bytes!
   wcSetBy: Bytes
   lidoLocator: Bytes
-
-  # block: BigInt!
-  # blockTime: BigInt!
-  # transactionHash: Bytes!
-  # logIndex: BigInt!
 }
 
 type LidoTransfer @entity(immutable: true) {
@@ -195,11 +190,6 @@ type OracleConfig @entity {
   genesisTime: BigInt!
 
   beaconReportReceiver: Bytes!
-
-  # block: BigInt!
-  # blockTime: BigInt!
-  # transactionHash: Bytes!
-  # logIndex: BigInt!
 }
 
 type OracleReport @entity {
@@ -210,11 +200,6 @@ type OracleReport @entity {
   hash: Bytes!
   itemsProcessed: BigInt!
   itemsCount: BigInt!
-
-  # block: BigInt!
-  # blockTime: BigInt!
-  # transactionHash: Bytes!
-  # logIndex: BigInt!
 }
 
 type OracleCompleted @entity(immutable: true) {
@@ -359,11 +344,6 @@ type NodeOperatorKeysOpIndex @entity {
   id: Bytes!
 
   index: BigInt!
-
-  # block: BigInt!
-  # blockTime: BigInt!
-  # transactionHash: Bytes!
-  # logIndex: BigInt!
 }
 
 """
@@ -376,11 +356,6 @@ type VotingConfig @entity {
   minAcceptQuorumPct: BigInt!
   voteTime: BigInt!
   objectionPhaseTime: BigInt!
-
-  # block: BigInt!
-  # blockTime: BigInt!
-  # transactionHash: Bytes!
-  # logIndex: BigInt!
 }
 
 type Voting @entity {
@@ -454,11 +429,6 @@ type EasyTrackConfig @entity {
   motionsCountLimit: BigInt!
   objectionsThreshold: BigInt!
   isPaused: Boolean!
-
-  # block: BigInt!
-  # blockTime: BigInt!
-  # transactionHash: Bytes!
-  # logIndex: BigInt!
 }
 
 type Role @entity {
@@ -506,11 +476,6 @@ type DepositSecurityModuleConfig @entity {
   nodeOperatorsRegistry: Bytes
   owner: Bytes
   pauseIntentValidityPeriodBlocks: BigInt
-
-  # block: BigInt!
-  # blockTime: BigInt!
-  # transactionHash: Bytes!
-  # logIndex: BigInt!
 }
 
 type DepositsPause @entity(immutable: true) {
@@ -562,11 +527,6 @@ type WithdrawalQueueConfig @entity {
   contractVersion: BigInt!
   isPaused: Boolean!
   pauseDuration: BigInt!
-
-  # block: BigInt!
-  # blockTime: BigInt!
-  # transactionHash: Bytes!
-  # logIndex: BigInt!
 }
 
 type WithdrawalClaimed @entity(immutable: true) {
