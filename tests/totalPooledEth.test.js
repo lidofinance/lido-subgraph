@@ -2,7 +2,7 @@ import { gql } from 'graphql-request'
 import { lidoFuncCall, subgraphFetch } from './utils/index.js'
 
 const query = gql`
-  query($block: Block_height) {
+  query ($block: Block_height) {
     totals(id: "", block: $block) {
       totalPooledEther
     }

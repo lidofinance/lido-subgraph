@@ -9,13 +9,13 @@ import {
   MinDepositBlockDistanceChanged as MinDepositBlockDistanceChangedEvent,
   NodeOperatorsRegistryChanged as NodeOperatorsRegistryChangedEvent,
   OwnerChanged as OwnerChangedEvent,
-  PauseIntentValidityPeriodBlocksChanged as PauseIntentValidityPeriodBlocksChangedEvent
+  PauseIntentValidityPeriodBlocksChanged as PauseIntentValidityPeriodBlocksChangedEvent,
 } from '../generated/DepositSecurityModule/DepositSecurityModule'
 
 import {
   DepositSecurityModuleConfig,
   DepositsPause,
-  Guardian
+  Guardian,
 } from '../generated/schema'
 import { ZERO, ZERO_ADDRESS } from './constants'
 

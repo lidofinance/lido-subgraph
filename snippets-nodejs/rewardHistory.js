@@ -10,18 +10,15 @@ import {
   submissionsQuery,
   totalRewardQuery,
   transferInQuery,
-  transferOutQuery
+  transferOutQuery,
 } from './queries/index.js'
 
 // Address to track
 const ADDRESS = ''
 
 // Helpers to display data in easily readable form
-const weiToHumanReadable = wei =>
-  BigDecimal(wei)
-    .div('1e18')
-    .toString()
-const dateToHumanReadable = date => format(fromUnixTime(date), 'dd.MM.yyyy')
+const weiToHumanReadable = (wei) => BigDecimal(wei).div('1e18').toString()
+const dateToHumanReadable = (date) => format(fromUnixTime(date), 'dd.MM.yyyy')
 
 // Sort by block, logIndex and out first and then in
 const sortTxs = (a, b) =>
@@ -30,7 +27,7 @@ const sortTxs = (a, b) =>
   (a.direction === 'In' ? 1 : -1)
 
 const queryVars = {
-  address: ADDRESS
+  address: ADDRESS,
 }
 
 // Subgraph Requests: staking, oracle reports, transfers in and out
@@ -44,19 +41,19 @@ const transfersOut = (await subgraphFetch(transferOutQuery, queryVars))
 
 // Joining transfers in and out
 const transfers = [
-  ...submissions.map(x => ({ ...x, type: 'Staking' })),
-  ...transfersIn.map(x => ({
+  ...submissions.map((x) => ({ ...x, type: 'Staking' })),
+  ...transfersIn.map((x) => ({
     ...x,
     type: 'Transfer',
     direction: 'In',
-    value: Big(x.value)
+    value: Big(x.value),
   })),
-  ...transfersOut.map(x => ({
+  ...transfersOut.map((x) => ({
     ...x,
     type: 'Transfer',
     direction: 'Out',
-    value: Big(x.value)
-  }))
+    value: Big(x.value),
+  })),
 ].sort(sortTxs)
 
 // Picking which balance direction we need
@@ -73,7 +70,7 @@ for (let report of reports) {
   report.type = 'Reward'
 
   // Find all transfers before rewards
-  const usefulTransfers = transfers.filter(transfer =>
+  const usefulTransfers = transfers.filter((transfer) =>
     transfer.block !== report.block
       ? parseInt(transfer.block) < parseInt(report.block)
       : parseInt(transfer.logIndex) < parseInt(report.logIndex)
@@ -111,7 +108,7 @@ for (let report of reports) {
 }
 
 // Hiding unnecessary output
-const reportsWithShares = reports.filter(day => day.shares.gt(0))
+const reportsWithShares = reports.filter((day) => day.shares.gt(0))
 const hiddenTransfersOnSubmit = transfers.filter(
   (x, ix, array) =>
     !(
@@ -125,9 +122,9 @@ const hiddenTransfersOnSubmit = transfers.filter(
 // Joining and sorting
 const merged = [...hiddenTransfersOnSubmit, ...reportsWithShares].sort(sortTxs)
 
-const withChange = merged.map(x => ({
+const withChange = merged.map((x) => ({
   ...x,
-  change: x.amount || x.value || x.rewards
+  change: x.amount || x.value || x.rewards,
 }))
 
 for (const x of withChange) {

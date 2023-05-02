@@ -21,7 +21,7 @@ import {
   StakingResumed as StakingResumedEvent,
   StakingPaused as StakingPausedEvent,
   WithdrawalCredentialsSet as WithdrawalCredentialsSetEvent,
-  LidoLocatorSet as LidoLocatorSetEvent
+  LidoLocatorSet as LidoLocatorSetEvent,
 } from '../generated/Lido/Lido'
 import {
   LidoSubmission,
@@ -32,7 +32,7 @@ import {
   LidoApproval,
   SharesBurn,
   LidoConfig,
-  LidoTransfer
+  LidoTransfer,
 } from '../generated/schema'
 
 import {
@@ -41,7 +41,7 @@ import {
   ONE,
   CALCULATION_UNIT,
   ZERO_ADDRESS,
-  network
+  network,
 } from './constants'
 import {
   parseEventLogs,
@@ -49,7 +49,7 @@ import {
   getParsedEventByName,
   getRightPairedEventByLeftLogIndex,
   getParsedEvent,
-  ParsedEvent
+  ParsedEvent,
 } from './parser'
 import {
   _calcAPR_v2,
@@ -62,7 +62,7 @@ import {
   _updateTransferBalances,
   _updateTransferShares,
   isLidoTransferShares,
-  isLidoV2
+  isLidoV2,
 } from './helpers'
 
 import { wcKeyCrops } from './wcKeyCrops'
@@ -176,12 +176,11 @@ export function handleTransfer(event: TransferEvent): void {
   if (isLidoTransferShares(event.block.number)) {
     const parsedEvents = parseEventLogs(event, event.address)
     // TransferShares should exists after according upgrade
-    eventTransferShares = getRightPairedEventByLeftLogIndex<
-      TransferSharesEvent
-    >(
-      extractPairedEvent(parsedEvents, 'Transfer', 'TransferShares'),
-      event.logIndex
-    )!
+    eventTransferShares =
+      getRightPairedEventByLeftLogIndex<TransferSharesEvent>(
+        extractPairedEvent(parsedEvents, 'Transfer', 'TransferShares'),
+        event.logIndex
+      )!
     entity.shares = eventTransferShares.params.sharesValue
 
     // skip handling if nothing to handle
@@ -221,9 +220,8 @@ export function handleTransfer(event: TransferEvent): void {
           totalRewardsEntity.insuranceFee.isZero()
         ) {
           // Handling the Insurance Fee transfer event
-          totalRewardsEntity.insuranceFee = totalRewardsEntity.insuranceFee.plus(
-            entity.value
-          )
+          totalRewardsEntity.insuranceFee =
+            totalRewardsEntity.insuranceFee.plus(entity.value)
 
           // sanity assertion
           if (eventTransferShares) {
@@ -253,9 +251,8 @@ export function handleTransfer(event: TransferEvent): void {
             totalRewardsEntity.dust = totalRewardsEntity.dust.plus(entity.value)
             shares = totalRewardsEntity.dustSharesToTreasury
           } else {
-            totalRewardsEntity.treasuryFee = totalRewardsEntity.treasuryFee.plus(
-              entity.value
-            )
+            totalRewardsEntity.treasuryFee =
+              totalRewardsEntity.treasuryFee.plus(entity.value)
             shares = totalRewardsEntity.sharesToTreasury
           }
 
@@ -308,9 +305,8 @@ export function handleTransfer(event: TransferEvent): void {
           } else {
             entity.shares = nodeOperatorShare.shares
           }
-          totalRewardsEntity.operatorsFee = totalRewardsEntity.operatorsFee.plus(
-            entity.value
-          )
+          totalRewardsEntity.operatorsFee =
+            totalRewardsEntity.operatorsFee.plus(entity.value)
         }
 
         if (!entity.value.isZero()) {
@@ -319,9 +315,8 @@ export function handleTransfer(event: TransferEvent): void {
             totalRewardsEntity.totalRewards >= entity.value,
             'negative totalRewards'
           )
-          totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
-            entity.value
-          )
+          totalRewardsEntity.totalRewards =
+            totalRewardsEntity.totalRewards.minus(entity.value)
           // increasing total system fee value
           totalRewardsEntity.totalFee = totalRewardsEntity.totalFee.plus(
             entity.value
@@ -456,7 +451,7 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
       [
         event.block.number.toString(),
         event.transaction.hash.toHexString(),
-        event.logIndex.toString()
+        event.logIndex.toString(),
       ]
     )
     return
@@ -617,7 +612,7 @@ export function _processTokenRebase(
       [
         entity.shares2mint.toString(),
         sharesToTreasury.toString(),
-        sharesToOperators.toString()
+        sharesToOperators.toString(),
       ]
     )
   }

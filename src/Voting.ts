@@ -7,13 +7,13 @@ import {
   ChangeSupportRequired as ChangeSupportRequiredEvent,
   ChangeMinQuorum as ChangeMinQuorumEvent,
   ChangeVoteTime as ChangeVoteTimeEvent,
-  ChangeObjectionPhaseTime as ChangeObjectionPhaseTimeEvent
+  ChangeObjectionPhaseTime as ChangeObjectionPhaseTimeEvent,
 } from '../generated/Voting/Voting'
 import {
   Voting,
   Vote,
   VotingObjection,
-  VotingConfig
+  VotingConfig,
 } from '../generated/schema'
 import { _loadSharesEntity, _loadTotalsEntity } from './helpers'
 import { ZERO } from './constants'

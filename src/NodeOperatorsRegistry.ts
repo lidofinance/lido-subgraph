@@ -9,12 +9,12 @@ import {
   SigningKeyAdded as SigningKeyAddedEvent,
   SigningKeyRemoved as SigningKeyRemovedEvent,
   NodeOperatorTotalKeysTrimmed as NodeOperatorTotalKeysTrimmedEvent,
-  KeysOpIndexSet as KeysOpIndexSetEvent
+  KeysOpIndexSet as KeysOpIndexSetEvent,
 } from '../generated/NodeOperatorsRegistry/NodeOperatorsRegistry'
 import {
   NodeOperatorSigningKey,
   NodeOperator,
-  NodeOperatorKeysOpIndex
+  NodeOperatorKeysOpIndex,
 } from '../generated/schema'
 import { ZERO, ZERO_ADDRESS } from './constants'
 

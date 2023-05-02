@@ -7,7 +7,7 @@ import {
   TotalReward,
   Holder,
   OracleReport,
-  AppVersion
+  AppVersion,
 } from '../generated/schema'
 import {
   CALCULATION_UNIT,
@@ -23,7 +23,7 @@ import {
   ZERO_ADDRESS,
   PROTOCOL_UPG_APP_VERS,
   PROTOCOL_UPG_BLOCKS,
-  network
+  network,
 } from './constants'
 import { Transfer } from '../generated/Lido/Lido'
 

@@ -3,7 +3,7 @@ import {
   Address,
   TypedMap,
   Bytes,
-  dataSource
+  dataSource,
 } from '@graphprotocol/graph-ts'
 import { LidoConfig } from '../generated/schema'
 
@@ -196,45 +196,45 @@ export const PROTOCOL_UPG_IDX_V2 = 2
 export const PROTOCOL_UPG_BLOCKS = new TypedMap<string, BigInt[]>()
 PROTOCOL_UPG_BLOCKS.set('mainnet', [
   BigInt.fromI32(11473216), // V1
-  BigInt.fromI32(14860268) // V1_SHARES
+  BigInt.fromI32(14860268), // V1_SHARES
   // BigInt.fromI32(0) // V2, TBD
 ])
 PROTOCOL_UPG_BLOCKS.set('goerli', [
   BigInt.fromI32(4533286), // V1
   BigInt.fromI32(6912872), // V1_SHARES
-  BigInt.fromI32(8710746) // V2
+  BigInt.fromI32(8710746), // V2
 ])
 
 export const PROTOCOL_UPG_APP_VERS = new TypedMap<Bytes, i32[]>()
 PROTOCOL_UPG_APP_VERS.set(LIDO_APP_ID_MAINNET, [
   1, // V1, v1.0.0
   3, // V1_SHARES, v3.0.0,
-  4 // V2, expected v4.0.0
+  4, // V2, expected v4.0.0
 ])
 PROTOCOL_UPG_APP_VERS.set(LIDO_APP_ID_GOERLI, [
   1, // V1, v1.0.0
   8, // V1_SHARES, v8.0.0
-  10 // V2, v10.0.0
+  10, // V2, v10.0.0
 ])
 PROTOCOL_UPG_APP_VERS.set(NOR_APP_ID_MAINNET, [
   1, // V1, v1.0.0
   3, // V1_SHARES, v3.0.0
-  4 // V2, expected v4.0.0
+  4, // V2, expected v4.0.0
 ])
 PROTOCOL_UPG_APP_VERS.set(NOR_APP_ID_GOERLI, [
   1, // V1, v1.0.0
   6, // V1_SHARES, v6.0.0,
-  8 // V2, 8.0.0
+  8, // V2, 8.0.0
 ])
 PROTOCOL_UPG_APP_VERS.set(ORACLE_APP_ID_MAINNET, [
   1, // V1, v1.0.0
   3, // V1_SHARES, v3.0.0
-  4 // V2, expected v4.0.0
+  4, // V2, expected v4.0.0
 ])
 PROTOCOL_UPG_APP_VERS.set(ORACLE_APP_ID_GOERLI, [
   1, // V1, v1.0.0
   4, // V1_SHARES, v4.0.0
-  5 // V2, v5.0.0
+  5, // V2, v5.0.0
 ])
 PROTOCOL_UPG_APP_VERS.set(VOTING_APP_ID_MAINNET, [])
 PROTOCOL_UPG_APP_VERS.set(VOTING_APP_ID_GOERLI, [])

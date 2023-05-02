@@ -3,7 +3,7 @@ import {
   ETHER,
   LIDO_APP_ID,
   ONE,
-  ZERO_ADDRESS
+  ZERO_ADDRESS,
 } from '../src/constants'
 import {
   describe,
@@ -14,14 +14,14 @@ import {
   beforeEach,
   assert,
   log,
-  newTypedMockEventWithParams
+  newTypedMockEventWithParams,
 } from 'matchstick-as/assembly/index'
 import {
   Totals,
   CurrentFees,
   OracleCompleted,
   Stats,
-  AppVersion
+  AppVersion,
 } from '../generated/schema'
 import { Completed } from '../generated/LegacyOracle/LegacyOracle'
 import { BigInt, Address, ethereum } from '@graphprotocol/graph-ts'
@@ -57,7 +57,7 @@ function createNewCompletedEvent(
     new ethereum.EventParam(
       'beaconValidators',
       ethereum.Value.fromUnsignedBigInt(beaconValidators)
-    )
+    ),
   ])
 
   const isV2 = isLidoV2(event.block.number)
@@ -143,9 +143,8 @@ describe('handleCompleted() before Lido v2', () => {
   })
 
   test('positive rewards with new vals', () => {
-    let newBalance = INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).plus(
-      someRewards
-    )
+    let newBalance =
+      INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).plus(someRewards)
     let newValidators = INITIAL_BEACON_VALIDATORS.plus(ONE)
     let event = createNewCompletedEvent('1', newBalance, newValidators)
 
@@ -178,23 +177,20 @@ describe('handleCompleted() before Lido v2', () => {
   })
 
   test('negative rewards with less vals', () => {
-    let newBalance = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(
-      someRewards
-    )
+    let newBalance =
+      INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(someRewards)
     let newValidators = INITIAL_BEACON_VALIDATORS.minus(ONE)
     let event = createNewCompletedEvent('1', newBalance, newValidators)
     handleCompleted(event)
 
-    let expected = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(
-      someRewards
-    )
+    let expected =
+      INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(someRewards)
     assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
   })
 
   test('more vals but negative rewards', () => {
-    let newBalance = INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).minus(
-      someRewards
-    )
+    let newBalance =
+      INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).minus(someRewards)
     let newValidators = INITIAL_BEACON_VALIDATORS.plus(ONE)
     let event = createNewCompletedEvent('1', newBalance, newValidators)
     handleCompleted(event)

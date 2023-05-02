@@ -7,7 +7,7 @@ import {
   getLidoEvents,
   getLidoOracleEvents,
   getNopRegistryEvents,
-  subgraphFetch
+  subgraphFetch,
 } from './utils'
 
 const SECS_PER_BLOCK = 12
@@ -38,7 +38,7 @@ test(
     expect(block >= getBlock() - BLOCKS_RANGE_3HOURS).toBe(true)
     const events = await getLidoEvents('Transfer', block, block)
     const event = events?.find(
-      e => e.transactionHash == transfer.transactionHash
+      (e) => e.transactionHash == transfer.transactionHash
     )
     expect(event).toBeDefined()
   },
@@ -64,7 +64,7 @@ test(
     const block = parseInt(member.block)
     const events = await getLidoOracleEvents('MemberAdded', block, block)
     const event = events?.find(
-      e => e.args.member.toLowerCase() == member.member.toLowerCase()
+      (e) => e.args.member.toLowerCase() == member.member.toLowerCase()
     )
     expect(event).toBeDefined()
   },
@@ -89,7 +89,7 @@ test(
 
     const block = parseInt(operator.block)
     const events = await getNopRegistryEvents('NodeOperatorAdded', block, block)
-    const event = events?.find(e => e.args.name == operator.name)
+    const event = events?.find((e) => e.args.name == operator.name)
 
     expect(event).toBeDefined()
   },
@@ -116,7 +116,7 @@ test(
     expect(block >= getBlock() - BLOCKS_RANGE_3MONTHS).toBe(true)
     const events = await getAragonEvents('StartVote', block, block)
     const event = events?.find(
-      e => e.args.creator.toLowerCase() == voting.creator.toLowerCase()
+      (e) => e.args.creator.toLowerCase() == voting.creator.toLowerCase()
     )
     expect(event).toBeDefined()
   },
@@ -143,7 +143,7 @@ test(
     expect(block >= getBlock() - BLOCKS_RANGE_3MONTHS).toBe(true)
     const events = await getEasyTrackEvents('MotionCreated', block, block)
     const event = events?.find(
-      e => e.args._creator.toLowerCase() == motion.creator.toLowerCase()
+      (e) => e.args._creator.toLowerCase() == motion.creator.toLowerCase()
     )
 
     expect(event).toBeDefined()
@@ -170,7 +170,7 @@ test(
     const block = parseInt(guardian.block)
     const events = await getDSMEvents('GuardianAdded', block, block)
     const event = events?.find(
-      e => e.args.guardian.toLowerCase() == guardian.address.toLowerCase()
+      (e) => e.args.guardian.toLowerCase() == guardian.address.toLowerCase()
     )
     expect(event).toBeDefined()
   },

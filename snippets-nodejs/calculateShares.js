@@ -38,17 +38,17 @@ const transfersOutbound = (await subgraphFetch(transfersOutboundQuery))
   .lidoTransfers
 
 const together = [
-  ...submissions.map(x => ({ ...x, type: 'submission' })),
-  ...transfersInbound.map(x => ({
+  ...submissions.map((x) => ({ ...x, type: 'submission' })),
+  ...transfersInbound.map((x) => ({
     ...x,
     type: 'transfer',
-    direction: 'inbound'
+    direction: 'inbound',
   })),
-  ...transfersOutbound.map(x => ({
+  ...transfersOutbound.map((x) => ({
     ...x,
     type: 'transfer',
-    direction: 'outbound'
-  }))
+    direction: 'outbound',
+  })),
 ].sort((a, b) => a.block - b.block)
 
 let shares = Big(0)

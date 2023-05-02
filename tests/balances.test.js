@@ -2,7 +2,7 @@ import {
   lidoFuncCall,
   getTestAddresses,
   loadAddressShares,
-  getTotals
+  getTotals,
 } from './utils/index.js'
 import { BigNumber } from 'ethers'
 

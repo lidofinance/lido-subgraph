@@ -2,7 +2,7 @@ import { gql } from 'graphql-request'
 import { subgraphFetch } from './utils/index.js'
 
 const sharesQuery = gql`
-  query($first: Int, $skip: Int, $block: Block_height) {
+  query ($first: Int, $skip: Int, $block: Block_height) {
     lidoTransfers(
       first: $first
       skip: $skip
@@ -15,7 +15,7 @@ const sharesQuery = gql`
 `
 
 const balanceQuery = gql`
-  query($first: Int, $skip: Int, $block: Block_height) {
+  query ($first: Int, $skip: Int, $block: Block_height) {
     lidoTransfers(
       first: $first
       skip: $skip

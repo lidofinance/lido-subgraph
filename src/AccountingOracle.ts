@@ -1,10 +1,10 @@
 import {
   Transfer as TransferEvent,
-  TransferShares as TransferSharesEvent
+  TransferShares as TransferSharesEvent,
 } from '../generated/Lido/Lido'
 import {
   ExtraDataSubmitted as ExtraDataSubmittedEvent,
-  ProcessingStarted as ProcessingStartedEvent
+  ProcessingStarted as ProcessingStartedEvent,
 } from '../generated/AccountingOracle/AccountingOracle'
 import { StakingRouter } from '../generated/AccountingOracle/StakingRouter'
 import { NodeOperatorsShares, NodeOperatorFees } from '../generated/schema'

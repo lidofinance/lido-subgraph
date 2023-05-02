@@ -22,7 +22,7 @@ const balanceQuery = gql`
 test('The Graph balance check', async () => {
   const res = await request(BILLING_SUBGRAPH, balanceQuery, {
     // Don't use checksummed addresses here as they are not checksummed in Subgraphs
-    id: LIDO_ADDRESS.toLowerCase()
+    id: LIDO_ADDRESS.toLowerCase(),
   })
 
   const balance = BigInt(res.graphAccount.balance)

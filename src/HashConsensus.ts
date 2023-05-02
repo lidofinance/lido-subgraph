@@ -1,6 +1,6 @@
 import {
   FrameConfigSet as FrameConfigSetEvent,
-  HashConsensus
+  HashConsensus,
 } from '../generated/HashConsensus/HashConsensus'
 import { _loadOracleConfig } from './LegacyOracle'
 

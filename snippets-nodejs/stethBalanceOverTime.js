@@ -10,7 +10,7 @@ const tailingPeriodEnabled = true
 
 const stepBlocks = 100
 
-const genTotalsQuery = block => gql`
+const genTotalsQuery = (block) => gql`
   {
     totals(id: "", block: { number: ${block} }) {
       totalPooledEther
@@ -39,8 +39,8 @@ const lastSubmitQuery = gql`
 const sharesChecks = [
   '17253336101171480', // 70usd
   '453884371982397608502', // 2mil usd
-  '22253111414175281724765' // 90mil usd
-].map(x => BigNumber.from(x))
+  '22253111414175281724765', // 90mil usd
+].map((x) => BigNumber.from(x))
 
 for (const shares of sharesChecks) {
   console.log('Checking shares:', shares.toString())
@@ -54,7 +54,7 @@ for (const shares of sharesChecks) {
   for (let i = 0; i < reports.length - 1; i++) {
     periods.push({
       start: parseInt(reports[i].block),
-      end: parseInt(reports[i + 1].block)
+      end: parseInt(reports[i + 1].block),
     })
   }
 
@@ -62,7 +62,7 @@ for (const shares of sharesChecks) {
     // Period before first rewards
     periods.unshift({
       start: firstTxBlock,
-      end: periods[0].start
+      end: periods[0].start,
     })
   }
 
@@ -70,7 +70,7 @@ for (const shares of sharesChecks) {
     // Period after last rewards
     periods.push({
       start: periods.at(-1).end,
-      end: lastBlock
+      end: lastBlock,
     })
   }
 

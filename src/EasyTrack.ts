@@ -15,7 +15,7 @@ import {
   Unpaused as UnpausedEvent,
   RoleAdminChanged as RoleAdminChangedEvent,
   RoleGranted as RoleGrantedEvent,
-  RoleRevoked as RoleRevokedEvent
+  RoleRevoked as RoleRevokedEvent,
 } from '../generated/EasyTrack/EasyTrack'
 
 import {
@@ -23,7 +23,7 @@ import {
   Role,
   EVMScriptFactory,
   Objection,
-  EasyTrackConfig
+  EasyTrackConfig,
 } from '../generated/schema'
 import { ZERO, ZERO_ADDRESS } from './constants'
 

@@ -10,7 +10,7 @@ import {
   MemberAdded as MemberAddedEvent,
   MemberRemoved as MemberRemovedEvent,
   PostTotalShares as PostTotalSharesEvent,
-  QuorumChanged as QuorumChangedEvent
+  QuorumChanged as QuorumChangedEvent,
 } from '../generated/LegacyOracle/LegacyOracle'
 import { NodeOperatorsRegistry } from '../generated/LegacyOracle/NodeOperatorsRegistry'
 import {
@@ -20,7 +20,7 @@ import {
   OracleCompleted,
   OracleConfig,
   OracleExpectedEpoch,
-  OracleMember
+  OracleMember,
 } from '../generated/schema'
 import {
   CALCULATION_UNIT,
@@ -29,7 +29,7 @@ import {
   ZERO,
   ZERO_ADDRESS,
   getAddress,
-  network
+  network,
 } from './constants'
 
 import {
@@ -37,7 +37,7 @@ import {
   _loadStatsEntity,
   _loadTotalRewardEntity,
   _loadTotalsEntity,
-  isLidoV2
+  isLidoV2,
 } from './helpers'
 import { ELRewardsReceived, MevTxFeeReceived } from '../generated/Lido/Lido'
 import { getParsedEventByName, parseEventLogs } from './parser'

@@ -5,7 +5,7 @@ import { AppVersion } from '../generated/schema'
 import {
   KERNEL_APP_BASES_NAMESPACE,
   APP_REPOS,
-  ZERO_ADDRESS
+  ZERO_ADDRESS,
 } from './constants'
 
 export function handleSetApp(event: SetAppEvent): void {

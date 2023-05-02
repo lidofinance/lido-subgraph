@@ -7,13 +7,13 @@ import {
   WithdrawalClaimed as WithdrawalClaimedEvent,
   WithdrawalRequested as WithdrawalRequestedEvent,
   WithdrawalsFinalized as WithdrawalsFinalizedEvent,
-  WithdrawalBatchFinalized as WithdrawalBatchFinalizedEvent
+  WithdrawalBatchFinalized as WithdrawalBatchFinalizedEvent,
 } from '../generated/WithdrawalQueue/WithdrawalQueue'
 import {
   WithdrawalClaimed,
   WithdrawalQueueConfig,
   WithdrawalRequested,
-  WithdrawalsFinalized
+  WithdrawalsFinalized,
 } from '../generated/schema'
 import { ZERO } from './constants'
 

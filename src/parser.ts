@@ -72,15 +72,14 @@ export function parseEventLogs(
                 receipt.logs[i].data.toHexString(),
                 baseEvent.block.number.toString(),
                 baseEvent.transaction.hash.toHexString(),
-                receipt.logs[i].logIndex.toString()
+                receipt.logs[i].logIndex.toString(),
               ]
             )
           } else {
             const tuple = decoded.toTuple()
             for (let k = 0; k < notIndexedParamsMap.length; k++) {
-              event.parameters[
-                notIndexedParamsMap[k]
-              ] = new ethereum.EventParam('', tuple[k])
+              event.parameters[notIndexedParamsMap[k]] =
+                new ethereum.EventParam('', tuple[k])
             }
             decodeFinished = true
           }
@@ -95,7 +94,7 @@ export function parseEventLogs(
             receipt.logs[i].topics[0].toHexString(),
             baseEvent.block.number.toString(),
             baseEvent.transaction.hash.toHexString(),
-            receipt.logs[i].logIndex.toString()
+            receipt.logs[i].logIndex.toString(),
           ]
         )
       }

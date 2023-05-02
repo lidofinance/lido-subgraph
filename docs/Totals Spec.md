@@ -580,7 +580,8 @@ type OracleCompleted @entity {
   blockTime: BigInt!
   transactionHash: Bytes!
   logIndex: BigInt!
-}```
+}
+```
 
 ```graphql
 type TotalReward @entity {

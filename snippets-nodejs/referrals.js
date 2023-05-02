@@ -17,7 +17,7 @@ const generateQuery = (referral, skip) => gql`
   }
 `
 
-const fetchToLimits = async referral => {
+const fetchToLimits = async (referral) => {
   const subgraphLimit = 6000
   let skip = 0
   let gotItems = 0
@@ -43,15 +43,12 @@ const submissions = await fetchToLimits(ADDRESS)
 
 const total = submissions.reduce((acc, item) => acc.plus(item.amount), Big(0))
 
-const uniqueReferred = [...new Set(submissions.map(x => x.sender))]
+const uniqueReferred = [...new Set(submissions.map((x) => x.sender))]
 
 console.log(
   ADDRESS,
   'referred a total of',
-  total
-    .div('1e18')
-    .round(2)
-    .toNumber(),
+  total.div('1e18').round(2).toNumber(),
   'stETH'
 )
 console.log(ADDRESS, 'referred', uniqueReferred.length, 'unique addresses')

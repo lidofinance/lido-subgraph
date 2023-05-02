@@ -5,7 +5,7 @@ import {
   GRAPH_BASIC_AUTH_PASSWORD,
   GRAPH_AUTH_COOKIE,
   getBlock,
-  getIsLimited
+  getIsLimited,
 } from '../config.js'
 
 const FETCH_STEP = 1000
@@ -16,7 +16,10 @@ const addHeaders = () => {
   const headers = {}
   if (GRAPH_BASIC_AUTH_USER && GRAPH_BASIC_AUTH_PASSWORD) {
     headers.authorization =
-      'Basic ' + Buffer.from(GRAPH_BASIC_AUTH_USER + ':' + GRAPH_BASIC_AUTH_PASSWORD).toString('base64')
+      'Basic ' +
+      Buffer.from(
+        GRAPH_BASIC_AUTH_USER + ':' + GRAPH_BASIC_AUTH_PASSWORD
+      ).toString('base64')
   }
   if (GRAPH_AUTH_COOKIE) {
     headers.cookie = GRAPH_AUTH_COOKIE
@@ -25,7 +28,7 @@ const addHeaders = () => {
 }
 
 // Add fixed block if not set already
-const mbAddFixedBlock = vars => {
+const mbAddFixedBlock = (vars) => {
   if (vars.block) {
     return query
   }
@@ -35,7 +38,7 @@ const mbAddFixedBlock = vars => {
 }
 
 // Warning: Assumes one-key objects
-const mergeObjects = array =>
+const mergeObjects = (array) =>
   array.reduce((acc, cur) => {
     const key = Object.keys(cur)[0]
     const exists = key === Object.keys(acc)[0]
@@ -56,13 +59,13 @@ export const subgraphFetch = async (query, vars = {}) => {
       {
         first: FETCH_STEP,
         skip: skip,
-        ...mbAddFixedBlock(vars)
+        ...mbAddFixedBlock(vars),
       },
       addHeaders()
     )
 
     // Super small delay not to DOS the indexing node
-    await new Promise(resolve => setTimeout(resolve, 10))
+    await new Promise((resolve) => setTimeout(resolve, 10))
 
     results = results ? mergeObjects([results, res]) : res
 

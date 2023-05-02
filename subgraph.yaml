@@ -10,7 +10,7 @@ dataSources:
     network: mainnet
     source:
       abi: LidoDAO
-      address: "0xb8FFC3Cd6e7Cf5a098A1c92F48009765B24088Dc"
+      address: '0xb8FFC3Cd6e7Cf5a098A1c92F48009765B24088Dc'
       startBlock: 11473216
     mapping:
       kind: ethereum/events
@@ -32,7 +32,7 @@ dataSources:
     network: mainnet
     source:
       abi: Lido
-      address: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"
+      address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
       startBlock: 11473216
     mapping:
       kind: ethereum/events
@@ -97,7 +97,7 @@ dataSources:
     network: mainnet
     source:
       abi: LegacyOracle
-      address: "0x442af784A788A5bd6F42A01Ebe9F287a871243fb"
+      address: '0x442af784A788A5bd6F42A01Ebe9F287a871243fb'
       startBlock: 11473216
     mapping:
       kind: ethereum/events
@@ -141,7 +141,7 @@ dataSources:
     network: mainnet
     source:
       abi: NodeOperatorsRegistry
-      address: "0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5"
+      address: '0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5'
       startBlock: 11473216
     mapping:
       kind: ethereum/events
@@ -180,7 +180,7 @@ dataSources:
     network: mainnet
     source:
       abi: Voting
-      address: "0x2e59A20f205bB85a89C53f1936454680651E618e"
+      address: '0x2e59A20f205bB85a89C53f1936454680651E618e'
       startBlock: 11473216
     mapping:
       kind: ethereum/events
@@ -220,7 +220,7 @@ dataSources:
     network: mainnet
     source:
       abi: EasyTrack
-      address: "0xF0211b7660680B49De1A7E9f25C65660F0a13Fea"
+      address: '0xF0211b7660680B49De1A7E9f25C65660F0a13Fea'
       startBlock: 13676720
     mapping:
       kind: ethereum/events
@@ -267,7 +267,7 @@ dataSources:
     network: mainnet
     source:
       abi: DepositSecurityModule
-      address: "0xDb149235B6F40dC08810AA69869783Be101790e7"
+      address: '0xDb149235B6F40dC08810AA69869783Be101790e7'
       startBlock: 13492688
     mapping:
       kind: ethereum/events
@@ -307,7 +307,7 @@ dataSources:
     network: mainnet
     source:
       abi: StakingRouter
-      address: "0x0000000000000000000000000000000000000000"
+      address: '0x0000000000000000000000000000000000000000'
       startBlock: 999999999
     mapping:
       kind: ethereum/events
@@ -327,7 +327,7 @@ dataSources:
     network: mainnet
     source:
       abi: AccountingOracle
-      address: "0x0000000000000000000000000000000000000000"
+      address: '0x0000000000000000000000000000000000000000'
       startBlock: 999999999
     mapping:
       kind: ethereum/events
@@ -352,7 +352,7 @@ dataSources:
     network: mainnet
     source:
       abi: WithdrawalQueue
-      address: "0x0000000000000000000000000000000000000000"
+      address: '0x0000000000000000000000000000000000000000'
       startBlock: 999999999
     mapping:
       kind: ethereum/events
@@ -394,7 +394,7 @@ dataSources:
     network: mainnet
     source:
       abi: HashConsensus
-      address: "0x0000000000000000000000000000000000000000"
+      address: '0x0000000000000000000000000000000000000000'
       startBlock: 999999999
     mapping:
       kind: ethereum/events

@@ -12,12 +12,12 @@ const userTransfersQuery = gql`
 const transfers = (await subgraphFetch(userTransfersQuery)).lidoTransfers
 
 const grouped = transfers.reduce((a, b) => {
-  var i = a.findIndex(x => x.to === b.to)
+  var i = a.findIndex((x) => x.to === b.to)
   return i === -1 ? a.push({ to: b.to, times: 1 }) : a[i].times++, a
 }, [])
 
 const sorted = grouped.sort((a, b) => b.times - a.times)
 
-const withAdequateAmount = sorted.filter(x => x.times > 1 && x.times < 5)
+const withAdequateAmount = sorted.filter((x) => x.times > 1 && x.times < 5)
 
 console.log(withAdequateAmount)
