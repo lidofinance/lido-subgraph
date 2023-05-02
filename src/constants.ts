@@ -82,7 +82,7 @@ export const getAddress = (contract: string): Address =>
       ? BURNER_ADDRESSES.get(network)
       : contract == 'INSURANCE_FUND'
       ? getInsuranceFund()
-      : contract == 'TREASURE'
+      : contract == 'TREASURY'
       ? TREASURY_ADDRESSES.get(network)
       : null)!
   )

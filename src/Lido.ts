@@ -213,7 +213,7 @@ export function handleTransfer(event: TransferEvent): void {
          * 3. Treasury Fund Transfer with remaining dust or just rounding dust
          **/
 
-        // in case TreasureAddress = InsuranceAddress and insuranceFeeBasisPoints no zero assuming the first tx should go to Insurance
+        // in case TreasuryAddress = InsuranceAddress and insuranceFeeBasisPoints no zero assuming the first tx should go to Insurance
         if (
           entity.to == getAddress('INSURANCE_FUND') &&
           !totalRewardsEntity.insuranceFeeBasisPoints.isZero() &&
@@ -233,7 +233,7 @@ export function handleTransfer(event: TransferEvent): void {
             // overriding calculated value
             entity.shares = totalRewardsEntity.sharesToInsuranceFund
           }
-        } else if (entity.to == getAddress('TREASURE')) {
+        } else if (entity.to == getAddress('TREASURY')) {
           // Handling the Treasury Fund transfer event
 
           // log.warning('before: treasuryFee {} dust {}', [
@@ -565,14 +565,14 @@ export function _processTokenRebase(
       1
     )
 
-    const treasureAddress = getAddress('TREASURE')
-    // log.warning('treasureAddress {}', [treasureAddress.toHexString()])
+    const treasuryAddress = getAddress('TREASURY')
+    // log.warning('treasuryAddress {}', [treasuryAddress.toHexString()])
     // process only mint events
     if (eventTransfer.params.from == ZERO_ADDRESS) {
       // log.warning('eventTransfer.params.to {}', [eventTransfer.params.to.toHexString()])
 
-      if (eventTransfer.params.to == treasureAddress) {
-        // mint to treasure
+      if (eventTransfer.params.to == treasuryAddress) {
+        // mint to treasury
         sharesToTreasury = sharesToTreasury.plus(
           eventTransferShares.params.sharesValue
         )

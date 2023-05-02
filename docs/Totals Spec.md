@@ -292,7 +292,7 @@ Helpers:
 
 ```javascript
 let isFeeDistributionToTreasury =
-  fromZeros && event.params.to == getAddress('TREASURE')
+  fromZeros && event.params.to == getAddress('TREASURY')
 
 // graph-ts less or equal to
 let isDust = event.params.value.lt(DUST_BOUNDARY)
