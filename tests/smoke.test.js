@@ -12,7 +12,9 @@ import {
 
 const SECS_PER_BLOCK = 12
 const BLOCKS_RANGE_3HOURS = Math.floor((3 * 60 * 60) / SECS_PER_BLOCK)
-const BLOCKS_RANGE_3MONTHS = Math.floor((30 * 24 * 60 * 60 * 3) / SECS_PER_BLOCK)
+const BLOCKS_RANGE_3MONTHS = Math.floor(
+  (30 * 24 * 60 * 60 * 3) / SECS_PER_BLOCK
+)
 
 const TIMEOUT = 30_000
 
@@ -35,7 +37,9 @@ test(
     const block = parseInt(transfer.block)
     expect(block >= getBlock() - BLOCKS_RANGE_3HOURS).toBe(true)
     const events = await getLidoEvents('Transfer', block, block)
-    const event = events?.find(e => e.transactionHash == transfer.transactionHash)
+    const event = events?.find(
+      e => e.transactionHash == transfer.transactionHash
+    )
     expect(event).toBeDefined()
   },
   TIMEOUT
@@ -59,7 +63,9 @@ test(
 
     const block = parseInt(member.block)
     const events = await getLidoOracleEvents('MemberAdded', block, block)
-    const event = events?.find(e => e.args.member.toLowerCase() == member.member.toLowerCase())
+    const event = events?.find(
+      e => e.args.member.toLowerCase() == member.member.toLowerCase()
+    )
     expect(event).toBeDefined()
   },
   TIMEOUT
@@ -109,7 +115,9 @@ test(
     const block = parseInt(voting.block)
     expect(block >= getBlock() - BLOCKS_RANGE_3MONTHS).toBe(true)
     const events = await getAragonEvents('StartVote', block, block)
-    const event = events?.find(e => e.args.creator.toLowerCase() == voting.creator.toLowerCase())
+    const event = events?.find(
+      e => e.args.creator.toLowerCase() == voting.creator.toLowerCase()
+    )
     expect(event).toBeDefined()
   },
   TIMEOUT
@@ -134,7 +142,9 @@ test(
     const block = parseInt(motion.block)
     expect(block >= getBlock() - BLOCKS_RANGE_3MONTHS).toBe(true)
     const events = await getEasyTrackEvents('MotionCreated', block, block)
-    const event = events?.find(e => e.args._creator.toLowerCase() == motion.creator.toLowerCase())
+    const event = events?.find(
+      e => e.args._creator.toLowerCase() == motion.creator.toLowerCase()
+    )
 
     expect(event).toBeDefined()
   },
@@ -159,7 +169,9 @@ test(
 
     const block = parseInt(guardian.block)
     const events = await getDSMEvents('GuardianAdded', block, block)
-    const event = events?.find(e => e.args.guardian.toLowerCase() == guardian.address.toLowerCase())
+    const event = events?.find(
+      e => e.args.guardian.toLowerCase() == guardian.address.toLowerCase()
+    )
     expect(event).toBeDefined()
   },
   TIMEOUT

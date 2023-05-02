@@ -1,7 +1,7 @@
 import {
   lidoFuncCall,
   getTestAddresses,
-  calculateAddressBalance,
+  calculateAddressBalance
 } from './utils/index.js'
 
 const ADDRESSES_TO_TEST = 100

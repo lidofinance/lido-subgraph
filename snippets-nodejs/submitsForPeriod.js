@@ -4,9 +4,13 @@ import { subgraphFetch, gql, Big, BigDecimal } from './utils.js'
 
 const MONTHS_BACK = 3
 
-const toEth = (number) => BigDecimal(number).div(1e18).round(2).toNumber()
+const toEth = number =>
+  BigDecimal(number)
+    .div(1e18)
+    .round(2)
+    .toNumber()
 
-const formatDate = (unixTime) => format(fromUnixTime(unixTime), 'dd/MM/yyyy')
+const formatDate = unixTime => format(fromUnixTime(unixTime), 'dd/MM/yyyy')
 
 const startRaw = sub(new Date(), { months: MONTHS_BACK })
 

@@ -11,7 +11,11 @@ import {
   NodeOperatorTotalKeysTrimmed as NodeOperatorTotalKeysTrimmedEvent,
   KeysOpIndexSet as KeysOpIndexSetEvent
 } from '../generated/NodeOperatorsRegistry/NodeOperatorsRegistry'
-import { NodeOperatorSigningKey, NodeOperator, NodeOperatorKeysOpIndex } from '../generated/schema'
+import {
+  NodeOperatorSigningKey,
+  NodeOperator,
+  NodeOperatorKeysOpIndex
+} from '../generated/schema'
 import { ZERO, ZERO_ADDRESS } from './constants'
 
 export function handleSigningKeyAdded(event: SigningKeyAddedEvent): void {
@@ -50,7 +54,9 @@ export function handleSigningKeyRemoved(event: SigningKeyRemovedEvent): void {
 }
 
 export function handleKeysOpIndexSet(event: KeysOpIndexSetEvent): void {
-  const entity = new NodeOperatorKeysOpIndex(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  const entity = new NodeOperatorKeysOpIndex(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
   entity.index = event.params.keysOpIndex
   entity.save()
 }
@@ -70,31 +76,41 @@ export function handleNodeOperatorAdded(event: NodeOperatorAddedEvent): void {
   entity.save()
 }
 
-export function handleNodeOperatorActiveSet(event: NodeOperatorActiveSetEvent): void {
+export function handleNodeOperatorActiveSet(
+  event: NodeOperatorActiveSetEvent
+): void {
   const entity = _loadOperator(event.params.id.toString())!
   entity.active = event.params.active
   entity.save()
 }
 
-export function handleNodeOperatorNameSet(event: NodeOperatorNameSetEvent): void {
+export function handleNodeOperatorNameSet(
+  event: NodeOperatorNameSetEvent
+): void {
   const entity = _loadOperator(event.params.id.toString())!
   entity.name = event.params.name
   entity.save()
 }
 
-export function handleNodeOperatorRewardAddressSet(event: NodeOperatorRewardAddressSetEvent): void {
+export function handleNodeOperatorRewardAddressSet(
+  event: NodeOperatorRewardAddressSetEvent
+): void {
   const entity = _loadOperator(event.params.id.toString())!
   entity.rewardAddress = event.params.rewardAddress
   entity.save()
 }
 
-export function handleNodeOperatorTotalKeysTrimmed(event: NodeOperatorTotalKeysTrimmedEvent): void {
+export function handleNodeOperatorTotalKeysTrimmed(
+  event: NodeOperatorTotalKeysTrimmedEvent
+): void {
   const entity = _loadOperator(event.params.id.toString())!
   entity.totalKeysTrimmed = event.params.totalKeysTrimmed
   entity.save()
 }
 
-export function handleNodeOperatorStakingLimitSet(event: NodeOperatorStakingLimitSetEvent): void {
+export function handleNodeOperatorStakingLimitSet(
+  event: NodeOperatorStakingLimitSetEvent
+): void {
   const entity = _loadOperator(event.params.id.toString())!
   entity.stakingLimit = event.params.stakingLimit
   entity.save()

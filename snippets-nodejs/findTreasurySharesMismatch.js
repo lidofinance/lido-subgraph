@@ -30,7 +30,7 @@ const endBlock = parseInt(
 let min = startBlock
 let max = endBlock
 
-const genQuery = (block) => gql`
+const genQuery = block => gql`
   query {
     shares(id: "${TREASURY_ADDRESS}", block: { number: ${block} }) {
       shares
@@ -43,7 +43,7 @@ while (min <= max) {
 
   const ethShares = Big(
     await lidoFuncCall('sharesOf', TREASURY_ADDRESS, {
-      blockTag: mid,
+      blockTag: mid
     })
   )
 

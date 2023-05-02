@@ -21,7 +21,8 @@ export function parseEventLogs(
       if (
         (!logIndexFrom.isZero() && receipt.logs[i].logIndex < logIndexFrom) ||
         (!logIndexTo.isZero() && receipt.logs[i].logIndex > logIndexTo) ||
-        (contractAddress != ZERO_ADDRESS && receipt.logs[i].address != contractAddress)
+        (contractAddress != ZERO_ADDRESS &&
+          receipt.logs[i].address != contractAddress)
       ) {
         continue
       }
@@ -46,7 +47,10 @@ export function parseEventLogs(
           const type = params[j].split(' ')
           // if (params[j].slice(-7) == ' indexed') {
           if (type.length > 1 && type[1] == 'indexed') {
-            const decoded = ethereum.decode(type[0], receipt.logs[i].topics[topicIdx++])
+            const decoded = ethereum.decode(
+              type[0],
+              receipt.logs[i].topics[topicIdx++]
+            )
             event.parameters[j] = new ethereum.EventParam('', decoded!)
           } else {
             notIndexedParams.push(type[0])
@@ -55,20 +59,28 @@ export function parseEventLogs(
         }
         let decodeFinished = notIndexedParamsMap.length == 0
         if (!decodeFinished) {
-          const decoded = ethereum.decode('(' + notIndexedParams.join(',') + ')', receipt.logs[i].data)
+          const decoded = ethereum.decode(
+            '(' + notIndexedParams.join(',') + ')',
+            receipt.logs[i].data
+          )
           if (!decoded) {
-            log.warning('params decode fail for event: {} tuple: {} data: {} block: {} txHash: {} logIdx: {}', [
-              eventParserOpts[0],
-              notIndexedParams.join(','),
-              receipt.logs[i].data.toHexString(),
-              baseEvent.block.number.toString(),
-              baseEvent.transaction.hash.toHexString(),
-              receipt.logs[i].logIndex.toString()
-            ])
+            log.warning(
+              'params decode fail for event: {} tuple: {} data: {} block: {} txHash: {} logIdx: {}',
+              [
+                eventParserOpts[0],
+                notIndexedParams.join(','),
+                receipt.logs[i].data.toHexString(),
+                baseEvent.block.number.toString(),
+                baseEvent.transaction.hash.toHexString(),
+                receipt.logs[i].logIndex.toString()
+              ]
+            )
           } else {
             const tuple = decoded.toTuple()
             for (let k = 0; k < notIndexedParamsMap.length; k++) {
-              event.parameters[notIndexedParamsMap[k]] = new ethereum.EventParam('', tuple[k])
+              event.parameters[
+                notIndexedParamsMap[k]
+              ] = new ethereum.EventParam('', tuple[k])
             }
             decodeFinished = true
           }
@@ -77,12 +89,15 @@ export function parseEventLogs(
           events.push(new ParsedEvent(name, event))
         }
       } else {
-        log.warning('eventParserOpts not found for topic0: {} block: {} txHash: {} logIdx: {}', [
-          receipt.logs[i].topics[0].toHexString(),
-          baseEvent.block.number.toString(),
-          baseEvent.transaction.hash.toHexString(),
-          receipt.logs[i].logIndex.toString()
-        ])
+        log.warning(
+          'eventParserOpts not found for topic0: {} block: {} txHash: {} logIdx: {}',
+          [
+            receipt.logs[i].topics[0].toHexString(),
+            baseEvent.block.number.toString(),
+            baseEvent.transaction.hash.toHexString(),
+            receipt.logs[i].logIndex.toString()
+          ]
+        )
       }
     }
   }
@@ -136,7 +151,10 @@ export function extractPairedEvent(
   return eventPairs
 }
 
-export function getRightPairedEventByLeftLogIndex<T>(events: ParsedEvent[][], logIndex: BigInt): T | null {
+export function getRightPairedEventByLeftLogIndex<T>(
+  events: ParsedEvent[][],
+  logIndex: BigInt
+): T | null {
   for (let i = 0; i < events.length; i++) {
     if (events[i][0].event.logIndex == logIndex) {
       return getParsedEvent<T>(events[i], 1)

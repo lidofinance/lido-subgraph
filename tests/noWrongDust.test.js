@@ -2,7 +2,7 @@ import { gql } from 'graphql-request'
 import { subgraphFetch } from './utils/index.js'
 
 const dustNullQuery = gql`
-  query ($first: Int, $skip: Int, $block: Block_height) {
+  query($first: Int, $skip: Int, $block: Block_height) {
     totalRewards(
       first: $first
       skip: $skip
@@ -23,7 +23,7 @@ test('there are no rewards with null dust', async () => {
 
 // Dust should be 0 when there are treasuryFees
 const simultaneousQuery = gql`
-  query ($first: Int, $skip: Int, $block: Block_height) {
+  query($first: Int, $skip: Int, $block: Block_height) {
     totalRewards(
       first: $first
       skip: $skip

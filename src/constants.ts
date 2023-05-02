@@ -1,4 +1,10 @@
-import { BigInt, Address, TypedMap, Bytes, dataSource } from '@graphprotocol/graph-ts'
+import {
+  BigInt,
+  Address,
+  TypedMap,
+  Bytes,
+  dataSource
+} from '@graphprotocol/graph-ts'
 import { LidoConfig } from '../generated/schema'
 
 export const network = dataSource.network()
@@ -11,7 +17,9 @@ export const ZERO = BigInt.fromI32(0)
 export const ONE = BigInt.fromI32(1)
 
 export const CALCULATION_UNIT = BigInt.fromI32(10000)
-export const E27_PRECISION_BASE = BigInt.fromString('1000000000000000000000000000').toBigDecimal()
+export const E27_PRECISION_BASE = BigInt.fromString(
+  '1000000000000000000000000000'
+).toBigDecimal()
 export const SECONDS_PER_YEAR = BigInt.fromI32(60 * 60 * 24 * 365)
 
 // 1 ETH in WEI
@@ -28,7 +36,9 @@ export const DEPOSIT_AMOUNT = DEPOSIT_SIZE.times(ETHER) // in Wei
 Addresses
 **/
 
-export const ZERO_ADDRESS = Address.fromString('0x0000000000000000000000000000000000000000')
+export const ZERO_ADDRESS = Address.fromString(
+  '0x0000000000000000000000000000000000000000'
+)
 
 const LIDO_ADDRESSES = new TypedMap<string, string>()
 LIDO_ADDRESSES.set('mainnet', '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84')
@@ -55,7 +65,9 @@ BURNER_ADDRESSES.set('goerli', '0x20c61C07C2E2FAb04BF5b4E12ce45a459a18f3B1')
 // We presume here that initially insurance fund was the treasury
 const getInsuranceFund = (): string => {
   const cfg = LidoConfig.load('')
-  return cfg && cfg.insuranceFund ? cfg.insuranceFund!.toHex() : TREASURY_ADDRESSES.get(network)!
+  return cfg && cfg.insuranceFund
+    ? cfg.insuranceFund!.toHex()
+    : TREASURY_ADDRESSES.get(network)!
 }
 
 export const getAddress = (contract: string): Address =>
@@ -84,32 +96,48 @@ export const KERNEL_APP_BASES_NAMESPACE = Bytes.fromHexString(
 )
 
 // Lido App
-const LIDO_APP_ID_GOERLI = Bytes.fromHexString('0x79ac01111b462384f1b7fba84a17b9ec1f5d2fddcfcb99487d71b443832556ea')
-const LIDO_APP_ID_MAINNET = Bytes.fromHexString('0x3ca7c3e38968823ccb4c78ea688df41356f182ae1d159e4ee608d30d68cef320')
+const LIDO_APP_ID_GOERLI = Bytes.fromHexString(
+  '0x79ac01111b462384f1b7fba84a17b9ec1f5d2fddcfcb99487d71b443832556ea'
+)
+const LIDO_APP_ID_MAINNET = Bytes.fromHexString(
+  '0x3ca7c3e38968823ccb4c78ea688df41356f182ae1d159e4ee608d30d68cef320'
+)
 const LIDO_APP_IDS = new TypedMap<string, Bytes>()
 LIDO_APP_IDS.set('mainnet', LIDO_APP_ID_MAINNET)
 LIDO_APP_IDS.set('goerli', LIDO_APP_ID_GOERLI)
 export const LIDO_APP_ID = LIDO_APP_IDS.get(network)
 
 // NOR App
-const NOR_APP_ID_GOERLI = Bytes.fromHexString('0x57384c8fcaf2c1c2144974769a6ea4e5cf69090d47f5327f8fc93827f8c0001a')
-const NOR_APP_ID_MAINNET = Bytes.fromHexString('0x7071f283424072341f856ac9e947e7ec0eb68719f757a7e785979b6b8717579d')
+const NOR_APP_ID_GOERLI = Bytes.fromHexString(
+  '0x57384c8fcaf2c1c2144974769a6ea4e5cf69090d47f5327f8fc93827f8c0001a'
+)
+const NOR_APP_ID_MAINNET = Bytes.fromHexString(
+  '0x7071f283424072341f856ac9e947e7ec0eb68719f757a7e785979b6b8717579d'
+)
 const NOR_APP_IDS = new TypedMap<string, Bytes>()
 NOR_APP_IDS.set('mainnet', NOR_APP_ID_MAINNET)
 NOR_APP_IDS.set('goerli', NOR_APP_ID_GOERLI)
 export const NOR_APP_ID = NOR_APP_IDS.get(network)
 
 // Oracle App
-const ORACLE_APP_ID_GOERLI = Bytes.fromHexString('0xb2977cfc13b000b6807b9ae3cf4d938f4cc8ba98e1d68ad911c58924d6aa4f11')
-const ORACLE_APP_ID_MAINNET = Bytes.fromHexString('0x8b47ba2a8454ec799cd91646e7ec47168e91fd139b23f017455f3e5898aaba93')
+const ORACLE_APP_ID_GOERLI = Bytes.fromHexString(
+  '0xb2977cfc13b000b6807b9ae3cf4d938f4cc8ba98e1d68ad911c58924d6aa4f11'
+)
+const ORACLE_APP_ID_MAINNET = Bytes.fromHexString(
+  '0x8b47ba2a8454ec799cd91646e7ec47168e91fd139b23f017455f3e5898aaba93'
+)
 const ORACLE_APP_IDS = new TypedMap<string, Bytes>()
 ORACLE_APP_IDS.set('mainnet', ORACLE_APP_ID_MAINNET)
 ORACLE_APP_IDS.set('goerli', ORACLE_APP_ID_GOERLI)
 export const ORACLE_APP_ID = ORACLE_APP_IDS.get(network)
 
 // Voting App
-const VOTING_APP_ID_GOERLI = Bytes.fromHexString('0xee7f2abf043afe722001aaa900627a6e29adcbcce63a561fbd97e0a0c6429b94')
-const VOTING_APP_ID_MAINNET = Bytes.fromHexString('0x0abcd104777321a82b010357f20887d61247493d89d2e987ff57bcecbde00e1e')
+const VOTING_APP_ID_GOERLI = Bytes.fromHexString(
+  '0xee7f2abf043afe722001aaa900627a6e29adcbcce63a561fbd97e0a0c6429b94'
+)
+const VOTING_APP_ID_MAINNET = Bytes.fromHexString(
+  '0x0abcd104777321a82b010357f20887d61247493d89d2e987ff57bcecbde00e1e'
+)
 const VOTING_APP_IDS = new TypedMap<string, Bytes>()
 VOTING_APP_IDS.set('mainnet', VOTING_APP_ID_MAINNET)
 VOTING_APP_IDS.set('goerli', VOTING_APP_ID_GOERLI)
@@ -120,10 +148,22 @@ APP_REPOS.set(LIDO_APP_ID_MAINNET, '0xF5Dc67E54FC96F993CD06073f71ca732C1E654B1')
 APP_REPOS.set(LIDO_APP_ID_GOERLI, '0xE9eDe497d2417fd980D8B5338232666641B9B9aC')
 APP_REPOS.set(NOR_APP_ID_MAINNET, '0x0D97E876ad14DB2b183CFeEB8aa1A5C788eB1831')
 APP_REPOS.set(NOR_APP_ID_GOERLI, '0x5F867429616b380f1Ca7a7283Ff18C53a0033073')
-APP_REPOS.set(ORACLE_APP_ID_MAINNET, '0xF9339DE629973c60c4d2b76749c81E6F40960E3A')
-APP_REPOS.set(ORACLE_APP_ID_GOERLI, '0x9234e37Adeb44022A078557D9943b72AB89bF36a')
-APP_REPOS.set(VOTING_APP_ID_MAINNET, '0x4Ee3118E3858E8D7164A634825BfE0F73d99C792')
-APP_REPOS.set(VOTING_APP_ID_GOERLI, '0x14de4f901cE0B81F4EfcA594ad7b70935C276806')
+APP_REPOS.set(
+  ORACLE_APP_ID_MAINNET,
+  '0xF9339DE629973c60c4d2b76749c81E6F40960E3A'
+)
+APP_REPOS.set(
+  ORACLE_APP_ID_GOERLI,
+  '0x9234e37Adeb44022A078557D9943b72AB89bF36a'
+)
+APP_REPOS.set(
+  VOTING_APP_ID_MAINNET,
+  '0x4Ee3118E3858E8D7164A634825BfE0F73d99C792'
+)
+APP_REPOS.set(
+  VOTING_APP_ID_GOERLI,
+  '0x14de4f901cE0B81F4EfcA594ad7b70935C276806'
+)
 
 /**
  * upgrades definition
@@ -156,7 +196,7 @@ export const PROTOCOL_UPG_IDX_V2 = 2
 export const PROTOCOL_UPG_BLOCKS = new TypedMap<string, BigInt[]>()
 PROTOCOL_UPG_BLOCKS.set('mainnet', [
   BigInt.fromI32(11473216), // V1
-  BigInt.fromI32(14860268), // V1_SHARES
+  BigInt.fromI32(14860268) // V1_SHARES
   // BigInt.fromI32(0) // V2, TBD
 ])
 PROTOCOL_UPG_BLOCKS.set('goerli', [

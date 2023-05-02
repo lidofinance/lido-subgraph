@@ -1,7 +1,7 @@
 import {
   getTestAddresses,
   getAddressShares,
-  loadAddressShares,
+  loadAddressShares
 } from './utils/index.js'
 
 const ADDRESSES_TO_TEST = 30

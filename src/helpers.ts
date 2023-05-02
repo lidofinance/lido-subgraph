@@ -1,5 +1,14 @@
 import { Bytes, ethereum, BigInt, log } from '@graphprotocol/graph-ts'
-import { Totals,  Shares, Stats, LidoTransfer, TotalReward, Holder, OracleReport, AppVersion } from '../generated/schema'
+import {
+  Totals,
+  Shares,
+  Stats,
+  LidoTransfer,
+  TotalReward,
+  Holder,
+  OracleReport,
+  AppVersion
+} from '../generated/schema'
 import {
   CALCULATION_UNIT,
   E27_PRECISION_BASE,
@@ -52,7 +61,11 @@ export function _loadLidoTransferEntity(event: Transfer): LidoTransfer {
   return entity
 }
 
-export function _loadOracleReport(refSLot: BigInt, event: ethereum.Event, create: bool = false): OracleReport | null {
+export function _loadOracleReport(
+  refSLot: BigInt,
+  event: ethereum.Event,
+  create: bool = false
+): OracleReport | null {
   let entity = OracleReport.load(refSLot.toString())
   if (!entity && create) {
     entity = new OracleReport(refSLot.toString())
@@ -68,7 +81,10 @@ export function _loadOracleReport(refSLot: BigInt, event: ethereum.Event, create
   return entity
 }
 
-export function _loadTotalRewardEntity(event: ethereum.Event, create: bool = false): TotalReward | null {
+export function _loadTotalRewardEntity(
+  event: ethereum.Event,
+  create: bool = false
+): TotalReward | null {
   let entity = TotalReward.load(event.transaction.hash)
   if (!entity && create) {
     entity = new TotalReward(event.transaction.hash)
@@ -140,7 +156,10 @@ export function _loadTotalsEntity(create: bool = false): Totals | null {
   return totals
 }
 
-export function _loadSharesEntity(id: Bytes, create: bool = false): Shares | null {
+export function _loadSharesEntity(
+  id: Bytes,
+  create: bool = false
+): Shares | null {
   let entity = Shares.load(id)
   if (!entity && create) {
     entity = new Shares(id)
@@ -154,8 +173,12 @@ export function _updateTransferBalances(entity: LidoTransfer): void {
     entity.balanceAfterIncrease = entity.value
     entity.balanceAfterDecrease = ZERO
   } else {
-    entity.balanceAfterIncrease = entity.sharesAfterIncrease!.times(entity.totalPooledEther).div(entity.totalShares)
-    entity.balanceAfterDecrease = entity.sharesAfterDecrease!.times(entity.totalPooledEther).div(entity.totalShares)
+    entity.balanceAfterIncrease = entity
+      .sharesAfterIncrease!.times(entity.totalPooledEther)
+      .div(entity.totalShares)
+    entity.balanceAfterDecrease = entity
+      .sharesAfterDecrease!.times(entity.totalPooledEther)
+      .div(entity.totalShares)
   }
 }
 
@@ -181,7 +204,10 @@ export function _updateTransferShares(entity: LidoTransfer): void {
       //     ]
       //   )
       // }
-      assert(sharesFromEntity.shares >= entity.shares, 'negative shares decrease on transfer')
+      assert(
+        sharesFromEntity.shares >= entity.shares,
+        'negative shares decrease on transfer'
+      )
       sharesFromEntity.shares = sharesFromEntity.shares.minus(entity.shares)
       sharesFromEntity.save()
     }
@@ -308,12 +334,20 @@ export function _calcAPR_v2(
   entity.aprBeforeFees = entity.apr
 }
 
-export const checkAppVer = (block: BigInt, appId: Bytes | null, minUpgId: i32): bool => {
+export const checkAppVer = (
+  block: BigInt,
+  appId: Bytes | null,
+  minUpgId: i32
+): bool => {
   // first we check block for faster detection
   // if block check fails, try to check app ver
   if (!block.isZero()) {
     const upgBlocks = PROTOCOL_UPG_BLOCKS.get(network)
-    if (upgBlocks && minUpgId < upgBlocks.length && upgBlocks[minUpgId] != block) {
+    if (
+      upgBlocks &&
+      minUpgId < upgBlocks.length &&
+      upgBlocks[minUpgId] != block
+    ) {
       // note: we need a block strictly larger than upgBlock, since it
       // is possible that there are transactions in the same block before and after the upgrade
       return upgBlocks[minUpgId] < block

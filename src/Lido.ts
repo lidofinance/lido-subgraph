@@ -35,7 +35,14 @@ import {
   LidoTransfer
 } from '../generated/schema'
 
-import { ZERO, getAddress, ONE, CALCULATION_UNIT, ZERO_ADDRESS, network } from './constants'
+import {
+  ZERO,
+  getAddress,
+  ONE,
+  CALCULATION_UNIT,
+  ZERO_ADDRESS,
+  network
+} from './constants'
 import {
   parseEventLogs,
   extractPairedEvent,
@@ -61,7 +68,9 @@ import {
 import { wcKeyCrops } from './wcKeyCrops'
 
 export function handleSubmitted(event: SubmittedEvent): void {
-  let entity = new LidoSubmission(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  let entity = new LidoSubmission(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
   // let entity = new LidoSubmission(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
 
   entity.sender = event.params.sender
@@ -83,15 +92,30 @@ export function handleSubmitted(event: SubmittedEvent): void {
   if (isLidoTransferShares(event.block.number)) {
     // limit parsing by 2 next events
     // such approach cover both cases when Transfer was emitted before and wise versa
-    const parsedEvents = parseEventLogs(event, event.address, event.logIndex, event.logIndex.plus(BigInt.fromI32(2)))
+    const parsedEvents = parseEventLogs(
+      event,
+      event.address,
+      event.logIndex,
+      event.logIndex.plus(BigInt.fromI32(2))
+    )
     // extracting only 'Transfer' and 'TransferShares' pairs
-    const transferEventPairs = extractPairedEvent(parsedEvents, 'Transfer', 'TransferShares')
+    const transferEventPairs = extractPairedEvent(
+      parsedEvents,
+      'Transfer',
+      'TransferShares'
+    )
 
     // expecting at only one Transfer events pair
-    assert(transferEventPairs.length == 1, 'no Transfer/TransferShares events on submit')
+    assert(
+      transferEventPairs.length == 1,
+      'no Transfer/TransferShares events on submit'
+    )
 
     // const eventTransfer = getParsedEvent<Transfer>(transferEventPairs[0], 0)
-    const eventTransferShares = getParsedEvent<TransferSharesEvent>(transferEventPairs[0], 1)
+    const eventTransferShares = getParsedEvent<TransferSharesEvent>(
+      transferEventPairs[0],
+      1
+    )
     shares = eventTransferShares.params.sharesValue
   } else {
     /**
@@ -103,7 +127,9 @@ export function handleSubmitted(event: SubmittedEvent): void {
     // Check if contract has no ether or shares yet
     shares = totals.totalPooledEther.isZero()
       ? event.params.amount
-      : event.params.amount.times(totals.totalShares).div(totals.totalPooledEther)
+      : event.params.amount
+          .times(totals.totalShares)
+          .div(totals.totalPooledEther)
 
     // handle the case when staked amount ~1 wei, that shares to mint got rounded to 0
     if (shares.isZero()) {
@@ -129,7 +155,9 @@ export function handleSubmitted(event: SubmittedEvent): void {
   entity.totalSharesAfter = totals.totalShares
 
   // Calculating new balance
-  entity.balanceAfter = entity.sharesAfter.times(totals.totalPooledEther).div(totals.totalShares)
+  entity.balanceAfter = entity.sharesAfter
+    .times(totals.totalPooledEther)
+    .div(totals.totalShares)
   entity.save()
 }
 
@@ -148,7 +176,9 @@ export function handleTransfer(event: TransferEvent): void {
   if (isLidoTransferShares(event.block.number)) {
     const parsedEvents = parseEventLogs(event, event.address)
     // TransferShares should exists after according upgrade
-    eventTransferShares = getRightPairedEventByLeftLogIndex<TransferSharesEvent>(
+    eventTransferShares = getRightPairedEventByLeftLogIndex<
+      TransferSharesEvent
+    >(
       extractPairedEvent(parsedEvents, 'Transfer', 'TransferShares'),
       event.logIndex
     )!
@@ -160,7 +190,9 @@ export function handleTransfer(event: TransferEvent): void {
     }
   } else {
     // usual transfer without TransferShares event, so calc shares
-    entity.shares = entity.value.times(totals.totalShares).div(totals.totalPooledEther)
+    entity.shares = entity.value
+      .times(totals.totalShares)
+      .div(totals.totalPooledEther)
   }
 
   if (entity.from == ZERO_ADDRESS) {
@@ -189,11 +221,16 @@ export function handleTransfer(event: TransferEvent): void {
           totalRewardsEntity.insuranceFee.isZero()
         ) {
           // Handling the Insurance Fee transfer event
-          totalRewardsEntity.insuranceFee = totalRewardsEntity.insuranceFee.plus(entity.value)
+          totalRewardsEntity.insuranceFee = totalRewardsEntity.insuranceFee.plus(
+            entity.value
+          )
 
           // sanity assertion
           if (eventTransferShares) {
-            assert(entity.shares == totalRewardsEntity.sharesToInsuranceFund, 'Unexpected sharesToInsuranceFund')
+            assert(
+              entity.shares == totalRewardsEntity.sharesToInsuranceFund,
+              'Unexpected sharesToInsuranceFund'
+            )
           } else {
             // overriding calculated value
             entity.shares = totalRewardsEntity.sharesToInsuranceFund
@@ -216,7 +253,9 @@ export function handleTransfer(event: TransferEvent): void {
             totalRewardsEntity.dust = totalRewardsEntity.dust.plus(entity.value)
             shares = totalRewardsEntity.dustSharesToTreasury
           } else {
-            totalRewardsEntity.treasuryFee = totalRewardsEntity.treasuryFee.plus(entity.value)
+            totalRewardsEntity.treasuryFee = totalRewardsEntity.treasuryFee.plus(
+              entity.value
+            )
             shares = totalRewardsEntity.sharesToTreasury
           }
 
@@ -244,7 +283,9 @@ export function handleTransfer(event: TransferEvent): void {
           // Handling fee transfer to node operator prior v2 upgrade
           // after v2 there are only transfers to SR modules
 
-          const nodeOperatorFee = new NodeOperatorFees(event.transaction.hash.concatI32(event.logIndex.toI32()))
+          const nodeOperatorFee = new NodeOperatorFees(
+            event.transaction.hash.concatI32(event.logIndex.toI32())
+          )
           // const nodeOperatorFee = new NodeOperatorFees(event.transaction.hash.toHex() + '-' + event.logIndex.toString())
 
           // Reference to TotalReward entity
@@ -254,23 +295,37 @@ export function handleTransfer(event: TransferEvent): void {
           nodeOperatorFee.save()
 
           // Entity should already exists at this point
-          const nodeOperatorShare = NodeOperatorsShares.load(event.transaction.hash.concat(entity.to))!
+          const nodeOperatorShare = NodeOperatorsShares.load(
+            event.transaction.hash.concat(entity.to)
+          )!
           // const nodeOperatorShare = NodeOperatorsShares.load(event.transaction.hash.toHex() + '-' + entity.to.toHexString())!
 
           if (eventTransferShares) {
-            assert(entity.shares == nodeOperatorShare.shares, 'Unexpected nodeOperatorsShares')
+            assert(
+              entity.shares == nodeOperatorShare.shares,
+              'Unexpected nodeOperatorsShares'
+            )
           } else {
             entity.shares = nodeOperatorShare.shares
           }
-          totalRewardsEntity.operatorsFee = totalRewardsEntity.operatorsFee.plus(entity.value)
+          totalRewardsEntity.operatorsFee = totalRewardsEntity.operatorsFee.plus(
+            entity.value
+          )
         }
 
         if (!entity.value.isZero()) {
           // decreasing saved total rewards to (remainder will be users reward)
-          assert(totalRewardsEntity.totalRewards >= entity.value, 'negative totalRewards')
-          totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(entity.value)
+          assert(
+            totalRewardsEntity.totalRewards >= entity.value,
+            'negative totalRewards'
+          )
+          totalRewardsEntity.totalRewards = totalRewardsEntity.totalRewards.minus(
+            entity.value
+          )
           // increasing total system fee value
-          totalRewardsEntity.totalFee = totalRewardsEntity.totalFee.plus(entity.value)
+          totalRewardsEntity.totalFee = totalRewardsEntity.totalFee.plus(
+            entity.value
+          )
           totalRewardsEntity.save()
         }
       }
@@ -282,7 +337,9 @@ export function handleTransfer(event: TransferEvent): void {
       if (!eventTransferShares) {
         // prior TransferShares logic
         // Submission entity should exists with the previous logIndex (as mint Transfer occurs only after Submit event)
-        let submissionEntity = LidoSubmission.load(event.transaction.hash.concatI32(event.logIndex.minus(ONE).toI32()))!
+        let submissionEntity = LidoSubmission.load(
+          event.transaction.hash.concatI32(event.logIndex.minus(ONE).toI32())
+        )!
         // let submissionEntity = LidoSubmission.load(
         //   event.transaction.hash.toHex() + '-' + event.logIndex.minus(ONE).toString()
         // )!
@@ -388,13 +445,20 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
   const parsedEvents = parseEventLogs(event, event.address)
 
   // TokenRebased event should exists
-  const tokenRebasedEvent = getParsedEventByName<TokenRebasedEvent>(parsedEvents, 'TokenRebased', event.logIndex)
+  const tokenRebasedEvent = getParsedEventByName<TokenRebasedEvent>(
+    parsedEvents,
+    'TokenRebased',
+    event.logIndex
+  )
   if (!tokenRebasedEvent) {
-    log.critical('Event TokenRebased not found when ETHDistributed! block: {} txHash: {} logIdx: {} ', [
-      event.block.number.toString(),
-      event.transaction.hash.toHexString(),
-      event.logIndex.toString()
-    ])
+    log.critical(
+      'Event TokenRebased not found when ETHDistributed! block: {} txHash: {} logIdx: {} ',
+      [
+        event.block.number.toString(),
+        event.transaction.hash.toHexString(),
+        event.logIndex.toString()
+      ]
+    )
     return
   }
 
@@ -404,7 +468,10 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
     totals.totalPooledEther == tokenRebasedEvent.params.preTotalEther,
     "totalPooledEther mismatch report's preTotalEther"
   )
-  assert(totals.totalShares == tokenRebasedEvent.params.preTotalShares, "totalShares mismatch report's preTotalShares")
+  assert(
+    totals.totalShares == tokenRebasedEvent.params.preTotalShares,
+    "totalShares mismatch report's preTotalShares"
+  )
 
   // update totalPooledEther for correct SharesBurnt
   totals.totalPooledEther = tokenRebasedEvent.params.postTotalEther
@@ -437,7 +504,9 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
   // (when consensus layer balance delta is zero or negative).
   // See LIP-12 for details:
   // https://research.lido.fi/t/lip-12-on-chain-part-of-the-rewards-distribution-after-the-merge/1625
-  const postCLTotalBalance = event.params.postCLBalance.plus(event.params.withdrawalsWithdrawn)
+  const postCLTotalBalance = event.params.postCLBalance.plus(
+    event.params.withdrawalsWithdrawn
+  )
   if (postCLTotalBalance <= event.params.preCLBalance) {
     return
   }
@@ -452,7 +521,12 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
   totalRewardsEntity.totalRewardsWithFees = totalRewardsEntity.totalRewards
   totalRewardsEntity.mevFee = event.params.executionLayerRewardsWithdrawn
 
-  _processTokenRebase(totalRewardsEntity, event, tokenRebasedEvent, parsedEvents)
+  _processTokenRebase(
+    totalRewardsEntity,
+    event,
+    tokenRebasedEvent,
+    parsedEvents
+  )
 
   totalRewardsEntity.save()
 }
@@ -487,8 +561,14 @@ export function _processTokenRebase(
 
   // NB: there is no insurance fund anymore since v2
   for (let i = 0; i < transferEventPairs.length; i++) {
-    const eventTransfer = getParsedEvent<TransferEvent>(transferEventPairs[i], 0)
-    const eventTransferShares = getParsedEvent<TransferSharesEvent>(transferEventPairs[i], 1)
+    const eventTransfer = getParsedEvent<TransferEvent>(
+      transferEventPairs[i],
+      0
+    )
+    const eventTransferShares = getParsedEvent<TransferSharesEvent>(
+      transferEventPairs[i],
+      1
+    )
 
     const treasureAddress = getAddress('TREASURE')
     // log.warning('treasureAddress {}', [treasureAddress.toHexString()])
@@ -498,7 +578,9 @@ export function _processTokenRebase(
 
       if (eventTransfer.params.to == treasureAddress) {
         // mint to treasure
-        sharesToTreasury = sharesToTreasury.plus(eventTransferShares.params.sharesValue)
+        sharesToTreasury = sharesToTreasury.plus(
+          eventTransferShares.params.sharesValue
+        )
         treasuryFee = treasuryFee.plus(eventTransfer.params.value)
 
         // log.warning('sharesToTreasury": transfer  {} total {} totalFee {}', [
@@ -508,7 +590,9 @@ export function _processTokenRebase(
         // ])
       } else {
         // mint to SR module
-        sharesToOperators = sharesToOperators.plus(eventTransferShares.params.sharesValue)
+        sharesToOperators = sharesToOperators.plus(
+          eventTransferShares.params.sharesValue
+        )
         operatorsFee = operatorsFee.plus(eventTransfer.params.value)
 
         // log.warning('operatorsFee: transfer {} total {} totalFee {}', [
@@ -530,7 +614,11 @@ export function _processTokenRebase(
   if (entity.shares2mint != sharesToTreasury.plus(sharesToOperators)) {
     log.critical(
       'totalRewardsEntity.shares2mint != sharesToTreasury + sharesToOperators: shares2mint {} sharesToTreasury {} sharesToOperators {}',
-      [entity.shares2mint.toString(), sharesToTreasury.toString(), sharesToOperators.toString()]
+      [
+        entity.shares2mint.toString(),
+        sharesToTreasury.toString(),
+        sharesToOperators.toString()
+      ]
     )
   }
   // @todo calc for compatibility
@@ -539,9 +627,15 @@ export function _processTokenRebase(
   // const sharesToInsuranceFund = shares2mint.times(totalRewardsEntity.insuranceFeeBasisPoints).div(CALCULATION_UNIT)
   // const sharesToOperators = shares2mint.times(totalRewardsEntity.operatorsFeeBasisPoints).div(CALCULATION_UNIT)
 
-  entity.treasuryFeeBasisPoints = treasuryFee.times(CALCULATION_UNIT).div(entity.totalFee)
-  entity.operatorsFeeBasisPoints = operatorsFee.times(CALCULATION_UNIT).div(entity.totalFee)
-  entity.feeBasis = entity.totalFee.times(CALCULATION_UNIT).div(entity.totalRewardsWithFees)
+  entity.treasuryFeeBasisPoints = treasuryFee
+    .times(CALCULATION_UNIT)
+    .div(entity.totalFee)
+  entity.operatorsFeeBasisPoints = operatorsFee
+    .times(CALCULATION_UNIT)
+    .div(entity.totalFee)
+  entity.feeBasis = entity.totalFee
+    .times(CALCULATION_UNIT)
+    .div(entity.totalRewardsWithFees)
 
   // APR
   _calcAPR_v2(
@@ -557,7 +651,9 @@ export function _processTokenRebase(
 }
 
 export function handleApproval(event: ApprovalEvent): void {
-  let entity = new LidoApproval(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  let entity = new LidoApproval(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
   entity.owner = event.params.owner
   entity.spender = event.params.spender
   entity.value = event.params.value
@@ -572,9 +668,15 @@ export function handleFeeSet(event: FeeSetEvent): void {
 
 export function handleFeeDistributionSet(event: FeeDistributionSetEvent): void {
   const curFee = _loadCurrentFees()
-  curFee.treasuryFeeBasisPoints = BigInt.fromI32(event.params.treasuryFeeBasisPoints)
-  curFee.insuranceFeeBasisPoints = BigInt.fromI32(event.params.insuranceFeeBasisPoints)
-  curFee.operatorsFeeBasisPoints = BigInt.fromI32(event.params.operatorsFeeBasisPoints)
+  curFee.treasuryFeeBasisPoints = BigInt.fromI32(
+    event.params.treasuryFeeBasisPoints
+  )
+  curFee.insuranceFeeBasisPoints = BigInt.fromI32(
+    event.params.insuranceFeeBasisPoints
+  )
+  curFee.operatorsFeeBasisPoints = BigInt.fromI32(
+    event.params.operatorsFeeBasisPoints
+  )
   curFee.save()
 }
 
@@ -604,14 +706,18 @@ export function handleELRewardsVaultSet(event: ELRewardsVaultSetEvent): void {
   //entity.save()
 }
 
-export function handleELRewardsWithdrawalLimitSet(event: ELRewardsWithdrawalLimitSetEvent): void {
+export function handleELRewardsWithdrawalLimitSet(
+  event: ELRewardsWithdrawalLimitSetEvent
+): void {
   const entity = _loadLidoConfig()
   entity.elRewardsWithdrawalLimitPoints = event.params.limitPoints
   entity.save()
   //entity.save()
 }
 
-export function handleProtocolContractsSet(event: ProtocolContactsSetEvent): void {
+export function handleProtocolContractsSet(
+  event: ProtocolContactsSetEvent
+): void {
   const entity = _loadLidoConfig()
   entity.insuranceFund = event.params.insuranceFund
   entity.oracle = event.params.oracle
@@ -620,7 +726,9 @@ export function handleProtocolContractsSet(event: ProtocolContactsSetEvent): voi
   //entity.save()
 }
 
-export function handleStakingLimitRemoved(event: StakingLimitRemovedEvent): void {
+export function handleStakingLimitRemoved(
+  event: StakingLimitRemovedEvent
+): void {
   const entity = _loadLidoConfig()
   entity.maxStakeLimit = ZERO
   entity.save()
@@ -645,14 +753,18 @@ export function handleStakingPaused(event: StakingPausedEvent): void {
   entity.save()
 }
 
-export function handleWithdrawalCredentialsSet(event: WithdrawalCredentialsSetEvent): void {
+export function handleWithdrawalCredentialsSet(
+  event: WithdrawalCredentialsSetEvent
+): void {
   const entity = _loadLidoConfig()
   entity.withdrawalCredentials = event.params.withdrawalCredentials
   entity.save()
 
   // Cropping unused keys on withdrawal credentials change
   if (wcKeyCrops.has(event.params.withdrawalCredentials.toHexString())) {
-    const keys = wcKeyCrops.get(event.params.withdrawalCredentials.toHexString())
+    const keys = wcKeyCrops.get(
+      event.params.withdrawalCredentials.toHexString()
+    )
     for (let i = 0; i < keys.length; i++) {
       store.remove('NodeOperatorSigningKey', keys[i])
     }
@@ -663,7 +775,9 @@ export function handleWithdrawalCredentialsSet(event: WithdrawalCredentialsSetEv
 // https://goerli.etherscan.io/tx/0xa9111b9bf19777ca08902fbd9c1dc8efc7a5bf61766f92bd469b522477257195#eventlog
 //
 // Note: This event only appears on Goerli testnet, so the handler is not used on Mainnet
-export function handleBeaconValidatorsUpdated(event: BeaconValidatorsUpdatedEvent): void {
+export function handleBeaconValidatorsUpdated(
+  event: BeaconValidatorsUpdatedEvent
+): void {
   // Totals entity should exists
   const totals = _loadTotalsEntity()!
   // Just grab the correct value from the contract

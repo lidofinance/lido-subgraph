@@ -22,19 +22,37 @@ import {
   OracleExpectedEpoch,
   OracleMember
 } from '../generated/schema'
-import { CALCULATION_UNIT, DEPOSIT_AMOUNT, ONE, ZERO, ZERO_ADDRESS, getAddress, network } from './constants'
+import {
+  CALCULATION_UNIT,
+  DEPOSIT_AMOUNT,
+  ONE,
+  ZERO,
+  ZERO_ADDRESS,
+  getAddress,
+  network
+} from './constants'
 
-import { _calcAPR_v1, _loadStatsEntity, _loadTotalRewardEntity, _loadTotalsEntity, isLidoV2 } from './helpers'
+import {
+  _calcAPR_v1,
+  _loadStatsEntity,
+  _loadTotalRewardEntity,
+  _loadTotalsEntity,
+  isLidoV2
+} from './helpers'
 import { ELRewardsReceived, MevTxFeeReceived } from '../generated/Lido/Lido'
 import { getParsedEventByName, parseEventLogs } from './parser'
 
 export function handleCompleted(event: CompletedEvent): void {
   // keep backward compatibility
   const stats = _loadStatsEntity()
-  const previousCompleted = OracleCompleted.load(stats.lastOracleCompletedId.toString())
+  const previousCompleted = OracleCompleted.load(
+    stats.lastOracleCompletedId.toString()
+  )
   stats.lastOracleCompletedId = stats.lastOracleCompletedId.plus(ONE)
 
-  const newCompleted = new OracleCompleted(stats.lastOracleCompletedId.toString())
+  const newCompleted = new OracleCompleted(
+    stats.lastOracleCompletedId.toString()
+  )
   newCompleted.epochId = event.params.epochId
   newCompleted.beaconBalance = event.params.beaconBalance
   newCompleted.beaconValidators = event.params.beaconValidators
@@ -48,14 +66,18 @@ export function handleCompleted(event: CompletedEvent): void {
 
   const config = _loadOracleConfig()
 
-  const beaconReportEntity = new BeaconReport(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  const beaconReportEntity = new BeaconReport(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
   beaconReportEntity.epochId = event.params.epochId
   beaconReportEntity.beaconBalance = event.params.beaconBalance
   beaconReportEntity.beaconValidators = event.params.beaconValidators
   beaconReportEntity.caller = event.transaction.from
   beaconReportEntity.save()
 
-  const expectedEpochEntity = new OracleExpectedEpoch(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  const expectedEpochEntity = new OracleExpectedEpoch(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
   expectedEpochEntity.epochId = event.params.epochId.plus(config.epochsPerFrame)
   expectedEpochEntity.save()
 
@@ -88,20 +110,37 @@ export function handleCompleted(event: CompletedEvent): void {
    This would increase totalPooledEther until an oracle report is made.
   **/
 
-  const oldBeaconValidators = previousCompleted ? previousCompleted.beaconValidators : ZERO
-  const oldBeaconBalance = previousCompleted ? previousCompleted.beaconBalance : ZERO
+  const oldBeaconValidators = previousCompleted
+    ? previousCompleted.beaconValidators
+    : ZERO
+  const oldBeaconBalance = previousCompleted
+    ? previousCompleted.beaconBalance
+    : ZERO
   const newBeaconValidators = event.params.beaconValidators
   const newBeaconBalance = event.params.beaconBalance
 
   const appearedValidators = newBeaconValidators.minus(oldBeaconValidators)
-  const appearedValidatorsDeposits = appearedValidators > ZERO ? appearedValidators.times(DEPOSIT_AMOUNT) : ZERO
+  const appearedValidatorsDeposits =
+    appearedValidators > ZERO ? appearedValidators.times(DEPOSIT_AMOUNT) : ZERO
   const rewardBase = appearedValidatorsDeposits.plus(oldBeaconBalance)
 
   // try to find MEV rewards, parse all events from tx receipt
   const parsedEvents = parseEventLogs(event)
-  const elRewardsEvent = getParsedEventByName<ELRewardsReceived>(parsedEvents, 'ELRewardsReceived', event.logIndex)
-  const mevTxFeeEvent = getParsedEventByName<MevTxFeeReceived>(parsedEvents, 'MevTxFeeReceived', event.logIndex)
-  const mevFee = elRewardsEvent ? elRewardsEvent.params.amount : mevTxFeeEvent ? mevTxFeeEvent.params.amount : ZERO
+  const elRewardsEvent = getParsedEventByName<ELRewardsReceived>(
+    parsedEvents,
+    'ELRewardsReceived',
+    event.logIndex
+  )
+  const mevTxFeeEvent = getParsedEventByName<MevTxFeeReceived>(
+    parsedEvents,
+    'MevTxFeeReceived',
+    event.logIndex
+  )
+  const mevFee = elRewardsEvent
+    ? elRewardsEvent.params.amount
+    : mevTxFeeEvent
+    ? mevTxFeeEvent.params.amount
+    : ZERO
 
   const rewards = newBeaconBalance.minus(rewardBase).plus(mevFee)
 
@@ -194,7 +233,11 @@ export function handleCompleted(event: CompletedEvent): void {
   const shares2mint = rewards
     .times(curFee.feeBasisPoints)
     .times(totals.totalShares) // totalSharesBefore
-    .div(totalPooledEtherAfter.times(CALCULATION_UNIT).minus(curFee.feeBasisPoints.times(rewards)))
+    .div(
+      totalPooledEtherAfter
+        .times(CALCULATION_UNIT)
+        .minus(curFee.feeBasisPoints.times(rewards))
+    )
 
   // set the new shares value
   totals.totalShares = totals.totalShares.plus(shares2mint) // totalSharesAfter
@@ -212,8 +255,12 @@ export function handleCompleted(event: CompletedEvent): void {
   totalRewardsEntity.insuranceFeeBasisPoints = curFee.insuranceFeeBasisPoints // 5000
   totalRewardsEntity.operatorsFeeBasisPoints = curFee.operatorsFeeBasisPoints // 5000
 
-  const sharesToInsuranceFund = shares2mint.times(totalRewardsEntity.insuranceFeeBasisPoints).div(CALCULATION_UNIT)
-  const sharesToOperators = shares2mint.times(totalRewardsEntity.operatorsFeeBasisPoints).div(CALCULATION_UNIT)
+  const sharesToInsuranceFund = shares2mint
+    .times(totalRewardsEntity.insuranceFeeBasisPoints)
+    .div(CALCULATION_UNIT)
+  const sharesToOperators = shares2mint
+    .times(totalRewardsEntity.operatorsFeeBasisPoints)
+    .div(CALCULATION_UNIT)
 
   totalRewardsEntity.shares2mint = shares2mint
   totalRewardsEntity.sharesToInsuranceFund = sharesToInsuranceFund
@@ -236,7 +283,9 @@ export function handleCompleted(event: CompletedEvent): void {
     // Incrementing total of actual shares distributed
     sharesToOperatorsActual = sharesToOperatorsActual.plus(shares)
 
-    const nodeOperatorShare = new NodeOperatorsShares(event.transaction.hash.concat(addr))
+    const nodeOperatorShare = new NodeOperatorsShares(
+      event.transaction.hash.concat(addr)
+    )
     // const nodeOperatorShare = new NodeOperatorsShares(event.transaction.hash.toHex() + '-' + addr.toHexString())
 
     nodeOperatorShare.totalReward = event.transaction.hash
@@ -252,7 +301,9 @@ export function handleCompleted(event: CompletedEvent): void {
   // or
   // - 0 and there's dust
 
-  let treasuryShares = shares2mint.minus(sharesToInsuranceFund).minus(sharesToOperatorsActual)
+  let treasuryShares = shares2mint
+    .minus(sharesToInsuranceFund)
+    .minus(sharesToOperatorsActual)
 
   if (totalRewardsEntity.treasuryFeeBasisPoints.isZero()) {
     totalRewardsEntity.sharesToTreasury = ZERO
@@ -264,7 +315,9 @@ export function handleCompleted(event: CompletedEvent): void {
 
   // calc preliminarily APR (if there is no PostTotalShares event yet)
   // will be recalculated in PostTotalShares handler
-  const timeElapsed = previousCompleted ? newCompleted.blockTime.minus(previousCompleted.blockTime) : ZERO
+  const timeElapsed = previousCompleted
+    ? newCompleted.blockTime.minus(previousCompleted.blockTime)
+    : ZERO
   totalRewardsEntity.timeElapsed = timeElapsed
   _calcAPR_v1(
     totalRewardsEntity,
@@ -339,7 +392,9 @@ export function handleContractVersionSet(event: ContractVersionSetEvent): void {
   entity.save()
 }
 
-export function handleBeaconReportReceiverSet(event: BeaconReportReceiverSetEvent): void {
+export function handleBeaconReportReceiverSet(
+  event: BeaconReportReceiverSetEvent
+): void {
   const entity = _loadOracleConfig()
   entity.beaconReportReceiver = event.params.callback
   entity.save()

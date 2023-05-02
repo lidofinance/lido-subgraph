@@ -2,7 +2,7 @@ import { GRAPH, RPC } from './config.js'
 import {
   getLastIndexedBlock,
   getRpcNetwork,
-  checkIfLimited,
+  checkIfLimited
 } from './utils/index.js'
 
 if (GRAPH) {

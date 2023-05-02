@@ -1,4 +1,7 @@
-import { Transfer as TransferEvent, TransferShares as TransferSharesEvent } from '../generated/Lido/Lido'
+import {
+  Transfer as TransferEvent,
+  TransferShares as TransferSharesEvent
+} from '../generated/Lido/Lido'
 import {
   ExtraDataSubmitted as ExtraDataSubmittedEvent,
   ProcessingStarted as ProcessingStartedEvent
@@ -28,24 +31,41 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmittedEvent): void {
   oracleReportEntity.save()
 
   // load all SR modules
-  const modules = StakingRouter.bind(getAddress('STAKING_ROUTER')).getStakingModules()
+  const modules = StakingRouter.bind(
+    getAddress('STAKING_ROUTER')
+  ).getStakingModules()
 
   // parse all events from tx receipt
   const parsedEvents = parseEventLogs(event, getAddress('LIDO'))
 
   // extracting all 'Transfer' and 'TransferShares' pairs from tx receipt
-  const transferEventPairs = extractPairedEvent(parsedEvents, 'Transfer', 'TransferShares')
+  const transferEventPairs = extractPairedEvent(
+    parsedEvents,
+    'Transfer',
+    'TransferShares'
+  )
 
   const burnerAddress = getAddress('BURNER')
   for (let i = 0; i < transferEventPairs.length; i++) {
-    const eventTransfer = getParsedEvent<TransferEvent>(transferEventPairs[i], 0)
-    const eventTransferShares = getParsedEvent<TransferSharesEvent>(transferEventPairs[i], 1)
+    const eventTransfer = getParsedEvent<TransferEvent>(
+      transferEventPairs[i],
+      0
+    )
+    const eventTransferShares = getParsedEvent<TransferSharesEvent>(
+      transferEventPairs[i],
+      1
+    )
 
     // creating reward records for NOs to preserve data structure compatibility
     for (let j = 0; j < modules.length; j++) {
       // process transfers from module's addresses, excluding transfers to burner
-      if (eventTransfer.params.from == modules[j].stakingModuleAddress && eventTransfer.params.to != burnerAddress) {
-        let id = eventTransfer.transaction.hash.concatI32(eventTransfer.logIndex.toI32())
+      if (
+        eventTransfer.params.from == modules[j].stakingModuleAddress &&
+        eventTransfer.params.to != burnerAddress
+      ) {
+        let id = eventTransfer.transaction.hash.concatI32(
+          eventTransfer.logIndex.toI32()
+        )
         // let id = event.transaction.hash.toHex() + '-' + eventTransfer.logIndex.toString()
 
         // @todo merge NodeOperatorFees & NodeOperatorsShares ?
@@ -66,7 +86,9 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmittedEvent): void {
           nodeOperatorShare.address = eventTransfer.params.to
           nodeOperatorShare.shares = ZERO
         }
-        nodeOperatorShare.shares = nodeOperatorShare.shares.plus(eventTransferShares.params.sharesValue)
+        nodeOperatorShare.shares = nodeOperatorShare.shares.plus(
+          eventTransferShares.params.sharesValue
+        )
         nodeOperatorShare.save()
       }
     }

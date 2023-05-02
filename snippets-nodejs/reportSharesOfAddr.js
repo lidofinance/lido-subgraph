@@ -14,7 +14,7 @@ const oracleReports = (await subgraphFetch(query)).oracleCompleteds
 
 for (let report of oracleReports) {
   const balance = await lidoFuncCall('sharesOf', ADDRESS, {
-    blockTag: parseInt(report.block),
+    blockTag: parseInt(report.block)
   })
   const humanTime = new Date(report.blockTime * 1000).toLocaleDateString(
     'ru-RU'

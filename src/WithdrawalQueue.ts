@@ -18,7 +18,9 @@ import {
 import { ZERO } from './constants'
 
 export function handleWithdrawalClaimed(event: WithdrawalClaimedEvent): void {
-  let entity = new WithdrawalClaimed(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  let entity = new WithdrawalClaimed(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
   entity.requestId = event.params.requestId
   entity.owner = event.params.owner
   entity.receiver = event.params.receiver
@@ -32,8 +34,12 @@ export function handleWithdrawalClaimed(event: WithdrawalClaimedEvent): void {
   entity.save()
 }
 
-export function handleWithdrawalRequested(event: WithdrawalRequestedEvent): void {
-  let entity = new WithdrawalRequested(event.transaction.hash.concatI32(event.logIndex.toI32()))
+export function handleWithdrawalRequested(
+  event: WithdrawalRequestedEvent
+): void {
+  let entity = new WithdrawalRequested(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
   entity.requestId = event.params.requestId
   entity.requestor = event.params.requestor
   entity.owner = event.params.owner
@@ -48,8 +54,12 @@ export function handleWithdrawalRequested(event: WithdrawalRequestedEvent): void
   entity.save()
 }
 
-export function handleWithdrawalsFinalized(event: WithdrawalsFinalizedEvent): void {
-  let entity = new WithdrawalsFinalized(event.transaction.hash.concatI32(event.logIndex.toI32()))
+export function handleWithdrawalsFinalized(
+  event: WithdrawalsFinalizedEvent
+): void {
+  let entity = new WithdrawalsFinalized(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
 
   entity.from = event.params.from
   entity.to = event.params.to
@@ -65,7 +75,9 @@ export function handleWithdrawalsFinalized(event: WithdrawalsFinalizedEvent): vo
   entity.save()
 }
 
-export function handleWithdrawalBatchFinalized(event: WithdrawalBatchFinalizedEvent): void {
+export function handleWithdrawalBatchFinalized(
+  event: WithdrawalBatchFinalizedEvent
+): void {
   handleWithdrawalsFinalized(changetype<WithdrawalsFinalizedEvent>(event))
 }
 

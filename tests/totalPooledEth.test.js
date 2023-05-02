@@ -11,7 +11,8 @@ const query = gql`
 
 test('totalPooledEther', async () => {
   const realTotalShares = (await lidoFuncCall('getTotalPooledEther')).toString()
-  const subgraphTotalShares = (await subgraphFetch(query)).totals.totalPooledEther
+  const subgraphTotalShares = (await subgraphFetch(query)).totals
+    .totalPooledEther
 
   expect(subgraphTotalShares).toEqual(realTotalShares)
 })

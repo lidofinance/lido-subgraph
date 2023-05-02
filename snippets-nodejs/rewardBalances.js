@@ -15,10 +15,10 @@ const oracleReports = (await subgraphFetch(query)).oracleCompleteds
 // Make sure to use an archive node!
 for (let report of oracleReports) {
   const balanceBefore = await lidoFuncCall('balanceOf', ADDRESS, {
-    blockTag: parseInt(report.block - 1),
+    blockTag: parseInt(report.block - 1)
   })
   const balanceAfter = await lidoFuncCall('balanceOf', ADDRESS, {
-    blockTag: parseInt(report.block),
+    blockTag: parseInt(report.block)
   })
 
   const reward = Big(balanceAfter).minus(balanceBefore)

@@ -1,4 +1,7 @@
-import { FrameConfigSet as FrameConfigSetEvent, HashConsensus } from '../generated/HashConsensus/HashConsensus'
+import {
+  FrameConfigSet as FrameConfigSetEvent,
+  HashConsensus
+} from '../generated/HashConsensus/HashConsensus'
 import { _loadOracleConfig } from './LegacyOracle'
 
 export function handleFrameConfigSet(event: FrameConfigSetEvent): void {

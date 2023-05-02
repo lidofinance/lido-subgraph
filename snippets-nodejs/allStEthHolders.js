@@ -1,7 +1,7 @@
 import { subgraphFetch, gql } from './utils.js'
 import fs from 'fs'
 
-const genQuery = (skip) => gql`
+const genQuery = skip => gql`
   {
     lidoTransfers(first: 1000, skip: ${skip}) {
       from
@@ -31,7 +31,7 @@ while (gotItems === 0 || gotItems % 1000 === 0) {
 }
 
 const filtered = Array.from(unique).filter(
-  (x) => x !== '0x0000000000000000000000000000000000000000'
+  x => x !== '0x0000000000000000000000000000000000000000'
 )
 
 console.log('Found', filtered.length, 'unique addresses of stETH holders')

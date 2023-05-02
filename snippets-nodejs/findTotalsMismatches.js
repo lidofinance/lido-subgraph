@@ -18,7 +18,7 @@ const lastIndexedQuery = gql`
   }
 `
 
-const genQuery = (block) => gql`
+const genQuery = block => gql`
   query {
     totals(id: "", block: { number: ${block} }) {
       totalPooledEther
@@ -42,12 +42,12 @@ while (min <= max) {
 
   const ethEther = Big(
     await lidoFuncCall('getTotalPooledEther', {
-      blockTag: mid,
+      blockTag: mid
     })
   )
   const ethShares = Big(
     await lidoFuncCall('getTotalShares', {
-      blockTag: mid,
+      blockTag: mid
     })
   )
 

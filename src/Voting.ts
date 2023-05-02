@@ -9,7 +9,12 @@ import {
   ChangeVoteTime as ChangeVoteTimeEvent,
   ChangeObjectionPhaseTime as ChangeObjectionPhaseTimeEvent
 } from '../generated/Voting/Voting'
-import { Voting, Vote, VotingObjection, VotingConfig } from '../generated/schema'
+import {
+  Voting,
+  Vote,
+  VotingObjection,
+  VotingConfig
+} from '../generated/schema'
 import { _loadSharesEntity, _loadTotalsEntity } from './helpers'
 import { ZERO } from './constants'
 
@@ -29,7 +34,9 @@ export function handleStartVote(event: StartVoteEvent): void {
 }
 
 export function handleCastVote(event: CastVoteEvent): void {
-  let entity = new Vote(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  let entity = new Vote(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
 
   entity.voting = event.params.voteId.toString()
   entity.voter = event.params.voter
@@ -40,7 +47,9 @@ export function handleCastVote(event: CastVoteEvent): void {
 }
 
 export function handleCastObjection(event: CastObjectionEvent): void {
-  let entity = new VotingObjection(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  let entity = new VotingObjection(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
 
   entity.voting = event.params.voteId.toString()
   entity.voter = event.params.voter
@@ -58,8 +67,13 @@ export function handleExecuteVote(event: ExecuteVoteEvent): void {
   Accounting for calling burnShares() on Mainnet as we didn't yet have a proper event.
   This one-off operation allows us not to enable tracing.
    **/
-  if (event.transaction.hash.toHexString() == '0x55eb29bda8d96a9a92295c358edbcef087d09f24bd684e6b4e88b166c99ea6a7') {
-    const accToBurn = Address.fromString('0x3e40d73eb977dc6a537af587d48316fee66e9c8c')
+  if (
+    event.transaction.hash.toHexString() ==
+    '0x55eb29bda8d96a9a92295c358edbcef087d09f24bd684e6b4e88b166c99ea6a7'
+  ) {
+    const accToBurn = Address.fromString(
+      '0x3e40d73eb977dc6a537af587d48316fee66e9c8c'
+    )
     const sharesToSubtract = BigInt.fromString('32145684728326685744')
 
     const shares = _loadSharesEntity(accToBurn)!
@@ -78,7 +92,9 @@ export function handleExecuteVote(event: ExecuteVoteEvent): void {
 
 // Global settings
 
-export function handleChangeSupportRequired(event: ChangeSupportRequiredEvent): void {
+export function handleChangeSupportRequired(
+  event: ChangeSupportRequiredEvent
+): void {
   const entity = _loadVotingConfig()
   entity.supportRequiredPct = event.params.supportRequiredPct
   entity.save()
@@ -96,7 +112,9 @@ export function handleChangeVoteTime(event: ChangeVoteTimeEvent): void {
   entity.save()
 }
 
-export function handleChangeObjectionPhaseTime(event: ChangeObjectionPhaseTimeEvent): void {
+export function handleChangeObjectionPhaseTime(
+  event: ChangeObjectionPhaseTimeEvent
+): void {
   const entity = _loadVotingConfig()
   entity.objectionPhaseTime = event.params.objectionPhaseTime
   entity.save()

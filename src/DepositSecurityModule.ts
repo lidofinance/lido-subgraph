@@ -12,11 +12,17 @@ import {
   PauseIntentValidityPeriodBlocksChanged as PauseIntentValidityPeriodBlocksChangedEvent
 } from '../generated/DepositSecurityModule/DepositSecurityModule'
 
-import { DepositSecurityModuleConfig, DepositsPause, Guardian } from '../generated/schema'
+import {
+  DepositSecurityModuleConfig,
+  DepositsPause,
+  Guardian
+} from '../generated/schema'
 import { ZERO, ZERO_ADDRESS } from './constants'
 
 export function handleDepositsPaused(event: DepositsPausedEvent): void {
-  let pauseEntity = new DepositsPause(event.transaction.hash.concatI32(event.logIndex.toI32()))
+  let pauseEntity = new DepositsPause(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
   pauseEntity.guardian = event.params.guardian.toHexString()
 
   pauseEntity.block = event.block.number
@@ -50,7 +56,9 @@ export function handleGuardianAdded(event: GuardianAddedEvent): void {
   entity.save()
 }
 
-export function handleGuardianQuorumChanged(event: GuardianQuorumChangedEvent): void {
+export function handleGuardianQuorumChanged(
+  event: GuardianQuorumChangedEvent
+): void {
   const entity = _loadDSMConfig()
   entity.guardianQuorum = event.params.newValue
   entity.save()
@@ -72,13 +80,17 @@ export function handleMaxDepositsChanged(event: MaxDepositsChangedEvent): void {
   entity.save()
 }
 
-export function handleMinDepositBlockDistanceChanged(event: MinDepositBlockDistanceChangedEvent): void {
+export function handleMinDepositBlockDistanceChanged(
+  event: MinDepositBlockDistanceChangedEvent
+): void {
   const entity = _loadDSMConfig()
   entity.minDepositBlockDistance = event.params.newValue
   entity.save()
 }
 
-export function handleNodeOperatorsRegistryChanged(event: NodeOperatorsRegistryChangedEvent): void {
+export function handleNodeOperatorsRegistryChanged(
+  event: NodeOperatorsRegistryChangedEvent
+): void {
   const entity = _loadDSMConfig()
   entity.nodeOperatorsRegistry = event.params.newValue
   entity.save()
@@ -90,7 +102,9 @@ export function handleOwnerChanged(event: OwnerChangedEvent): void {
   entity.save()
 }
 
-export function handlePauseIntentValidityPeriodBlocksChanged(event: PauseIntentValidityPeriodBlocksChangedEvent): void {
+export function handlePauseIntentValidityPeriodBlocksChanged(
+  event: PauseIntentValidityPeriodBlocksChangedEvent
+): void {
   const entity = _loadDSMConfig()
   entity.pauseIntentValidityPeriodBlocks = event.params.newValue
   entity.save()

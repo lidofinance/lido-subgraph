@@ -1,4 +1,10 @@
-import { DEPOSIT_AMOUNT, ETHER, LIDO_APP_ID, ONE, ZERO_ADDRESS } from '../src/constants'
+import {
+  DEPOSIT_AMOUNT,
+  ETHER,
+  LIDO_APP_ID,
+  ONE,
+  ZERO_ADDRESS
+} from '../src/constants'
 import {
   describe,
   test,
@@ -10,7 +16,13 @@ import {
   log,
   newTypedMockEventWithParams
 } from 'matchstick-as/assembly/index'
-import { Totals, CurrentFees, OracleCompleted, Stats, AppVersion } from '../generated/schema'
+import {
+  Totals,
+  CurrentFees,
+  OracleCompleted,
+  Stats,
+  AppVersion
+} from '../generated/schema'
 import { Completed } from '../generated/LegacyOracle/LegacyOracle'
 import { BigInt, Address, ethereum } from '@graphprotocol/graph-ts'
 import { handleCompleted } from '../src/LegacyOracle'
@@ -27,12 +39,25 @@ const INITIAL_BEACON_VALIDATORS = sampleVals
 
 const lastCompletedId = 1
 
-function createNewCompletedEvent(epochId: string, beaconBalance: BigInt, beaconValidators: BigInt): Completed {
+function createNewCompletedEvent(
+  epochId: string,
+  beaconBalance: BigInt,
+  beaconValidators: BigInt
+): Completed {
   // @ts-ignore this is AssemblyScript
   let event = newTypedMockEventWithParams<Completed>([
-    new ethereum.EventParam('epochId', ethereum.Value.fromUnsignedBigInt(BigInt.fromString(epochId))),
-    new ethereum.EventParam('beaconBalance', ethereum.Value.fromUnsignedBigInt(beaconBalance)),
-    new ethereum.EventParam('beaconValidators', ethereum.Value.fromUnsignedBigInt(beaconValidators))
+    new ethereum.EventParam(
+      'epochId',
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromString(epochId))
+    ),
+    new ethereum.EventParam(
+      'beaconBalance',
+      ethereum.Value.fromUnsignedBigInt(beaconBalance)
+    ),
+    new ethereum.EventParam(
+      'beaconValidators',
+      ethereum.Value.fromUnsignedBigInt(beaconValidators)
+    )
   ])
 
   const isV2 = isLidoV2(event.block.number)
@@ -53,7 +78,9 @@ describe('handleCompleted() before Lido v2', () => {
     appVer.block = BigInt.fromI32(0)
     appVer.blockTime = BigInt.fromI32(0)
     appVer.logIndex = BigInt.fromI32(0)
-    appVer.transactionHash = Address.fromHexString('0xde2667f834746bdbe0872163d632ce79c4930a82ec7c3c11cb015373b691643b')
+    appVer.transactionHash = Address.fromHexString(
+      '0xde2667f834746bdbe0872163d632ce79c4930a82ec7c3c11cb015373b691643b'
+    )
     appVer.save()
 
     let totals = new Totals('')
@@ -116,7 +143,9 @@ describe('handleCompleted() before Lido v2', () => {
   })
 
   test('positive rewards with new vals', () => {
-    let newBalance = INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).plus(someRewards)
+    let newBalance = INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).plus(
+      someRewards
+    )
     let newValidators = INITIAL_BEACON_VALIDATORS.plus(ONE)
     let event = createNewCompletedEvent('1', newBalance, newValidators)
 
@@ -149,17 +178,23 @@ describe('handleCompleted() before Lido v2', () => {
   })
 
   test('negative rewards with less vals', () => {
-    let newBalance = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(someRewards)
+    let newBalance = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(
+      someRewards
+    )
     let newValidators = INITIAL_BEACON_VALIDATORS.minus(ONE)
     let event = createNewCompletedEvent('1', newBalance, newValidators)
     handleCompleted(event)
 
-    let expected = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(someRewards)
+    let expected = INITIAL_BEACON_BALANCE.minus(DEPOSIT_AMOUNT).minus(
+      someRewards
+    )
     assert.fieldEquals('Totals', '', 'totalPooledEther', expected.toString())
   })
 
   test('more vals but negative rewards', () => {
-    let newBalance = INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).minus(someRewards)
+    let newBalance = INITIAL_BEACON_BALANCE.plus(DEPOSIT_AMOUNT).minus(
+      someRewards
+    )
     let newValidators = INITIAL_BEACON_VALIDATORS.plus(ONE)
     let event = createNewCompletedEvent('1', newBalance, newValidators)
     handleCompleted(event)
