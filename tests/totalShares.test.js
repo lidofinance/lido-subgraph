@@ -11,7 +11,6 @@ const query = gql`
 
 test('totalShares', async () => {
   const realTotalShares = (await lidoFuncCall('getTotalShares')).toString()
-  let q = await subgraphFetch(query)
   const subgraphTotalShares = (await subgraphFetch(query)).totals.totalShares
 
   expect(subgraphTotalShares).toEqual(realTotalShares)
