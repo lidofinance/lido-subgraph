@@ -29,7 +29,7 @@
     "@graphprotocol/graph-ts": "0.29.3"
   },
   "devDependencies": {
-    "@jest/types": "29.5.0",
+    "@types/jest": "29.5.1",
     "@types/node": "18.16.1",
     "dotenv": "16.0.3",
     "env-cmd": "10.1.0",
