@@ -28,7 +28,7 @@ const nopRegistryContract = new Contract(NOP_ADDRESS, nopRegistryAbi, provider)
 const aragonAbi = JSON.parse(fs.readFileSync('abis/Voting.json'))
 const aragonContract = new Contract(ARAGON_ADDRESS, aragonAbi, provider)
 
-const easyTrackAbi = JSON.parse(fs.readFileSync('abis/Easytrack.json'))
+const easyTrackAbi = JSON.parse(fs.readFileSync('abis/EasyTrack.json'))
 const easyTrackContract = new Contract(
   EASYTRACK_ADDRESS,
   easyTrackAbi,
