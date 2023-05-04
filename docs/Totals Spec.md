@@ -561,7 +561,7 @@ type Totals @entity {
 ```
 
 ```graphql
-type Share @entity {
+type Shares @entity {
   id: Bytes!
 
   shares: BigInt!
