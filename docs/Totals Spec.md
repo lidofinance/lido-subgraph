@@ -386,11 +386,11 @@ if (entity.shares) {
 	// Decreasing from address shares
 	// No point in changing 0x0 shares
 	if (!fromZeros) {
-	  let sharesFromEntity = Share.load(event.params.from
+	  let sharesFromEntity = Shares.load(event.params.from)
 	  // Address must already have shares, HOWEVER:
 	  // Someone can and managed to produce events of 0 to 0 transfers
 	  if (!sharesFromEntity) {
-		sharesFromEntity = new Share(event.params.from
+		sharesFromEntity = new Shares(event.params.from)
 		sharesFromEntity.shares = ZERO
 	  }
 
@@ -407,10 +407,10 @@ if (entity.shares) {
 	}
 
 	// Increasing to address shares
-	let sharesToEntity = Share.load(event.params.to
+	let sharesToEntity = Shares.load(event.params.to)
 
 	if (!sharesToEntity) {
-	  sharesToEntity = new Share(event.params.to
+	  sharesToEntity = new Shares(event.params.to)
 	  sharesToEntity.shares = ZERO
 	}
 
@@ -460,10 +460,10 @@ If Shares entity doesn’t yet exist for this address, create it with id `event.
 
 ```javascript
 // Increasing address shares
-let sharesEntity = Share.load(event.params.sender)
+let sharesEntity = Shares.load(event.params.sender)
 
 if (!sharesEntity) {
-  sharesEntity = new Share(event.params.sender)
+  sharesEntity = new Shares(event.params.sender)
   sharesEntity.shares = ZERO
 }
 
