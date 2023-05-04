@@ -93,7 +93,6 @@ totalRewardsEntity.block = event.block.number
 totalRewardsEntity.blockTime = event.block.timestamp
 totalRewardsEntity.transactionIndex = event.transaction.index
 totalRewardsEntity.logIndex = event.logIndex
-totalRewardsEntity.transactionLogIndex = event.transactionLogIndex
 ```
 
 Calculating raw rewards (positive validator balance changes). For every new validator appearing, we need to compensate that new 32 eth balance is for activation, not rewards:
@@ -212,15 +211,15 @@ for (let i = 0; i < opAddresses.length; i++) {
   // Incrementing total of actual shares distributed
   sharesToOperatorsActual = sharesToOperatorsActual.plus(shares)
 
-  let nodeOperatorsShares = new NodeOperatorsShares(
-    event.transaction.hash.toHex() + '-' + addr.toHexString()
+  let nodeOperatorFees = new NodeOperatorFees(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
   )
-  nodeOperatorsShares.totalReward = event.transaction.hash.toHex()
+  nodeOperatorFees.totalReward = event.transaction.hash.toHex()
 
-  nodeOperatorsShares.address = addr
-  nodeOperatorsShares.shares = shares
+  nodeOperatorFees.address = addr
+  nodeOperatorFees.shares = shares
 
-  nodeOperatorsShares.save()
+  nodeOperatorFees.save()
 }
 ```
 
@@ -257,8 +256,6 @@ First, identify if this transaction includes rewards distribution. As we save To
 let totalRewardsEntity = TotalReward.load(event.transaction.hash.toHex())
 
 // We know that for rewards distribution shares are minted with same from 0x0 address as staking
-// We can save this indicator which helps us distinguish such mints from staking events
-entity.mintWithoutSubmission = totalRewardsEntity ? true : false
 ```
 
 We can easily identify mints:
@@ -295,7 +292,7 @@ Helpers:
 
 ```javascript
 let isFeeDistributionToTreasury =
-  fromZeros && event.params.to == getAddress('Treasury')
+  fromZeros && event.params.to == getAddress('TREASURY')
 
 // graph-ts less or equal to
 let isDust = event.params.value.lt(DUST_BOUNDARY)
@@ -350,20 +347,20 @@ else if (totalRewardsEntity && fromZeros) {
 	// Handling node operator fee transfer to node operator
 
 	// Entity should be existent at this point
-	let nodeOperatorsShares = NodeOperatorsShares.load(
-	  event.transaction.hash.toHex() + '-' + event.params.to.toHexString()
-	) as NodeOperatorsShares
+    let nodeOperatorsShares =  NodeOperatorsShares.load(
+    event.transaction.hash.concat(event.params.to)
+  ) as NodeOperatorsShares
 
 	let sharesToOperator = nodeOperatorsShares.shares
 
 	entity.shares = sharesToOperator
 
-	let nodeOperatorFees = new NodeOperatorFees(
-	  event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-	)
+  let nodeOperatorFees = new NodeOperatorFees(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
 
 	// Reference to TotalReward entity
-	nodeOperatorFees.totalReward = event.transaction.hash.toHex()
+	nodeOperatorFees.totalReward = event.transaction.hash
 
 	nodeOperatorFees.address = event.params.to
 	nodeOperatorFees.fee = event.params.value
@@ -389,11 +386,11 @@ if (entity.shares) {
 	// Decreasing from address shares
 	// No point in changing 0x0 shares
 	if (!fromZeros) {
-	  let sharesFromEntity = Shares.load(event.params.from.toHexString())
+	  let sharesFromEntity = Shares.load(event.params.from)
 	  // Address must already have shares, HOWEVER:
 	  // Someone can and managed to produce events of 0 to 0 transfers
 	  if (!sharesFromEntity) {
-		sharesFromEntity = new Shares(event.params.from.toHexString())
+		sharesFromEntity = new Shares(event.params.from)
 		sharesFromEntity.shares = ZERO
 	  }
 
@@ -410,10 +407,10 @@ if (entity.shares) {
 	}
 
 	// Increasing to address shares
-	let sharesToEntity = Shares.load(event.params.to.toHexString())
+	let sharesToEntity = Shares.load(event.params.to)
 
 	if (!sharesToEntity) {
-	  sharesToEntity = new Shares(event.params.to.toHexString())
+	  sharesToEntity = new Shares(event.params.to)
 	  sharesToEntity.shares = ZERO
 	}
 
@@ -463,10 +460,10 @@ If Shares entity doesn’t yet exist for this address, create it with id `event.
 
 ```javascript
 // Increasing address shares
-let sharesEntity = Shares.load(event.params.sender.toHexString())
+let sharesEntity = Shares.load(event.params.sender)
 
 if (!sharesEntity) {
-  sharesEntity = new Shares(event.params.sender.toHexString())
+  sharesEntity = new Shares(event.params.sender)
   sharesEntity.shares = ZERO
 }
 
@@ -501,19 +498,17 @@ entity.balanceAfter = entity.sharesAfter
 
 ```graphql
 type LidoTransfer @entity {
-  id: ID!
+  id: Bytes!
 
   from: Bytes!
   to: Bytes!
   value: BigInt!
 
-  shares: BigInt
+  shares: BigInt!
   sharesBeforeDecrease: BigInt
   sharesAfterDecrease: BigInt
   sharesBeforeIncrease: BigInt
   sharesAfterIncrease: BigInt
-
-  mintWithoutSubmission: Boolean!
 
   totalPooledEther: BigInt!
   totalShares: BigInt!
@@ -526,13 +521,12 @@ type LidoTransfer @entity {
   transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  transactionLogIndex: BigInt!
 }
 ```
 
 ```graphql
 type LidoSubmission @entity {
-  id: ID!
+  id: Bytes!
 
   sender: Bytes!
   amount: BigInt!
@@ -554,7 +548,6 @@ type LidoSubmission @entity {
   transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  transactionLogIndex: BigInt!
 }
 ```
 
@@ -569,7 +562,7 @@ type Totals @entity {
 
 ```graphql
 type Shares @entity {
-  id: ID!
+  id: Bytes!
 
   shares: BigInt!
 }
@@ -586,21 +579,30 @@ type OracleCompleted @entity {
   block: BigInt!
   blockTime: BigInt!
   transactionHash: Bytes!
+  logIndex: BigInt!
 }
 ```
 
 ```graphql
 type TotalReward @entity {
-  id: ID!
+  id: Bytes!
 
   totalRewards: BigInt!
   totalRewardsWithFees: BigInt!
 
+  mevFee: BigInt!
+
+  feeBasis: BigInt!
+  treasuryFeeBasisPoints: BigInt!
+  insuranceFeeBasisPoints: BigInt!
+  operatorsFeeBasisPoints: BigInt!
+
   totalFee: BigInt!
   nodeOperatorFees: [NodeOperatorFees!] @derivedFrom(field: "totalReward")
-  insuranceFee: BigInt
-  treasuryFee: BigInt
-  dust: BigInt
+  insuranceFee: BigInt!
+  operatorsFee: BigInt!
+  treasuryFee: BigInt!
+  dust: BigInt!
 
   shares2mint: BigInt!
 
@@ -608,25 +610,24 @@ type TotalReward @entity {
   sharesToOperators: BigInt!
   sharesToTreasury: BigInt!
   nodeOperatorsShares: [NodeOperatorsShares!] @derivedFrom(field: "totalReward")
+  dustSharesToTreasury: BigInt!
 
   totalPooledEtherBefore: BigInt!
   totalPooledEtherAfter: BigInt!
   totalSharesBefore: BigInt!
   totalSharesAfter: BigInt!
 
-  postTotalPooledEther: BigInt
-  preTotalPooledEther: BigInt
-  timeElapsed: BigInt
-  totalShares: BigInt
+  timeElapsed: BigInt!
 
-  aprBeforeFees: BigDecimal
-  apr: BigDecimal
+  aprRaw: BigDecimal!
+  aprBeforeFees: BigDecimal!
+  apr: BigDecimal!
 
   block: BigInt!
   blockTime: BigInt!
+  transactionHash: Bytes!
   transactionIndex: BigInt!
   logIndex: BigInt!
-  transactionLogIndex: BigInt!
 }
 ```
 

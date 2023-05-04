@@ -3,8 +3,8 @@ import {
   getTestAddresses,
   loadAddressShares,
   getTotals,
-  BigNumber,
 } from './utils/index.js'
+import { BigNumber } from 'ethers'
 
 const ADDRESSES_TO_TEST = 30
 const timePerAddress = 5 // seconds

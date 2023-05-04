@@ -1,4 +1,4 @@
-import { ethers } from 'ethers'
+import { providers, Contract } from 'ethers'
 import fs from 'fs'
 
 import {
@@ -8,42 +8,38 @@ import {
   LIDO_ADDRESS,
   NOP_ADDRESS,
   RPC,
-  getBlock
+  getBlock,
 } from '../config.js'
 
-const provider = new ethers.providers.JsonRpcProvider(RPC)
+const provider = new providers.JsonRpcProvider(RPC)
 
 const lidoAbi = JSON.parse(fs.readFileSync('abis/Lido.json'))
-const lidoContract = new ethers.Contract(LIDO_ADDRESS, lidoAbi, provider)
+const lidoContract = new Contract(LIDO_ADDRESS, lidoAbi, provider)
 
 const oracleAddress = await lidoContract.getOracle()
-const oracleAbi = JSON.parse(fs.readFileSync('abis/LidoOracle.json'))
-const oracleContract = new ethers.Contract(oracleAddress, oracleAbi, provider)
+const oracleAbi = JSON.parse(fs.readFileSync('abis/LegacyOracle.json'))
+const oracleContract = new Contract(oracleAddress, oracleAbi, provider)
 
 const nopRegistryAbi = JSON.parse(
   fs.readFileSync('abis/NodeOperatorsRegistry.json')
 )
-const nopRegistryContract = new ethers.Contract(
-  NOP_ADDRESS,
-  nopRegistryAbi,
-  provider
-)
+const nopRegistryContract = new Contract(NOP_ADDRESS, nopRegistryAbi, provider)
 
 const aragonAbi = JSON.parse(fs.readFileSync('abis/Voting.json'))
-const aragonContract = new ethers.Contract(ARAGON_ADDRESS, aragonAbi, provider)
+const aragonContract = new Contract(ARAGON_ADDRESS, aragonAbi, provider)
 
 const easyTrackAbi = JSON.parse(fs.readFileSync('abis/Easytrack.json'))
-const easyTrackContract = new ethers.Contract(
+const easyTrackContract = new Contract(
   EASYTRACK_ADDRESS,
   easyTrackAbi,
   provider
 )
 
 const dsmAbi = JSON.parse(fs.readFileSync('abis/DepositSecurityModule.json'))
-const dsmContract = new ethers.Contract(DSM_ADDRESS, dsmAbi, provider)
+const dsmContract = new Contract(DSM_ADDRESS, dsmAbi, provider)
 
-const mbAddBlock = async args => {
-  const blockIsOverriden = args.find(x => x.blockTag)
+const mbAddBlock = async (args) => {
+  const blockIsOverriden = args.find((x) => x.blockTag)
 
   if (blockIsOverriden) {
     return args
@@ -83,36 +79,28 @@ export const getEvents = async (contract, eventName, startBlock, endBlock) => {
   )
 }
 
-export const getLidoEvents = async (eventName, startBlock) => {
-  return await getEvents(lidoContract, eventName, startBlock)
+export const getLidoEvents = async (eventName, startBlock, endBlock) => {
+  return await getEvents(lidoContract, eventName, startBlock, endBlock)
 }
 
-export const getLidoEventNumber = async eventName => {
-  return await getLidoEvents(eventName).length
+export const getLidoOracleEvents = async (eventName, startBlock, endBlock) => {
+  return await getEvents(oracleContract, eventName, startBlock, endBlock)
 }
 
-export const getLidoOracleEvents = async (eventName, startBlock) => {
-  return await getEvents(oracleContract, eventName, startBlock)
+export const getNopRegistryEvents = async (eventName, startBlock, endBlock) => {
+  return await getEvents(nopRegistryContract, eventName, startBlock, endBlock)
 }
 
-export const getOracleEventNumber = async (eventName, startBlock) => {
-  return (await getLidoOracleEvents(eventName, startBlock)).length
+export const getAragonEvents = async (eventName, startBlock, endBlock) => {
+  return await getEvents(aragonContract, eventName, startBlock, endBlock)
 }
 
-export const getNopRegistryEvents = async (eventName, startBlock) => {
-  return await getEvents(nopRegistryContract, eventName, startBlock)
+export const getEasyTrackEvents = async (eventName, startBlock, endBlock) => {
+  return await getEvents(easyTrackContract, eventName, startBlock, endBlock)
 }
 
-export const getAragonEvents = async (eventName, startBlock) => {
-  return await getEvents(aragonContract, eventName, startBlock)
-}
-
-export const getEasyTrackEvents = async (eventName, startBlock) => {
-  return await getEvents(easyTrackContract, eventName, startBlock)
-}
-
-export const getDSMEvents = async (eventName, startBlock) => {
-  return await getEvents(dsmContract, eventName, startBlock)
+export const getDSMEvents = async (eventName, startBlock, endBlock) => {
+  return await getEvents(dsmContract, eventName, startBlock, endBlock)
 }
 
 export const getRpcNetwork = async () => await provider.getNetwork()

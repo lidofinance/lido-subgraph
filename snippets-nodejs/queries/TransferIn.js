@@ -19,14 +19,11 @@ export const transferInQuery = gql`
       balanceAfterDecrease
       balanceAfterIncrease
 
-      mintWithoutSubmission
-
       block
       blockTime
       transactionHash
       transactionIndex
       logIndex
-      transactionLogIndex
     }
   }
 `

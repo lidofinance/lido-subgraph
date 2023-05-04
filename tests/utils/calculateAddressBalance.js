@@ -1,5 +1,6 @@
 import { gql } from 'graphql-request'
-import { subgraphFetch, BigNumber } from './index.js'
+import { BigNumber } from 'ethers'
+import { subgraphFetch } from './index.js'
 
 export const calculateAddressBalance = async (address) => {
   const submissionsQuery = gql`
@@ -7,7 +8,7 @@ export const calculateAddressBalance = async (address) => {
 	  lidoSubmissions(first: $first, skip: $skip, block: $block, where: {sender: "${address}"}) {
 		amount
 		shares
-    
+
 		block
     transactionIndex
 	  }
@@ -20,9 +21,7 @@ export const calculateAddressBalance = async (address) => {
       value
 			shares
 			to
-      
-      mintWithoutSubmission
-      
+
 			block
       transactionIndex
 		  }
@@ -35,7 +34,7 @@ export const calculateAddressBalance = async (address) => {
       value
 			shares
 			to
-      
+
 			block
       transactionIndex
 		  }

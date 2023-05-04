@@ -1,106 +1,70 @@
+import { ethereum } from '@graphprotocol/graph-ts'
 import {
-  DepositsPaused,
-  DepositsUnpaused,
-  GuardianAdded,
-  GuardianQuorumChanged,
-  GuardianRemoved,
-  MaxDepositsChanged,
-  MinDepositBlockDistanceChanged,
-  NodeOperatorsRegistryChanged,
-  OwnerChanged,
-  PauseIntentValidityPeriodBlocksChanged,
+  DepositsPaused as DepositsPausedEvent,
+  DepositsUnpaused as DepositsUnpausedEvent,
+  GuardianAdded as GuardianAddedEvent,
+  GuardianQuorumChanged as GuardianQuorumChangedEvent,
+  GuardianRemoved as GuardianRemovedEvent,
+  MaxDepositsChanged as MaxDepositsChangedEvent,
+  MinDepositBlockDistanceChanged as MinDepositBlockDistanceChangedEvent,
+  NodeOperatorsRegistryChanged as NodeOperatorsRegistryChangedEvent,
+  OwnerChanged as OwnerChangedEvent,
+  PauseIntentValidityPeriodBlocksChanged as PauseIntentValidityPeriodBlocksChangedEvent,
 } from '../generated/DepositSecurityModule/DepositSecurityModule'
 
 import {
-  DepositSecurityModuleSettings,
+  DepositSecurityModuleConfig,
   DepositsPause,
-  DepositsUnpause,
   Guardian,
-  GuardianQuorumChange,
-  MaxDepositsChange,
-  MinDepositBlockDistanceChange,
-  NodeOperatorsRegistryChange,
-  OwnerChange,
-  PauseIntentValidityPeriodBlocksChange,
 } from '../generated/schema'
+import { ZERO, ZERO_ADDRESS } from './constants'
 
-function loadConfig(): DepositSecurityModuleSettings {
-  let entity = DepositSecurityModuleSettings.load('')
-  if (!entity) entity = new DepositSecurityModuleSettings('')
-  return entity
-}
-
-export function handleDepositsPaused(event: DepositsPaused): void {
-  let entity = new DepositsPause(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+export function handleDepositsPaused(event: DepositsPausedEvent): void {
+  let pauseEntity = new DepositsPause(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
   )
+  pauseEntity.guardian = event.params.guardian.toHexString()
 
-  entity.guardian = event.params.guardian.toHexString()
+  pauseEntity.block = event.block.number
+  pauseEntity.blockTime = event.block.timestamp
+  pauseEntity.transactionHash = event.block.hash
+  pauseEntity.logIndex = event.logIndex
+  pauseEntity.save()
 
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.block.hash
-
+  const entity = _loadDSMConfig()
+  entity.paused = true
   entity.save()
-
-  let config = loadConfig()
-  config.paused = true
-  config.save()
 }
 
-export function handleDepositsUnpaused(event: DepositsUnpaused): void {
-  let entity = new DepositsUnpause(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.block.hash
-
+export function handleDepositsUnpaused(event: DepositsUnpausedEvent): void {
+  const entity = _loadDSMConfig()
+  entity.paused = false
   entity.save()
-
-  let config = loadConfig()
-  config.paused = false
-  config.save()
 }
 
-export function handleGuardianAdded(event: GuardianAdded): void {
+export function handleGuardianAdded(event: GuardianAddedEvent): void {
   let entity = new Guardian(event.params.guardian.toHexString())
 
   entity.address = event.params.guardian
+  entity.removed = false
 
   entity.block = event.block.number
   entity.blockTime = event.block.timestamp
   entity.transactionHash = event.block.hash
-
-  entity.removed = false
+  entity.logIndex = event.logIndex
 
   entity.save()
 }
 
 export function handleGuardianQuorumChanged(
-  event: GuardianQuorumChanged
+  event: GuardianQuorumChangedEvent
 ): void {
-  let newValue = event.params.newValue
-
-  let entity = new GuardianQuorumChange(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.guardianQuorum = newValue
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.block.hash
-
+  const entity = _loadDSMConfig()
+  entity.guardianQuorum = event.params.newValue
   entity.save()
-
-  let config = loadConfig()
-  config.guardianQuorum = newValue
-  config.save()
 }
 
-export function handleGuardianRemoved(event: GuardianRemoved): void {
+export function handleGuardianRemoved(event: GuardianRemovedEvent): void {
   let entity = Guardian.load(event.params.guardian.toHexString())
 
   // Do we have this guardian?
@@ -110,108 +74,54 @@ export function handleGuardianRemoved(event: GuardianRemoved): void {
   }
 }
 
-export function handleMaxDepositsChanged(event: MaxDepositsChanged): void {
-  let newValue = event.params.newValue
-
-  let entity = new MaxDepositsChange(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.maxDeposits = newValue
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.block.hash
-
+export function handleMaxDepositsChanged(event: MaxDepositsChangedEvent): void {
+  const entity = _loadDSMConfig()
+  entity.maxDeposits = event.params.newValue
   entity.save()
-
-  let config = loadConfig()
-  config.maxDeposits = newValue
-  config.save()
 }
 
 export function handleMinDepositBlockDistanceChanged(
-  event: MinDepositBlockDistanceChanged
+  event: MinDepositBlockDistanceChangedEvent
 ): void {
-  let newValue = event.params.newValue
-
-  let entity = new MinDepositBlockDistanceChange(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.minDepositBlockDistance = newValue
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.block.hash
-
+  const entity = _loadDSMConfig()
+  entity.minDepositBlockDistance = event.params.newValue
   entity.save()
-
-  let config = loadConfig()
-  config.minDepositBlockDistance = newValue
-  config.save()
 }
 
 export function handleNodeOperatorsRegistryChanged(
-  event: NodeOperatorsRegistryChanged
+  event: NodeOperatorsRegistryChangedEvent
 ): void {
-  let newValue = event.params.newValue
-
-  let entity = new NodeOperatorsRegistryChange(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.nodeOperatorsRegistry = newValue
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.block.hash
-
+  const entity = _loadDSMConfig()
+  entity.nodeOperatorsRegistry = event.params.newValue
   entity.save()
-
-  let config = loadConfig()
-  config.nodeOperatorsRegistry = newValue
-  config.save()
 }
 
-export function handleOwnerChanged(event: OwnerChanged): void {
-  let newValue = event.params.newValue
-
-  let entity = new OwnerChange(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.owner = newValue
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.block.hash
-
+export function handleOwnerChanged(event: OwnerChangedEvent): void {
+  const entity = _loadDSMConfig()
+  entity.owner = event.params.newValue
   entity.save()
-
-  let config = loadConfig()
-  config.owner = newValue
-  config.save()
 }
 
 export function handlePauseIntentValidityPeriodBlocksChanged(
-  event: PauseIntentValidityPeriodBlocksChanged
+  event: PauseIntentValidityPeriodBlocksChangedEvent
 ): void {
-  let newValue = event.params.newValue
-
-  let entity = new PauseIntentValidityPeriodBlocksChange(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.pauseIntentValidityPeriodBlocks = newValue
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-  entity.transactionHash = event.block.hash
-
+  const entity = _loadDSMConfig()
+  entity.pauseIntentValidityPeriodBlocks = event.params.newValue
   entity.save()
+}
 
-  let config = loadConfig()
-  config.pauseIntentValidityPeriodBlocks = newValue
-  config.save()
+function _loadDSMConfig(): DepositSecurityModuleConfig {
+  let entity = DepositSecurityModuleConfig.load('')
+  if (!entity) {
+    entity = new DepositSecurityModuleConfig('')
+
+    entity.paused = false
+    entity.guardianQuorum = ZERO
+    entity.maxDeposits = ZERO
+    entity.minDepositBlockDistance = ZERO
+    entity.nodeOperatorsRegistry = ZERO_ADDRESS
+    entity.owner = ZERO_ADDRESS
+    entity.pauseIntentValidityPeriodBlocks = ZERO
+  }
+  return entity
 }

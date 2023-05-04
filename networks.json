@@ -1,0 +1,94 @@
+{
+  "mainnet": {
+    "LidoDAO": {
+      "address": "0xb8FFC3Cd6e7Cf5a098A1c92F48009765B24088Dc",
+      "startBlock": 11473216
+    },
+    "Lido": {
+      "address": "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
+      "startBlock": 11473216
+    },
+    "LegacyOracle": {
+      "address": "0x442af784A788A5bd6F42A01Ebe9F287a871243fb",
+      "startBlock": 11473216
+    },
+    "NodeOperatorsRegistry": {
+      "address": "0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5",
+      "startBlock": 11473216
+    },
+    "Voting": {
+      "address": "0x2e59A20f205bB85a89C53f1936454680651E618e",
+      "startBlock": 11473216
+    },
+    "EasyTrack": {
+      "address": "0xF0211b7660680B49De1A7E9f25C65660F0a13Fea",
+      "startBlock": 13676720
+    },
+    "DepositSecurityModule": {
+      "address": "0xDb149235B6F40dC08810AA69869783Be101790e7",
+      "startBlock": 13492688
+    },
+    "StakingRouter": {
+      "address": "0xFdDf38947aFB03C621C71b06C9C70bce73f12999",
+      "startBlock": 17175000
+    },
+    "AccountingOracle": {
+      "address": "0x852deD011285fe67063a08005c71a85690503Cee",
+      "startBlock": 17175000
+    },
+    "WithdrawalQueue": {
+      "address": "0x889edC2eDab5f40e902b864aD4d7AdE8E412F9B1",
+      "startBlock": 17175000
+    },
+    "HashConsensus": {
+      "address": "0xD624B08C83bAECF0807Dd2c6880C3154a5F0B288",
+      "startBlock": 17175000
+    }
+  },
+  "goerli": {
+    "LidoDAO": {
+      "address": "0x1dD91b354Ebd706aB3Ac7c727455C7BAA164945A",
+      "startBlock": 4533286
+    },
+    "Lido": {
+      "address": "0x1643E812aE58766192Cf7D2Cf9567dF2C37e9B7F",
+      "startBlock": 4533286
+    },
+    "LegacyOracle": {
+      "address": "0x24d8451BC07e7aF4Ba94F69aCDD9ad3c6579D9FB",
+      "startBlock": 4533286
+    },
+    "NodeOperatorsRegistry": {
+      "address": "0x9D4AF1Ee19Dad8857db3a45B0374c81c8A1C6320",
+      "startBlock": 4533286
+    },
+    "Voting": {
+      "address": "0xbc0B67b4553f4CF52a913DE9A6eD0057E2E758Db",
+      "startBlock": 4533286
+    },
+    "EasyTrack": {
+      "address": "0xAf072C8D368E4DD4A9d4fF6A76693887d6ae92Af",
+      "startBlock": 5574270
+    },
+    "DepositSecurityModule": {
+      "address": "0xEd23AD3EA5Fb9d10e7371Caef1b141AD1C23A80c",
+      "startBlock": 5692116
+    },
+    "StakingRouter": {
+      "address": "0xa3Dbd317E53D363176359E10948BA0b1c0A4c820",
+      "startBlock": 8710746
+    },
+    "AccountingOracle": {
+      "address": "0x76f358A842defa0E179a8970767CFf668Fc134d6",
+      "startBlock": 8710746
+    },
+    "WithdrawalQueue": {
+      "address": "0xcf117961421ca9e546cd7f50bc73abcdb3039533",
+      "startBlock": 8710746
+    },
+    "HashConsensus": {
+      "address": "0x8d87A8BCF8d4e542fd396D1c50223301c164417b",
+      "startBlock": 8710746
+    }
+  }
+}

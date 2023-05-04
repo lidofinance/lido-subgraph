@@ -1,27 +1,24 @@
 import { BigInt, Address } from '@graphprotocol/graph-ts'
 import {
-  StartVote,
-  CastVote,
-  CastObjection,
-  ExecuteVote,
-  ChangeSupportRequired,
-  ChangeMinQuorum,
-  ChangeVoteTime,
-  ChangeObjectionPhaseTime,
+  StartVote as StartVoteEvent,
+  CastVote as CastVoteEvent,
+  CastObjection as CastObjectionEvent,
+  ExecuteVote as ExecuteVoteEvent,
+  ChangeSupportRequired as ChangeSupportRequiredEvent,
+  ChangeMinQuorum as ChangeMinQuorumEvent,
+  ChangeVoteTime as ChangeVoteTimeEvent,
+  ChangeObjectionPhaseTime as ChangeObjectionPhaseTimeEvent,
 } from '../generated/Voting/Voting'
 import {
   Voting,
   Vote,
   VotingObjection,
-  ChangedSupportRequired,
-  ChangedMinQuorum,
-  ChangedVoteTime,
-  ChangedObjectionPhaseTime,
-  Shares,
+  VotingConfig,
 } from '../generated/schema'
-import { Totals } from '../generated/schema'
+import { _loadSharesEntity, _loadTotalsEntity } from './helpers'
+import { ZERO } from './constants'
 
-export function handleStartVote(event: StartVote): void {
+export function handleStartVote(event: StartVoteEvent): void {
   let entity = new Voting(event.params.voteId.toString())
 
   entity.index = event.params.voteId.toI32()
@@ -29,12 +26,16 @@ export function handleStartVote(event: StartVote): void {
   entity.metadata = event.params.metadata
   entity.executed = false
 
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
   entity.save()
 }
 
-export function handleCastVote(event: CastVote): void {
+export function handleCastVote(event: CastVoteEvent): void {
   let entity = new Vote(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+    event.transaction.hash.concatI32(event.logIndex.toI32())
   )
 
   entity.voting = event.params.voteId.toString()
@@ -45,9 +46,9 @@ export function handleCastVote(event: CastVote): void {
   entity.save()
 }
 
-export function handleCastObjection(event: CastObjection): void {
+export function handleCastObjection(event: CastObjectionEvent): void {
   let entity = new VotingObjection(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
+    event.transaction.hash.concatI32(event.logIndex.toI32())
   )
 
   entity.voting = event.params.voteId.toString()
@@ -57,12 +58,8 @@ export function handleCastObjection(event: CastObjection): void {
   entity.save()
 }
 
-export function handleExecuteVote(event: ExecuteVote): void {
-  let entity = Voting.load(event.params.voteId.toString())
-
-  if (entity == null) {
-    entity = new Voting(event.params.voteId.toString())
-  }
+export function handleExecuteVote(event: ExecuteVoteEvent): void {
+  let entity = Voting.load(event.params.voteId.toString())!
 
   entity.executed = true
 
@@ -74,17 +71,19 @@ export function handleExecuteVote(event: ExecuteVote): void {
     event.transaction.hash.toHexString() ==
     '0x55eb29bda8d96a9a92295c358edbcef087d09f24bd684e6b4e88b166c99ea6a7'
   ) {
-    let accToBurn = Address.fromString(
+    const accToBurn = Address.fromString(
       '0x3e40d73eb977dc6a537af587d48316fee66e9c8c'
     )
-    let sharesToSubtract = BigInt.fromString('32145684728326685744')
+    const sharesToSubtract = BigInt.fromString('32145684728326685744')
 
-    let shares = Shares.load(accToBurn)!
+    const shares = _loadSharesEntity(accToBurn)!
     shares.shares = shares.shares.minus(sharesToSubtract)
+    assert(shares.shares >= ZERO, 'Negative shares.hares!')
     shares.save()
 
-    let totals = Totals.load('')!
+    const totals = _loadTotalsEntity()!
     totals.totalShares = totals.totalShares.minus(sharesToSubtract)
+    assert(totals.totalShares >= ZERO, 'Negative totals.totalShares!')
     totals.save()
   }
 
@@ -94,45 +93,43 @@ export function handleExecuteVote(event: ExecuteVote): void {
 // Global settings
 
 export function handleChangeSupportRequired(
-  event: ChangeSupportRequired
+  event: ChangeSupportRequiredEvent
 ): void {
-  let entity = new ChangedSupportRequired(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
+  const entity = _loadVotingConfig()
   entity.supportRequiredPct = event.params.supportRequiredPct
-
   entity.save()
 }
 
-export function handleChangeMinQuorum(event: ChangeMinQuorum): void {
-  let entity = new ChangedMinQuorum(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
+export function handleChangeMinQuorum(event: ChangeMinQuorumEvent): void {
+  const entity = _loadVotingConfig()
   entity.minAcceptQuorumPct = event.params.minAcceptQuorumPct
-
   entity.save()
 }
 
-export function handleChangeVoteTime(event: ChangeVoteTime): void {
-  let entity = new ChangedVoteTime(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
+export function handleChangeVoteTime(event: ChangeVoteTimeEvent): void {
+  const entity = _loadVotingConfig()
   entity.voteTime = event.params.voteTime
-
   entity.save()
 }
 
 export function handleChangeObjectionPhaseTime(
-  event: ChangeObjectionPhaseTime
+  event: ChangeObjectionPhaseTimeEvent
 ): void {
-  let entity = new ChangedObjectionPhaseTime(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
+  const entity = _loadVotingConfig()
   entity.objectionPhaseTime = event.params.objectionPhaseTime
-
   entity.save()
+}
+
+function _loadVotingConfig(): VotingConfig {
+  let entity = VotingConfig.load('')
+  if (!entity) {
+    entity = new VotingConfig('')
+
+    entity.supportRequiredPct = ZERO
+    entity.minAcceptQuorumPct = ZERO
+    entity.voteTime = ZERO
+
+    entity.objectionPhaseTime = ZERO
+  }
+  return entity
 }

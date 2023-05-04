@@ -981,5 +981,58 @@
     ],
     "name": "Withdrawal",
     "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "name": "reportTimestamp", "type": "uint256" },
+      { "indexed": false, "name": "preCLBalance", "type": "uint256" },
+      { "indexed": false, "name": "postCLBalance", "type": "uint256" },
+      { "indexed": false, "name": "withdrawalsWithdrawn", "type": "uint256" },
+      {
+        "indexed": false,
+        "name": "executionLayerRewardsWithdrawn",
+        "type": "uint256"
+      },
+      { "indexed": false, "name": "postBufferedEther", "type": "uint256" }
+    ],
+    "name": "ETHDistributed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "name": "reportTimestamp", "type": "uint256" },
+      { "indexed": false, "name": "timeElapsed", "type": "uint256" },
+      { "indexed": false, "name": "preTotalShares", "type": "uint256" },
+      { "indexed": false, "name": "preTotalEther", "type": "uint256" },
+      { "indexed": false, "name": "postTotalShares", "type": "uint256" },
+      { "indexed": false, "name": "postTotalEther", "type": "uint256" },
+      { "indexed": false, "name": "sharesMintedAsFees", "type": "uint256" }
+    ],
+    "name": "TokenRebased",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "name": "amount", "type": "uint256" }],
+    "name": "WithdrawalsReceived",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "name": "reportTimestamp", "type": "uint256" },
+      { "indexed": false, "name": "preCLValidators", "type": "uint256" },
+      { "indexed": false, "name": "postCLValidators", "type": "uint256" }
+    ],
+    "name": "CLValidatorsUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "name": "lidoLocator", "type": "address" }],
+    "name": "LidoLocatorSet",
+    "type": "event"
   }
 ]

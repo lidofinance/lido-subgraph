@@ -1,73 +1,72 @@
-specVersion: 0.0.4
+specVersion: 0.0.5
+description: Lido on Ethereum
+features:
+  - grafting
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: Lido
+    name: LidoDAO
     network: mainnet
     source:
-      address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
-      abi: Lido
+      abi: LidoDAO
+      address: '0xb8FFC3Cd6e7Cf5a098A1c92F48009765B24088Dc'
       startBlock: 11473216
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - LidoStopped
-        - LidoResumed
+        - AppVersion
+      abis:
+        - name: LidoDAO
+          file: ./abis/LidoDAO.json
+        - name: AppRepo
+          file: ./abis/AppRepo.json
+      eventHandlers:
+        - event: SetApp(indexed bytes32,indexed bytes32,address)
+          handler: handleSetApp
+      file: ./src/LidoDAO.ts
+  - kind: ethereum/contract
+    name: Lido
+    network: mainnet
+    source:
+      abi: Lido
+      address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84'
+      startBlock: 11473216
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - LidoConfig
         - LidoTransfer
-        - LidoApproval
-        - LidoFee
-        - LidoFeeDistribution
-        - LidoWithdrawalCredential
         - LidoSubmission
-        - LidoUnbuffered
-        - LidoWithdrawal
-        - ELRewardsVaultSet
-        - ELRewardsWithdrawalLimitSet
-        - ProtocolContactsSet
-        - StakingLimitRemove
-        - StakingLimitSet
-        - StakingResume
-        - StakingPause
-        - SharesTransfer
         - SharesBurn
-        - Settings
+        - LidoApproval
       abis:
         - name: Lido
           file: ./abis/Lido.json
         - name: NodeOperatorsRegistry
           file: ./abis/NodeOperatorsRegistry.json
       eventHandlers:
+        - event: Submitted(indexed address,uint256,address)
+          handler: handleSubmitted
+          receipt: true
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+          receipt: true
+        - event: SharesBurnt(indexed address,uint256,uint256,uint256)
+          handler: handleSharesBurnt
+        - event: ETHDistributed(indexed uint256,uint256,uint256,uint256,uint256,uint256)
+          handler: handleETHDistributed
+          receipt: true
+        - event: LidoLocatorSet(address)
+          handler: handleLidoLocatorSet
         - event: Stopped()
           handler: handleStopped
         - event: Resumed()
           handler: handleResumed
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-        - event: Approval(indexed address,indexed address,uint256)
-          handler: handleApproval
-        - event: FeeSet(uint16)
-          handler: handleFeeSet
-        - event: FeeDistributionSet(uint16,uint16,uint16)
-          handler: handleFeeDistributionSet
-        - event: WithdrawalCredentialsSet(bytes32)
-          handler: handleWithdrawalCredentialsSet
-        - event: Submitted(indexed address,uint256,address)
-          handler: handleSubmit
-        - event: Unbuffered(uint256)
-          handler: handleUnbuffered
-        - event: Withdrawal(indexed address,uint256,uint256,indexed bytes32,uint256)
-          handler: handleWithdrawal
-        - event: ELRewardsVaultSet(address)
-          handler: handleELRewardsVaultSet
-        - event: ELRewardsReceived(uint256)
-          handler: handleELRewardsReceived
-        - event: ELRewardsWithdrawalLimitSet(uint256)
-          handler: handleELRewardsWithdrawalLimitSet
-        - event: ProtocolContactsSet(address,address,address)
-          handler: handleProtocolContactsSet
         - event: StakingLimitRemoved()
           handler: handleStakingLimitRemoved
         - event: StakingLimitSet(uint256,uint256)
@@ -76,82 +75,81 @@ dataSources:
           handler: handleStakingResumed
         - event: StakingPaused()
           handler: handleStakingPaused
-        - event: TransferShares(indexed address,indexed address,uint256)
-          handler: handleTransferShares
-        - event: SharesBurnt(indexed address,uint256,uint256,uint256)
-          handler: handleSharesBurnt
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: FeeSet(uint16)
+          handler: handleFeeSet
+        - event: FeeDistributionSet(uint16,uint16,uint16)
+          handler: handleFeeDistributionSet
+        - event: WithdrawalCredentialsSet(bytes32)
+          handler: handleWithdrawalCredentialsSet
+        - event: ProtocolContactsSet(address,address,address)
+          handler: handleProtocolContractsSet
+        - event: ELRewardsWithdrawalLimitSet(uint256)
+          handler: handleELRewardsWithdrawalLimitSet
+        - event: ELRewardsVaultSet(address)
+          handler: handleELRewardsVaultSet
+        - event: BeaconValidatorsUpdated(uint256)
+          handler: handleBeaconValidatorsUpdated
       file: ./src/Lido.ts
   - kind: ethereum/contract
-    name: LidoOracle
+    name: LegacyOracle
     network: mainnet
     source:
+      abi: LegacyOracle
       address: '0x442af784A788A5bd6F42A01Ebe9F287a871243fb'
-      abi: LidoOracle
       startBlock: 11473216
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
+        - OracleConfig
+        - OracleReport
         - OracleCompleted
         - OracleMember
-        - OracleQuorumChange
-        - SharesToStethRatio
-        - OracleVersion
-        - AllowedBeaconBalanceRelativeDecrease
-        - AllowedBeaconBalanceAnnualRelativeIncrease
-        - OracleExpectedEpoch
-        - OracleTotalShares
-        - BeaconReport
-        - BeaconSpec
-        - BeaconReportReceiver
       abis:
-        - name: LidoOracle
-          file: ./abis/LidoOracle.json
-        - name: Lido
-          file: ./abis/Lido.json
+        - name: LegacyOracle
+          file: ./abis/LegacyOracle.json
         - name: NodeOperatorsRegistry
           file: ./abis/NodeOperatorsRegistry.json
       eventHandlers:
         - event: Completed(uint256,uint128,uint128)
           handler: handleCompleted
+          receipt: true
+        - event: PostTotalShares(uint256,uint256,uint256,uint256)
+          handler: handlePostTotalShares
         - event: MemberAdded(address)
           handler: handleMemberAdded
         - event: MemberRemoved(address)
           handler: handleMemberRemoved
-        - event: QuorumChanged(uint256)
-          handler: handleQuorumChanged
         - event: ContractVersionSet(uint256)
           handler: handleContractVersionSet
-        - event: PostTotalShares(uint256,uint256,uint256,uint256)
-          handler: handlePostTotalShares
-        - event: BeaconReported(uint256,uint128,uint128,address)
-          handler: handleBeaconReported
+        - event: QuorumChanged(uint256)
+          handler: handleQuorumChanged
         - event: BeaconSpecSet(uint64,uint64,uint64,uint64)
           handler: handleBeaconSpecSet
-        - event: ExpectedEpochIdUpdated(uint256)
-          handler: handleExpectedEpochIdUpdated
         - event: BeaconReportReceiverSet(address)
           handler: handleBeaconReportReceiverSet
         - event: AllowedBeaconBalanceRelativeDecreaseSet(uint256)
           handler: handleAllowedBeaconBalanceRelativeDecreaseSet
         - event: AllowedBeaconBalanceAnnualRelativeIncreaseSet(uint256)
           handler: handleAllowedBeaconBalanceAnnualRelativeIncreaseSet
-      file: ./src/LidoOracle.ts
+      file: ./src/LegacyOracle.ts
   - kind: ethereum/contract
     name: NodeOperatorsRegistry
     network: mainnet
     source:
-      address: '0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5'
       abi: NodeOperatorsRegistry
+      address: '0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5'
       startBlock: 11473216
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - NodeOperatorSigningKey
         - NodeOperator
+        - NodeOperatorSigningKey
       abis:
         - name: NodeOperatorsRegistry
           file: ./abis/NodeOperatorsRegistry.json
@@ -164,10 +162,6 @@ dataSources:
           handler: handleNodeOperatorNameSet
         - event: NodeOperatorRewardAddressSet(indexed uint256,address)
           handler: handleNodeOperatorRewardAddressSet
-        - event: NodeOperatorStakingLimitSet(indexed uint256,uint64)
-          handler: handleNodeOperatorStakingLimitSet
-        - event: NodeOperatorTotalStoppedValidatorsReported(indexed uint256,uint64)
-          handler: handleNodeOperatorTotalStoppedValidatorsReported
         - event: SigningKeyAdded(indexed uint256,bytes)
           handler: handleSigningKeyAdded
         - event: SigningKeyRemoved(indexed uint256,bytes)
@@ -176,17 +170,21 @@ dataSources:
           handler: handleNodeOperatorTotalKeysTrimmed
         - event: KeysOpIndexSet(uint256)
           handler: handleKeysOpIndexSet
+        - event: NodeOperatorStakingLimitSet(indexed uint256,uint64)
+          handler: handleNodeOperatorStakingLimitSet
+        - event: NodeOperatorTotalStoppedValidatorsReported(indexed uint256,uint64)
+          handler: handleNodeOperatorTotalStoppedValidatorsReported
       file: ./src/NodeOperatorsRegistry.ts
   - kind: ethereum/contract
     name: Voting
     network: mainnet
     source:
-      address: '0x2e59A20f205bB85a89C53f1936454680651E618e'
       abi: Voting
+      address: '0x2e59A20f205bB85a89C53f1936454680651E618e'
       startBlock: 11473216
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - Voting
@@ -218,25 +216,24 @@ dataSources:
           handler: handleChangeObjectionPhaseTime
       file: ./src/Voting.ts
   - kind: ethereum/contract
-    name: Easytrack
+    name: EasyTrack
     network: mainnet
     source:
+      abi: EasyTrack
       address: '0xF0211b7660680B49De1A7E9f25C65660F0a13Fea'
-      abi: Easytrack
       startBlock: 13676720
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - Motion
         - EasyTrackConfig
-        - Role
-        - EVMScriptFactory
+        - Motion
         - Objection
+        - EVMScriptFactory
       abis:
-        - name: Easytrack
-          file: ./abis/Easytrack.json
+        - name: EasyTrack
+          file: ./abis/EasyTrack.json
       eventHandlers:
         - event: EVMScriptExecutorChanged(indexed address)
           handler: handleEVMScriptExecutorChanged
@@ -264,35 +261,22 @@ dataSources:
           handler: handlePaused
         - event: Unpaused(address)
           handler: handleUnpaused
-        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
-          handler: handleRoleAdminChanged
-        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
-          handler: handleRoleGranted
-        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
-          handler: handleRoleRevoked
-      file: ./src/Easytrack.ts
+      file: ./src/EasyTrack.ts
   - kind: ethereum/contract
     name: DepositSecurityModule
     network: mainnet
     source:
-      address: '0xDb149235B6F40dC08810AA69869783Be101790e7'
       abi: DepositSecurityModule
+      address: '0xDb149235B6F40dC08810AA69869783Be101790e7'
       startBlock: 13492688
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - DepositSecurityModuleSettings
+        - DepositSecurityModuleConfig
         - DepositsPause
-        - DepositsUnpause
         - Guardian
-        - GuardianQuorumChange
-        - MaxDepositsChange
-        - MinDepositBlockDistanceChange
-        - NodeOperatorsRegistryChange
-        - OwnerChange
-        - PauseIntentValidityPeriodBlocksChange
       abis:
         - name: DepositSecurityModule
           file: ./abis/DepositSecurityModule.json
@@ -318,3 +302,110 @@ dataSources:
         - event: PauseIntentValidityPeriodBlocksChanged(uint256)
           handler: handlePauseIntentValidityPeriodBlocksChanged
       file: ./src/DepositSecurityModule.ts
+  - kind: ethereum/contract
+    name: StakingRouter
+    network: mainnet
+    source:
+      abi: StakingRouter
+      address: '0x0000000000000000000000000000000000000000'
+      startBlock: 999999999
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - StakingModule
+      abis:
+        - name: StakingRouter
+          file: ./abis/StakingRouter.json
+      eventHandlers:
+        - event: WithdrawalCredentialsSet(bytes32,address)
+          handler: handleWithdrawalCredentialsSet
+      file: ./src/StakingRouter.ts
+  - kind: ethereum/contract
+    name: AccountingOracle
+    network: mainnet
+    source:
+      abi: AccountingOracle
+      address: '0x0000000000000000000000000000000000000000'
+      startBlock: 999999999
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - TotalReward
+      abis:
+        - name: AccountingOracle
+          file: ./abis/AccountingOracle.json
+        - name: StakingRouter
+          file: ./abis/StakingRouter.json
+      eventHandlers:
+        - event: ProcessingStarted(indexed uint256,bytes32)
+          handler: handleProcessingStarted
+        - event: ExtraDataSubmitted(indexed uint256,uint256,uint256)
+          handler: handleExtraDataSubmitted
+          receipt: true
+      file: ./src/AccountingOracle.ts
+  - kind: ethereum/contract
+    name: WithdrawalQueue
+    network: mainnet
+    source:
+      abi: WithdrawalQueue
+      address: '0x0000000000000000000000000000000000000000'
+      startBlock: 999999999
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - WithdrawalClaimed
+        - WithdrawalRequested
+        - WithdrawalsFinalized
+      abis:
+        - name: WithdrawalQueue
+          file: ./abis/WithdrawalQueue.json
+      eventHandlers:
+        - event: BunkerModeDisabled()
+          handler: handleBunkerModeDisabled
+        - event: BunkerModeEnabled(uint256)
+          handler: handleBunkerModeEnabled
+        - event: ContractVersionSet(uint256)
+          handler: handleContractVersionSet
+        - event: Paused(uint256)
+          handler: handlePaused
+        - event: Resumed()
+          handler: handleResumed
+        - event: WithdrawalClaimed(indexed uint256,indexed address,indexed
+            address,uint256)
+          handler: handleWithdrawalClaimed
+        - event: WithdrawalRequested(indexed uint256,indexed address,indexed
+            address,uint256,uint256)
+          handler: handleWithdrawalRequested
+        - event: WithdrawalsFinalized(indexed uint256,indexed
+            uint256,uint256,uint256,uint256)
+          handler: handleWithdrawalsFinalized
+        - event: WithdrawalBatchFinalized(indexed uint256,indexed
+            uint256,uint256,uint256,uint256)
+          handler: handleWithdrawalBatchFinalized
+      file: ./src/WithdrawalQueue.ts
+  - kind: ethereum/contract
+    name: HashConsensus
+    network: mainnet
+    source:
+      abi: HashConsensus
+      address: '0x0000000000000000000000000000000000000000'
+      startBlock: 999999999
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - OracleConfig
+      abis:
+        - name: HashConsensus
+          file: ./abis/HashConsensus.json
+      eventHandlers:
+        - event: FrameConfigSet(uint256,uint256)
+          handler: handleFrameConfigSet
+      file: ./src/HashConsensus.ts

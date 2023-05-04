@@ -1,4 +1,5 @@
-import { subgraphFetch, gql, getBalanceFromShares, BigNumber } from './utils.js'
+import { subgraphFetch, gql, getBalanceFromShares } from './utils.js'
+import { BigNumber } from 'ethers'
 
 const rpcMode = false
 

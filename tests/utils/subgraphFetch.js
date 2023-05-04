@@ -1,9 +1,31 @@
 import { request } from 'graphql-request'
-import { GRAPH, getBlock, getIsLimited } from '../config.js'
+import {
+  GRAPH,
+  GRAPH_BASIC_AUTH_USER,
+  GRAPH_BASIC_AUTH_PASSWORD,
+  GRAPH_AUTH_COOKIE,
+  getBlock,
+  getIsLimited,
+} from '../config.js'
 
 const FETCH_STEP = 1000
 const SKIP_STEP = 1000
 const HOSTED_LIMIT = 6000
+
+const addHeaders = () => {
+  const headers = {}
+  if (GRAPH_BASIC_AUTH_USER && GRAPH_BASIC_AUTH_PASSWORD) {
+    headers.authorization =
+      'Basic ' +
+      Buffer.from(
+        GRAPH_BASIC_AUTH_USER + ':' + GRAPH_BASIC_AUTH_PASSWORD
+      ).toString('base64')
+  }
+  if (GRAPH_AUTH_COOKIE) {
+    headers.cookie = GRAPH_AUTH_COOKIE
+  }
+  return headers
+}
 
 // Add fixed block if not set already
 const mbAddFixedBlock = (vars) => {
@@ -31,11 +53,16 @@ export const subgraphFetch = async (query, vars = {}) => {
   let results = null
 
   do {
-    const res = await request(GRAPH, query, {
-      first: FETCH_STEP,
-      skip: skip,
-      ...mbAddFixedBlock(vars),
-    })
+    const res = await request(
+      GRAPH,
+      query,
+      {
+        first: FETCH_STEP,
+        skip: skip,
+        ...mbAddFixedBlock(vars),
+      },
+      addHeaders()
+    )
 
     // Super small delay not to DOS the indexing node
     await new Promise((resolve) => setTimeout(resolve, 10))

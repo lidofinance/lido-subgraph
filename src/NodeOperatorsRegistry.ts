@@ -1,152 +1,142 @@
+import { ethereum } from '@graphprotocol/graph-ts'
 import {
-  NodeOperatorAdded,
-  NodeOperatorActiveSet,
-  NodeOperatorNameSet,
-  NodeOperatorRewardAddressSet,
-  NodeOperatorStakingLimitSet,
-  NodeOperatorTotalStoppedValidatorsReported,
-  SigningKeyAdded,
-  SigningKeyRemoved,
-  NodeOperatorTotalKeysTrimmed,
-  KeysOpIndexSet,
+  NodeOperatorStakingLimitSet as NodeOperatorStakingLimitSetEvent,
+  NodeOperatorTotalStoppedValidatorsReported as NodeOperatorTotalStoppedValidatorsReportedEvent,
+  NodeOperatorAdded as NodeOperatorAddedEvent,
+  NodeOperatorActiveSet as NodeOperatorActiveSetEvent,
+  NodeOperatorNameSet as NodeOperatorNameSetEvent,
+  NodeOperatorRewardAddressSet as NodeOperatorRewardAddressSetEvent,
+  SigningKeyAdded as SigningKeyAddedEvent,
+  SigningKeyRemoved as SigningKeyRemovedEvent,
+  NodeOperatorTotalKeysTrimmed as NodeOperatorTotalKeysTrimmedEvent,
+  KeysOpIndexSet as KeysOpIndexSetEvent,
 } from '../generated/NodeOperatorsRegistry/NodeOperatorsRegistry'
 import {
   NodeOperatorSigningKey,
   NodeOperator,
-  NodeOperatorTotalKeysTrim,
-  handleKeysOpIndexChange,
+  NodeOperatorKeysOpIndex,
 } from '../generated/schema'
+import { ZERO, ZERO_ADDRESS } from './constants'
 
-export function handleSigningKeyAdded(event: SigningKeyAdded): void {
-  let entity = new NodeOperatorSigningKey(event.params.pubkey)
+export function handleSigningKeyAdded(event: SigningKeyAddedEvent): void {
+  const noEntity = _loadOperator(event.params.operatorId.toString())!
+  const entity = new NodeOperatorSigningKey(event.params.pubkey)
 
   entity.operatorId = event.params.operatorId
+  entity.operator = noEntity.id
   entity.pubkey = event.params.pubkey
   entity.removed = false
-
-  entity.operator = event.params.operatorId.toString()
-
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
   entity.save()
 }
 
-export function handleSigningKeyRemoved(event: SigningKeyRemoved): void {
+export function handleSigningKeyRemoved(event: SigningKeyRemovedEvent): void {
+  const noEntity = _loadOperator(event.params.operatorId.toString())!
   let entity = NodeOperatorSigningKey.load(event.params.pubkey)
 
   if (entity == null) {
     entity = new NodeOperatorSigningKey(event.params.pubkey)
+    entity.operatorId = event.params.operatorId
+    entity.operator = noEntity.id
     entity.pubkey = event.params.pubkey
   }
+
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
 
   entity.removed = true
   entity.save()
 }
 
-export function handleNodeOperatorAdded(event: NodeOperatorAdded): void {
-  let entity = new NodeOperator(event.params.id.toString())
+export function handleKeysOpIndexSet(event: KeysOpIndexSetEvent): void {
+  const entity = new NodeOperatorKeysOpIndex(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
+  entity.index = event.params.keysOpIndex
+  entity.save()
+}
 
+export function handleNodeOperatorAdded(event: NodeOperatorAddedEvent): void {
+  const entity = _loadOperator(event.params.id.toString(), true)!
   entity.name = event.params.name
   entity.rewardAddress = event.params.rewardAddress
   entity.stakingLimit = event.params.stakingLimit
   entity.active = true
 
+  entity.block = event.block.number
+  entity.blockTime = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+  entity.logIndex = event.logIndex
+
   entity.save()
 }
 
 export function handleNodeOperatorActiveSet(
-  event: NodeOperatorActiveSet
+  event: NodeOperatorActiveSetEvent
 ): void {
-  let entity = NodeOperator.load(event.params.id.toString())
-
-  if (entity == null) {
-    entity = new NodeOperator(event.params.id.toString())
-  }
-
+  const entity = _loadOperator(event.params.id.toString())!
   entity.active = event.params.active
-
   entity.save()
 }
 
-export function handleNodeOperatorNameSet(event: NodeOperatorNameSet): void {
-  let entity = NodeOperator.load(event.params.id.toString())
-
-  if (entity == null) {
-    entity = new NodeOperator(event.params.id.toString())
-  }
-
+export function handleNodeOperatorNameSet(
+  event: NodeOperatorNameSetEvent
+): void {
+  const entity = _loadOperator(event.params.id.toString())!
   entity.name = event.params.name
-
   entity.save()
 }
 
 export function handleNodeOperatorRewardAddressSet(
-  event: NodeOperatorRewardAddressSet
+  event: NodeOperatorRewardAddressSetEvent
 ): void {
-  let entity = NodeOperator.load(event.params.id.toString())
-
-  if (entity == null) {
-    entity = new NodeOperator(event.params.id.toString())
-  }
-
+  const entity = _loadOperator(event.params.id.toString())!
   entity.rewardAddress = event.params.rewardAddress
-
-  entity.save()
-}
-
-export function handleNodeOperatorStakingLimitSet(
-  event: NodeOperatorStakingLimitSet
-): void {
-  let entity = NodeOperator.load(event.params.id.toString())
-
-  if (entity == null) {
-    entity = new NodeOperator(event.params.id.toString())
-  }
-
-  entity.stakingLimit = event.params.stakingLimit
-
-  entity.save()
-}
-
-export function handleNodeOperatorTotalStoppedValidatorsReported(
-  event: NodeOperatorTotalStoppedValidatorsReported
-): void {
-  let entity = NodeOperator.load(event.params.id.toString())
-
-  if (entity == null) {
-    entity = new NodeOperator(event.params.id.toString())
-  }
-
-  entity.totalStoppedValidators = event.params.totalStopped
-
   entity.save()
 }
 
 export function handleNodeOperatorTotalKeysTrimmed(
-  event: NodeOperatorTotalKeysTrimmed
+  event: NodeOperatorTotalKeysTrimmedEvent
 ): void {
-  let entity = new NodeOperatorTotalKeysTrim(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.operatorId = event.params.id
+  const entity = _loadOperator(event.params.id.toString())!
   entity.totalKeysTrimmed = event.params.totalKeysTrimmed
-
-  entity.operator = event.params.id.toString()
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-
   entity.save()
 }
 
-export function handleKeysOpIndexSet(event: KeysOpIndexSet): void {
-  let entity = new handleKeysOpIndexChange(
-    event.transaction.hash.toHex() + '-' + event.logIndex.toString()
-  )
-
-  entity.index = event.params.keysOpIndex
-
-  entity.block = event.block.number
-  entity.blockTime = event.block.timestamp
-
+export function handleNodeOperatorStakingLimitSet(
+  event: NodeOperatorStakingLimitSetEvent
+): void {
+  const entity = _loadOperator(event.params.id.toString())!
+  entity.stakingLimit = event.params.stakingLimit
   entity.save()
+}
+
+export function handleNodeOperatorTotalStoppedValidatorsReported(
+  event: NodeOperatorTotalStoppedValidatorsReportedEvent
+): void {
+  const entity = _loadOperator(event.params.id.toString())!
+  entity.totalStoppedValidators = event.params.totalStopped
+  entity.save()
+}
+
+function _loadOperator(id: string, create: bool = false): NodeOperator | null {
+  let entity = NodeOperator.load(id)
+  if (!entity && create) {
+    entity = new NodeOperator(id)
+
+    entity.name = ''
+    entity.rewardAddress = ZERO_ADDRESS
+    entity.stakingLimit = ZERO
+    entity.active = true
+
+    entity.totalStoppedValidators = ZERO
+    entity.totalKeysTrimmed = ZERO
+    entity.nonce = ZERO
+  }
+  return entity
 }

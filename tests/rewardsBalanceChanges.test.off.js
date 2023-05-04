@@ -1,9 +1,6 @@
 import { gql } from 'graphql-request'
-import {
-  getBalanceFromShares,
-  subgraphFetch,
-  BigNumber,
-} from './utils/index.js'
+import { BigNumber } from 'ethers'
+import { getBalanceFromShares, subgraphFetch } from './utils/index.js'
 
 const ADDRESSES_TO_TEST = 3
 const timePerAddress = 100 // seconds

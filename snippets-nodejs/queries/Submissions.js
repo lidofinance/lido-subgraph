@@ -22,7 +22,6 @@ export const submissionsQuery = gql`
       transactionHash
       transactionIndex
       logIndex
-      transactionLogIndex
     }
   }
 `
