@@ -9,6 +9,10 @@ export const NOP_ADDRESS = process.env.NOP_ADDRESS
 export const ARAGON_ADDRESS = process.env.ARAGON_ADDRESS
 export const EASYTRACK_ADDRESS = process.env.EASYTRACK_ADDRESS
 export const DSM_ADDRESS = process.env.DSM_ADDRESS
+/**
+Timeout is for testnet - needs to be adjusted for mainnet or when transaction count increases.
+**/
+export const RPC_TIMEOUT = process.env.RPC_TIMEOUT || 60 * 1000
 
 export const getBlock = () => parseInt(process.env.BLOCK)
 export const getNetwork = () => process.env.NETWORK
