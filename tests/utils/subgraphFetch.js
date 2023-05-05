@@ -1,4 +1,4 @@
-import { request } from 'graphql-request'
+import { gql, request } from 'graphql-request'
 import {
   GRAPH,
   GRAPH_BASIC_AUTH_USER,
@@ -94,4 +94,21 @@ export const subgraphFetch = async (query, vars = {}) => {
   )
 
   return results
+}
+
+export const checkIfLimited = async () => {
+  const query = gql`
+    query {
+      lidoTransfers(skip: 5001, first: 1) {
+        id
+      }
+    }
+  `
+
+  try {
+    await request(GRAPH, query, undefined, addHeaders())
+    return false
+  } catch {
+    return true
+  }
 }
