@@ -27,6 +27,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - run: yarn install --immutable
-      - run: yarn codegen-testnet
+      - run: yarn codegen
       - run: yarn build-testnet
-      - run: yarn graph deploy --product hosted-service --access-token ${{ secrets.THEGRAPH_TOKEN_TESTNET }} --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ lidofinance/lido-testnet subgraph.testnet.yaml
+      - run: yarn graph deploy --access-token '${{ secrets.AUTH_TOKEN_TESTNET }}' --node '${{ secrets.GRAPH_NODE_TESTNET }}' --ipfs '${{ secrets.GRAPH_IPFS_TESTNET }}' --headers '${{ secrets.IPFS_AUTH_TESTNET }}' lidofinance/lido-testnet --network goerli -l v2.0.0
