@@ -1,15 +1,12 @@
-name: Deploy Decentralized Mainnet
+name: Deploy Local Testnet
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        required: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Deploy to the decentralized Graph network
+    name: Deploying to local graph node
     steps:
       - uses: lidofinance/check-user-permission@v3
         with:
@@ -31,5 +28,5 @@ jobs:
             ${{ runner.os }}-yarn-
       - run: yarn install --immutable
       - run: yarn codegen
-      - run: yarn build
-      - run: yarn graph deploy --studio --deploy-key ${{ secrets.THEGRAPH_DECENTRALIZED_TOKEN }} --version-label ${{ github.event.inputs.version }} lido --network mainnet -l v2.0.0
+      - run: yarn build-testnet
+      - run: yarn graph deploy --access-token '${{ secrets.AUTH_TOKEN_TESTNET }}' --node '${{ secrets.GRAPH_NODE_TESTNET }}' --ipfs '${{ secrets.GRAPH_IPFS_TESTNET }}' --headers '${{ secrets.IPFS_AUTH_TESTNET }}' lidofinance/lido-testnet --network goerli -l v2.0.0
