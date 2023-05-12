@@ -12,7 +12,8 @@ export const getContract = (name, abi) =>
 
 export const getLidoContract = () => getContract('Lido', lidoAbi)
 export const getNORContract = () => getContract('NodeOperatorsRegistry', norAbi)
-export const getOracleContract = () => getContract('LegacyOracle', oracleAbi)
+export const getLegacyOracleContract = () =>
+  getContract('LegacyOracle', oracleAbi)
 export const getVotingContract = () => getContract('Voting', votingAbi)
 export const getEasyTrackContract = () => getContract('EasyTrack', easyTrackAbi)
 
@@ -36,7 +37,7 @@ export const lidoFuncCall = async (func, ...initialArgs) =>
   await getLidoContract()[func](...(await mbAddBlock(initialArgs)))
 
 export const oracleFuncCall = async (func, ...initialArgs) =>
-  await getOracleContract()[func](...(await mbAddBlock(initialArgs)))
+  await getLegacyOracleContract()[func](...(await mbAddBlock(initialArgs)))
 
 export const getAddressShares = async (address, ...args) =>
   await lidoFuncCall('sharesOf', address, ...args)
@@ -60,15 +61,24 @@ export const getLidoEvents = async (eventName, startBlock, endBlock) => {
   return await getEvents(getLidoContract(), eventName, startBlock, endBlock)
 }
 
-export const getLidoOracleEvents = async (eventName, startBlock, endBlock) => {
-  return await getEvents(getOracleContract(), eventName, startBlock, endBlock)
+export const getLegacyOracleEvents = async (
+  eventName,
+  startBlock,
+  endBlock
+) => {
+  return await getEvents(
+    getLegacyOracleContract(),
+    eventName,
+    startBlock,
+    endBlock
+  )
 }
 
-export const getNopRegistryEvents = async (eventName, startBlock, endBlock) => {
+export const getNOREvents = async (eventName, startBlock, endBlock) => {
   return await getEvents(getNORContract(), eventName, startBlock, endBlock)
 }
 
-export const getAragonEvents = async (eventName, startBlock, endBlock) => {
+export const getVotingEvents = async (eventName, startBlock, endBlock) => {
   return await getEvents(getVotingContract(), eventName, startBlock, endBlock)
 }
 

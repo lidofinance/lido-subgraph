@@ -1,11 +1,11 @@
 import { gql } from 'graphql-request'
-import { getBlock } from './config'
+import { getRpcBlock } from './config'
 import {
-  getAragonEvents,
+  getVotingEvents,
   getEasyTrackEvents,
   getLidoEvents,
-  getLidoOracleEvents,
-  getNopRegistryEvents,
+  getLegacyOracleEvents,
+  getNOREvents,
   subgraphFetch,
 } from './utils'
 
@@ -34,7 +34,7 @@ test(
     expect(transfer).toBeDefined()
 
     const block = parseInt(transfer.block)
-    expect(block >= getBlock() - BLOCKS_RANGE_3HOURS).toBe(true)
+    expect(block).toBeGreaterThanOrEqual(getRpcBlock() - BLOCKS_RANGE_3HOURS)
     const events = await getLidoEvents('Transfer', block, block)
     const event = events?.find(
       (e) => e.transactionHash == transfer.transactionHash
@@ -61,7 +61,7 @@ test(
     expect(member).toBeDefined()
 
     const block = parseInt(member.block)
-    const events = await getLidoOracleEvents('MemberAdded', block, block)
+    const events = await getLegacyOracleEvents('MemberAdded', block, block)
     const event = events?.find(
       (e) => e.args.member.toLowerCase() == member.member.toLowerCase()
     )
@@ -87,7 +87,7 @@ test(
     expect(operator).toBeDefined()
 
     const block = parseInt(operator.block)
-    const events = await getNopRegistryEvents('NodeOperatorAdded', block, block)
+    const events = await getNOREvents('NodeOperatorAdded', block, block)
     const event = events?.find((e) => e.args.name == operator.name)
 
     expect(event).toBeDefined()
@@ -112,8 +112,8 @@ test(
     expect(voting).toBeDefined()
 
     const block = parseInt(voting.block)
-    expect(block >= getBlock() - BLOCKS_RANGE_3MONTHS).toBe(true)
-    const events = await getAragonEvents('StartVote', block, block)
+    expect(block).toBeGreaterThanOrEqual(getRpcBlock() - BLOCKS_RANGE_3MONTHS)
+    const events = await getVotingEvents('StartVote', block, block)
     const event = events?.find(
       (e) => e.args.creator.toLowerCase() == voting.creator.toLowerCase()
     )
@@ -139,7 +139,7 @@ test(
     expect(motion).toBeDefined()
 
     const block = parseInt(motion.block)
-    expect(block >= getBlock() - BLOCKS_RANGE_3MONTHS).toBe(true)
+    expect(block).toBeGreaterThanOrEqual(getRpcBlock() - BLOCKS_RANGE_3MONTHS)
     const events = await getEasyTrackEvents('MotionCreated', block, block)
     const event = events?.find(
       (e) => e.args._creator.toLowerCase() == motion.creator.toLowerCase()
