@@ -2,6 +2,7 @@ import { GRAPH, RPC } from './config.js'
 import {
   getLastIndexedBlock,
   getRpcNetwork,
+  getLastRpcBlock,
   checkIfLimited,
 } from './utils/index.js'
 
@@ -15,8 +16,10 @@ if (GRAPH) {
 }
 
 if (RPC) {
-  const networkName = (await getRpcNetwork()).name
+  const networkName = await getRpcNetwork()
+  const lastRpcBlock = await getLastRpcBlock()
   process.env.NETWORK = networkName === 'homestead' ? 'mainnet' : networkName
+  process.env.RPC_BLOCK = lastRpcBlock
 } else {
   console.info('NETWORK env was not set as there is no RPC provided.')
 }

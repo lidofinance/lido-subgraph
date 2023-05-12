@@ -1,17 +1,19 @@
 import { providers, Contract } from 'ethers'
-import fs from 'fs'
-
-import { RPC, LIDO_ADDRESS } from '../config.js'
+import { RPC } from '../config.js'
+import lidoAbi from '../../abis/Lido.json'
 
 const provider = new providers.JsonRpcProvider(RPC)
 
-const lidoAbi = JSON.parse(fs.readFileSync('../abis/Lido.json'))
-const lidoContract = new Contract(LIDO_ADDRESS, lidoAbi, provider)
-
 export const ethCall = async (func, ...args) => await provider[func](...args)
 
-export const lidoFuncCall = async (func, ...args) =>
-  await lidoContract[func](...args)
+export const lidoFuncCall = async (func, ...args) => {
+  const lidoContract = new Contract(
+    getContractAddress('Lido'),
+    lidoAbi,
+    provider
+  )
+  return await lidoContract[func](...args)
+}
 
 export const getAddressShares = async (address, ...args) =>
   await lidoFuncCall('sharesOf', address, ...args)

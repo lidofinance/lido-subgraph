@@ -1,38 +1,21 @@
 import { providers, Contract } from 'ethers'
-import fs from 'fs'
-
-import {
-  ARAGON_ADDRESS,
-  EASYTRACK_ADDRESS,
-  LIDO_ADDRESS,
-  NOP_ADDRESS,
-  RPC,
-  getBlock,
-} from '../config.js'
+import { RPC, getBlock, getContractAddress } from '../config.js'
+import lidoAbi from '../../abis/Lido.json'
+import oracleAbi from '../../abis/LegacyOracle.json'
+import norAbi from '../../abis/NodeOperatorsRegistry.json'
+import votingAbi from '../../abis/Voting.json'
+import easyTrackAbi from '../../abis/EasyTrack.json'
 
 const provider = new providers.JsonRpcProvider(RPC)
+export const getContract = (name, abi) =>
+  new Contract(getContractAddress(name), abi, provider)
 
-const lidoAbi = JSON.parse(fs.readFileSync('abis/Lido.json'))
-const lidoContract = new Contract(LIDO_ADDRESS, lidoAbi, provider)
-
-const oracleAddress = await lidoContract.getOracle()
-const oracleAbi = JSON.parse(fs.readFileSync('abis/LegacyOracle.json'))
-const oracleContract = new Contract(oracleAddress, oracleAbi, provider)
-
-const nopRegistryAbi = JSON.parse(
-  fs.readFileSync('abis/NodeOperatorsRegistry.json')
-)
-const nopRegistryContract = new Contract(NOP_ADDRESS, nopRegistryAbi, provider)
-
-const aragonAbi = JSON.parse(fs.readFileSync('abis/Voting.json'))
-const aragonContract = new Contract(ARAGON_ADDRESS, aragonAbi, provider)
-
-const easyTrackAbi = JSON.parse(fs.readFileSync('abis/EasyTrack.json'))
-const easyTrackContract = new Contract(
-  EASYTRACK_ADDRESS,
-  easyTrackAbi,
-  provider
-)
+export const getLidoContract = () => getContract('Lido', lidoAbi)
+export const getNORContract = () => getContract('NodeOperatorsRegistry', norAbi)
+export const getLegacyOracleContract = () =>
+  getContract('LegacyOracle', oracleAbi)
+export const getVotingContract = () => getContract('Voting', votingAbi)
+export const getEasyTrackContract = () => getContract('EasyTrack', easyTrackAbi)
 
 const mbAddBlock = async (args) => {
   const blockIsOverriden = args.find((x) => x.blockTag)
@@ -42,7 +25,6 @@ const mbAddBlock = async (args) => {
   }
 
   const block = getBlock()
-
   args.push({ blockTag: block })
 
   return args
@@ -52,10 +34,10 @@ export const ethCall = async (func, ...initialArgs) =>
   await provider[func](...(await mbAddBlock(initialArgs)))
 
 export const lidoFuncCall = async (func, ...initialArgs) =>
-  await lidoContract[func](...(await mbAddBlock(initialArgs)))
+  await getLidoContract()[func](...(await mbAddBlock(initialArgs)))
 
 export const oracleFuncCall = async (func, ...initialArgs) =>
-  await oracleContract[func](...(await mbAddBlock(initialArgs)))
+  await getLegacyOracleContract()[func](...(await mbAddBlock(initialArgs)))
 
 export const getAddressShares = async (address, ...args) =>
   await lidoFuncCall('sharesOf', address, ...args)
@@ -76,23 +58,40 @@ export const getEvents = async (contract, eventName, startBlock, endBlock) => {
 }
 
 export const getLidoEvents = async (eventName, startBlock, endBlock) => {
-  return await getEvents(lidoContract, eventName, startBlock, endBlock)
+  return await getEvents(getLidoContract(), eventName, startBlock, endBlock)
 }
 
-export const getLidoOracleEvents = async (eventName, startBlock, endBlock) => {
-  return await getEvents(oracleContract, eventName, startBlock, endBlock)
+export const getLegacyOracleEvents = async (
+  eventName,
+  startBlock,
+  endBlock
+) => {
+  return await getEvents(
+    getLegacyOracleContract(),
+    eventName,
+    startBlock,
+    endBlock
+  )
 }
 
-export const getNopRegistryEvents = async (eventName, startBlock, endBlock) => {
-  return await getEvents(nopRegistryContract, eventName, startBlock, endBlock)
+export const getNOREvents = async (eventName, startBlock, endBlock) => {
+  return await getEvents(getNORContract(), eventName, startBlock, endBlock)
 }
 
-export const getAragonEvents = async (eventName, startBlock, endBlock) => {
-  return await getEvents(aragonContract, eventName, startBlock, endBlock)
+export const getVotingEvents = async (eventName, startBlock, endBlock) => {
+  return await getEvents(getVotingContract(), eventName, startBlock, endBlock)
 }
 
 export const getEasyTrackEvents = async (eventName, startBlock, endBlock) => {
-  return await getEvents(easyTrackContract, eventName, startBlock, endBlock)
+  return await getEvents(
+    getEasyTrackContract(),
+    eventName,
+    startBlock,
+    endBlock
+  )
 }
 
-export const getRpcNetwork = async () => await provider.getNetwork()
+export const getRpcNetwork = async () => (await provider.getNetwork()).name
+
+export const getLastRpcBlock = async () =>
+  parseInt((await provider.getBlock('latest')).number)
