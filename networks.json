@@ -24,10 +24,6 @@
       "address": "0xF0211b7660680B49De1A7E9f25C65660F0a13Fea",
       "startBlock": 13676720
     },
-    "DepositSecurityModule": {
-      "address": "0xDb149235B6F40dC08810AA69869783Be101790e7",
-      "startBlock": 13492688
-    },
     "StakingRouter": {
       "address": "0xFdDf38947aFB03C621C71b06C9C70bce73f12999",
       "startBlock": 17175000
@@ -69,10 +65,6 @@
     "EasyTrack": {
       "address": "0xAf072C8D368E4DD4A9d4fF6A76693887d6ae92Af",
       "startBlock": 5574270
-    },
-    "DepositSecurityModule": {
-      "address": "0xEd23AD3EA5Fb9d10e7371Caef1b141AD1C23A80c",
-      "startBlock": 5692116
     },
     "StakingRouter": {
       "address": "0xa3Dbd317E53D363176359E10948BA0b1c0A4c820",

@@ -464,44 +464,6 @@ type Objection @entity(immutable: true) {
 }
 
 """
-DepositSecurityModule
-"""
-type DepositSecurityModuleConfig @entity {
-  id: ID!
-
-  paused: Boolean
-  guardianQuorum: BigInt
-  maxDeposits: BigInt
-  minDepositBlockDistance: BigInt
-  nodeOperatorsRegistry: Bytes
-  owner: Bytes
-  pauseIntentValidityPeriodBlocks: BigInt
-}
-
-type DepositsPause @entity(immutable: true) {
-  id: Bytes!
-
-  guardian: Guardian!
-
-  block: BigInt!
-  blockTime: BigInt!
-  transactionHash: Bytes!
-  logIndex: BigInt!
-}
-
-type Guardian @entity {
-  id: ID!
-
-  address: Bytes!
-  removed: Boolean!
-
-  block: BigInt!
-  blockTime: BigInt!
-  transactionHash: Bytes!
-  logIndex: BigInt!
-}
-
-"""
 Lido DAO
 """
 type AppVersion @entity {
