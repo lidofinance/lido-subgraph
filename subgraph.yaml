@@ -263,46 +263,6 @@ dataSources:
           handler: handleUnpaused
       file: ./src/EasyTrack.ts
   - kind: ethereum/contract
-    name: DepositSecurityModule
-    network: mainnet
-    source:
-      abi: DepositSecurityModule
-      address: "0xDb149235B6F40dC08810AA69869783Be101790e7"
-      startBlock: 13492688
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - DepositSecurityModuleConfig
-        - DepositsPause
-        - Guardian
-      abis:
-        - name: DepositSecurityModule
-          file: ./abis/DepositSecurityModule.json
-      eventHandlers:
-        - event: DepositsPaused(address)
-          handler: handleDepositsPaused
-        - event: DepositsUnpaused()
-          handler: handleDepositsUnpaused
-        - event: GuardianAdded(address)
-          handler: handleGuardianAdded
-        - event: GuardianQuorumChanged(uint256)
-          handler: handleGuardianQuorumChanged
-        - event: GuardianRemoved(address)
-          handler: handleGuardianRemoved
-        - event: MaxDepositsChanged(uint256)
-          handler: handleMaxDepositsChanged
-        - event: MinDepositBlockDistanceChanged(uint256)
-          handler: handleMinDepositBlockDistanceChanged
-        - event: NodeOperatorsRegistryChanged(address)
-          handler: handleNodeOperatorsRegistryChanged
-        - event: OwnerChanged(address)
-          handler: handleOwnerChanged
-        - event: PauseIntentValidityPeriodBlocksChanged(uint256)
-          handler: handlePauseIntentValidityPeriodBlocksChanged
-      file: ./src/DepositSecurityModule.ts
-  - kind: ethereum/contract
     name: StakingRouter
     network: mainnet
     source:

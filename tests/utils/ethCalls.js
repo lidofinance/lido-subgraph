@@ -3,7 +3,6 @@ import fs from 'fs'
 
 import {
   ARAGON_ADDRESS,
-  DSM_ADDRESS,
   EASYTRACK_ADDRESS,
   LIDO_ADDRESS,
   NOP_ADDRESS,
@@ -34,9 +33,6 @@ const easyTrackContract = new Contract(
   easyTrackAbi,
   provider
 )
-
-const dsmAbi = JSON.parse(fs.readFileSync('abis/DepositSecurityModule.json'))
-const dsmContract = new Contract(DSM_ADDRESS, dsmAbi, provider)
 
 const mbAddBlock = async (args) => {
   const blockIsOverriden = args.find((x) => x.blockTag)
@@ -97,10 +93,6 @@ export const getAragonEvents = async (eventName, startBlock, endBlock) => {
 
 export const getEasyTrackEvents = async (eventName, startBlock, endBlock) => {
   return await getEvents(easyTrackContract, eventName, startBlock, endBlock)
-}
-
-export const getDSMEvents = async (eventName, startBlock, endBlock) => {
-  return await getEvents(dsmContract, eventName, startBlock, endBlock)
 }
 
 export const getRpcNetwork = async () => await provider.getNetwork()

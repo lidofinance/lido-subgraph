@@ -2,7 +2,6 @@ import { gql } from 'graphql-request'
 import { getBlock } from './config'
 import {
   getAragonEvents,
-  getDSMEvents,
   getEasyTrackEvents,
   getLidoEvents,
   getLidoOracleEvents,
@@ -146,32 +145,6 @@ test(
       (e) => e.args._creator.toLowerCase() == motion.creator.toLowerCase()
     )
 
-    expect(event).toBeDefined()
-  },
-  TIMEOUT
-)
-
-test(
-  'DepositSecurityModule Guardian',
-  async () => {
-    const query = gql`
-      {
-        guardians(first: 1, orderBy: block, orderDirection: desc) {
-          id
-          address
-          block
-        }
-      }
-    `
-    const response = await subgraphFetch(query)
-    const guardian = response?.guardians?.pop()
-    expect(guardian).toBeDefined()
-
-    const block = parseInt(guardian.block)
-    const events = await getDSMEvents('GuardianAdded', block, block)
-    const event = events?.find(
-      (e) => e.args.guardian.toLowerCase() == guardian.address.toLowerCase()
-    )
     expect(event).toBeDefined()
   },
   TIMEOUT
