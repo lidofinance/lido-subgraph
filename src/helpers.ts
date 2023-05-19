@@ -24,6 +24,7 @@ import {
   PROTOCOL_UPG_APP_VERS,
   PROTOCOL_UPG_BLOCKS,
   network,
+  ONE_HUNDRED_PERCENT,
 } from './constants'
 import { Transfer } from '../generated/Lido/Lido'
 
@@ -312,7 +313,7 @@ export function _calcAPR_v2(
   timeElapsed: BigInt
 ): void {
   // Lido v2 new approach
-  // https://hackmd.io/@lido/rJ8HaBxZ3#How-to-get-APR
+  // https://docs.lido.fi/integrations/api/#last-lido-apr-for-steth
 
   const preShareRate = preTotalEther
     .toBigDecimal()
@@ -327,6 +328,7 @@ export function _calcAPR_v2(
 
   entity.apr = secondsInYear
     .times(postShareRate.minus(preShareRate))
+    .times(ONE_HUNDRED_PERCENT)
     .div(preShareRate)
     .div(timeElapsed.toBigDecimal())
 

@@ -17,6 +17,7 @@ export const ZERO = BigInt.fromI32(0)
 export const ONE = BigInt.fromI32(1)
 
 export const CALCULATION_UNIT = BigInt.fromI32(10000)
+export const ONE_HUNDRED_PERCENT = BigInt.fromI32(100).toBigDecimal()
 export const E27_PRECISION_BASE = BigInt.fromString(
   '1000000000000000000000000000'
 ).toBigDecimal()
