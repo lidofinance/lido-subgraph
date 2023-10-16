@@ -29,10 +29,10 @@
     "deploy-local-holesky": "env-cmd --use-shell graph deploy --node '$GRAPH_NODE' --ipfs '$GRAPH_IPFS' lidofinance/lido-holesky --network holesky",
     "create-lido-testnet": "env-cmd --use-shell graph create --access-token '$AUTH_TOKEN_TESTNET' --node '$GRAPH_NODE_TESTNET' lidofinance/lido-testnet",
     "remove-lido-testnet": "env-cmd --use-shell graph remove --access-token '$AUTH_TOKEN_TESTNET' --node '$GRAPH_NODE_TESTNET' lidofinance/lido-testnet",
-    "deploy-lido-testnet": "env-cmd --use-shell graph deploy --access-token '$AUTH_TOKEN_TESTNET' --node '$GRAPH_NODE_TESTNET' --ipfs '$GRAPH_IPFS_TESTNET' --headers '$IPFS_AUTH_TESTNET' lidofinance/lido-testnet --network goerli",
+    "deploy-lido-testnet": "env-cmd --use-shell graph deploy --access-token '$AUTH_TOKEN_TESTNET' --node '$GRAPH_NODE_TESTNET' --ipfs '$GRAPH_IPFS_TESTNET' --headers '$IPFS_AUTH_TESTNET' lidofinance/lido-testnet --network goerli -l v2.0.1",
     "create-lido-holesky": "env-cmd --use-shell graph create --access-token '$AUTH_TOKEN_HOLESKY' --node '$GRAPH_NODE_HOLESKY' lidofinance/lido-holesky",
     "remove-lido-holesky": "env-cmd --use-shell graph remove --access-token '$AUTH_TOKEN_HOLESKY' --node '$GRAPH_NODE_HOLESKY' lidofinance/lido-holesky",
-    "deploy-lido-holesky": "env-cmd --use-shell graph deploy --access-token '$AUTH_TOKEN_HOLESKY' --node '$GRAPH_NODE_HOLESKY' --ipfs '$GRAPH_IPFS_HOLESKY' --headers '$IPFS_AUTH_HOLESKY' lidofinance/lido-holesky --network holesky",
+    "deploy-lido-holesky": "env-cmd --use-shell graph deploy --access-token '$AUTH_TOKEN_HOLESKY' --node '$GRAPH_NODE_HOLESKY' --ipfs '$GRAPH_IPFS_HOLESKY' --headers '$IPFS_AUTH_HOLESKY' lidofinance/lido-holesky --network holesky -l v2.0.1",
     "deploy-chainstack": "env-cmd --use-shell graph deploy --node '$GRAPH_NODE_CHAINSTACK' --ipfs '$GRAPH_IPFS_CHAINSTACK' lido-mainnet --network mainnet"
   },
   "dependencies": {
