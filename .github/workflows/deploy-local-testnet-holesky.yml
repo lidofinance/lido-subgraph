@@ -1,4 +1,4 @@
-name: Deploy Testnet Holesky
+name: Deploy Local Testnet Holesky
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Deploying to The Graph
+    name: Deploying to local graph node
     steps:
       - uses: lidofinance/check-user-permission@v3
         with:
@@ -29,4 +29,4 @@ jobs:
       - run: yarn install --immutable
       - run: yarn codegen
       - run: yarn build-holesky
-      - run: yarn graph deploy --product hosted-service --access-token ${{ secrets.THEGRAPH_TOKEN_TESTNET_HOLESKY }} --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ lidofinance/lido-holesky --network holesky --network holesky
+      - run: yarn graph deploy --access-token '${{ secrets.AUTH_TOKEN_TESTNET_HOLESKY }}' --node '${{ secrets.GRAPH_NODE_TESTNET_HOLESKY }}' --ipfs '${{ secrets.GRAPH_IPFS_TESTNET_HOLESKY }}' --headers '${{ secrets.IPFS_AUTH_TESTNET_HOLESKY }}' lidofinance/lido-holesky --network holesky -l v2.0.0
