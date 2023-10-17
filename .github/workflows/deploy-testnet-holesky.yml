@@ -29,4 +29,4 @@ jobs:
       - run: yarn install --immutable
       - run: yarn codegen
       - run: yarn build-holesky
-      - run: yarn graph deploy --product hosted-service --access-token ${{ secrets.THEGRAPH_TOKEN_TESTNET_HOLESKY }} --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ lidofinance/lido-testnet --network holesky --network holesky
+      - run: yarn graph deploy --product hosted-service --access-token ${{ secrets.THEGRAPH_TOKEN_TESTNET_HOLESKY }} --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ lidofinance/lido-holesky --network holesky --network holesky
