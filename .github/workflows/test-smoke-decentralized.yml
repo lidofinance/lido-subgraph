@@ -41,6 +41,7 @@ jobs:
           SUBGRAPH_NAME: lidofinance/lido
           GRAPH_MONITORING: https://api.thegraph.com/index-node/graphql
           RPC: ${{ secrets.RPC_MAINNET }}
+          GRAPH: ${{ secrets.THEGRAPH_DECENTRALIZED_ENDPOINT }}
         id: test
       - name: notify about failed test run
         uses: lidofinance/action-discord@0.3.2
