@@ -39,6 +39,7 @@ jobs:
       - run: yarn test:dust
         env:
           RPC: ${{ secrets.RPC_MAINNET }}
+          GRAPH: ${{ secrets.THEGRAPH_DECENTRALIZED_ENDPOINT }}
         id: test
       - name: Notify about failed test run
         uses: lidofinance/action-discord@0.3.2
