@@ -26,7 +26,7 @@ export function handleSetApp(event: SetAppEvent): void {
 
         const triedLatest = repo.try_getLatestForContractAddress(event.params.app)
         if (triedLatest.reverted) {
-          if (network !== 'holesky') {
+          if (network === 'mainnet') {
             throw new Error('indexing error - getLatestForContractAddress method is reverted')
           }
 
