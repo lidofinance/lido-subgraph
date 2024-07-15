@@ -1,11 +1,12 @@
-import { Address, Bytes } from '@graphprotocol/graph-ts'
+import { Address } from '@graphprotocol/graph-ts'
 import { SetApp as SetAppEvent } from '../generated/LidoDAO/LidoDAO'
 import { AppRepo } from '../generated/LidoDAO/AppRepo'
 import { AppVersion } from '../generated/schema'
 import {
   KERNEL_APP_BASES_NAMESPACE,
   APP_REPOS,
-  ZERO_ADDRESS, HOLESKY_BROKEN_APP_ADDRESSES,
+  ZERO_ADDRESS,
+  network,
 } from './constants'
 
 export function handleSetApp(event: SetAppEvent): void {
@@ -22,14 +23,18 @@ export function handleSetApp(event: SetAppEvent): void {
       // updating only in case of a new contract address
       if (entity.impl != event.params.app) {
         const repo = AppRepo.bind(Address.fromString(repoAddr))
-        // fix failing indexing, for wrong app set for Holesky
-        if (HOLESKY_BROKEN_APP_ADDRESSES.includes(event.params.app.toHexString())) {
+
+        const triedLatest = repo.try_getLatestForContractAddress(event.params.app)
+        if (triedLatest.reverted) {
+          if (network !== 'holesky') {
+            throw new Error('indexing error - getLatestForContractAddress method is reverted')
+          }
+
           entity.major = 0;
           entity.minor = 0;
           entity.patch = 0;
         } else {
-          const latest = repo.getLatestForContractAddress(event.params.app)
-          const semVer = latest.getSemanticVersion()
+          const semVer = triedLatest.value.getSemanticVersion()
 
           entity.major = semVer[0]
           entity.minor = semVer[1]
