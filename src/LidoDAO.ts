@@ -30,7 +30,7 @@ export function handleSetApp(event: SetAppEvent): void {
           entity.major = semVer[0]
           entity.minor = semVer[1]
           entity.patch = semVer[2]
-        } catch (e: Error) {
+        } catch (e) {
           if (e.message.includes('REPO_INEXISTENT_VERSION')) {
             entity.major = 0;
             entity.minor = 0;
