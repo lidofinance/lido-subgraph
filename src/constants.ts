@@ -283,3 +283,8 @@ PROTOCOL_UPG_APP_VERS.set(ORACLE_APP_ID_HOLESKY, [])
 PROTOCOL_UPG_APP_VERS.set(VOTING_APP_ID_MAINNET, [])
 PROTOCOL_UPG_APP_VERS.set(VOTING_APP_ID_GOERLI, [])
 PROTOCOL_UPG_APP_VERS.set(VOTING_APP_ID_HOLESKY, [])
+
+
+// these addresses on Holesky returns error for method getLatestForContractAddress
+// this can happen with Holesky when someone add incorrect app address we have to exclude them
+export const HOLESKY_BROKEN_APP_ADDRESSES = ['0x87BF3bB78ee5a326c49EF73b9715A5109cc58922']
