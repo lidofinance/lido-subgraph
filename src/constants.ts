@@ -222,6 +222,13 @@ export const PROTOCOL_UPG_IDX_V1_SHARES = 1
 // 8710746
 export const PROTOCOL_UPG_IDX_V2 = 2
 
+// Added CSM (Updated AccountingOracle)
+// https://etherscan.io/tx/
+// [here mainnet block]
+// AccountingOracle update - https://holesky.etherscan.io/tx/0x9e9cbff4badc75cc8ca791afd9799e9e4744a13b41e718fe6d794572ff1c9fb4
+// 1818028
+export const PROTOCOL_UPG_IDX_V2_ADDED_CSM = 3
+
 // list of app's upgrade ids and corresponding min compatible contract version
 
 // block umbers corresponding protocol upgrades
@@ -241,6 +248,7 @@ PROTOCOL_UPG_BLOCKS.set('holesky', [
   BigInt.fromI32(30592), // V1
   BigInt.fromI32(30592), // V1_SHARES
   BigInt.fromI32(30592), // V2
+  BigInt.fromI32(1818028), // V2 CSM Update
 ])
 
 export const PROTOCOL_UPG_APP_VERS = new TypedMap<Bytes, i32[]>()

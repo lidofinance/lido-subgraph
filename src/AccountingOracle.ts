@@ -10,7 +10,7 @@ import { StakingRouter } from '../generated/AccountingOracle/StakingRouter'
 import { NodeOperatorsShares, NodeOperatorFees } from '../generated/schema'
 import { ZERO, getAddress } from './constants'
 
-import { _loadOracleReport } from './helpers'
+import { _loadOracleReport, isLidoAddedCSM } from './helpers'
 import { extractPairedEvent, getParsedEvent, parseEventLogs } from './parser'
 
 export function handleProcessingStarted(event: ProcessingStartedEvent): void {
@@ -29,6 +29,13 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmittedEvent): void {
   oracleReportEntity.itemsProcessed = event.params.itemsProcessed
   oracleReportEntity.itemsCount = event.params.itemsCount
   oracleReportEntity.save()
+
+  if (isLidoAddedCSM(event.block.number)) {
+    return
+  }
+
+  // note: we stopped supporting NodeOperatorFees & NodeOperatorsShares entities after CSM upgrade
+  // events Transfer and TransferShares are not in the same transaction with event ExtraDataSubmitted
 
   // load all SR modules
   const modules = StakingRouter.bind(

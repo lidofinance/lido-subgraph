@@ -25,6 +25,7 @@ import {
   PROTOCOL_UPG_BLOCKS,
   network,
   ONE_HUNDRED_PERCENT,
+  PROTOCOL_UPG_IDX_V2_ADDED_CSM,
 } from './constants'
 import { Transfer } from '../generated/Lido/Lido'
 
@@ -376,6 +377,10 @@ export function isLidoV2(block: BigInt = ZERO): bool {
 
 export function isLidoTransferShares(block: BigInt = ZERO): bool {
   return checkAppVer(block, LIDO_APP_ID, PROTOCOL_UPG_IDX_V1_SHARES)
+}
+
+export function isLidoAddedCSM(block: BigInt = ZERO): bool {
+  return checkAppVer(block, LIDO_APP_ID, PROTOCOL_UPG_IDX_V2_ADDED_CSM)
 }
 
 // export function isOracleV2(block: BigInt = ZERO): bool {
