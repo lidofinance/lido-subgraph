@@ -223,9 +223,9 @@ export const PROTOCOL_UPG_IDX_V1_SHARES = 1
 export const PROTOCOL_UPG_IDX_V2 = 2
 
 // Added CSM (Updated AccountingOracle)
-// https://etherscan.io/tx/
-// [here mainnet block]
-// AccountingOracle update - https://holesky.etherscan.io/tx/0x9e9cbff4badc75cc8ca791afd9799e9e4744a13b41e718fe6d794572ff1c9fb4
+// https://etherscan.io/tx/0x0078b3e0cecb3b50c78a22e0b1a985e6cde3bf431e9cb3b2ba4e50260122d542
+// 21043699
+// https://holesky.etherscan.io/tx/0x9e9cbff4badc75cc8ca791afd9799e9e4744a13b41e718fe6d794572ff1c9fb4
 // 1818028
 export const PROTOCOL_UPG_IDX_V2_ADDED_CSM = 3
 
@@ -238,6 +238,7 @@ PROTOCOL_UPG_BLOCKS.set('mainnet', [
   BigInt.fromI32(11473216), // V1
   BigInt.fromI32(14860268), // V1_SHARES
   BigInt.fromI32(17266004), // V2
+  BigInt.fromI32(21043699), // V2 CSM Update
 ])
 PROTOCOL_UPG_BLOCKS.set('goerli', [
   BigInt.fromI32(4533286), // V1
