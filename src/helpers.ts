@@ -8,6 +8,8 @@ import {
   Holder,
   OracleReport,
   AppVersion,
+  NodeOperatorFees,
+  NodeOperatorsShares,
 } from '../generated/schema'
 import {
   CALCULATION_UNIT,
@@ -26,8 +28,15 @@ import {
   network,
   ONE_HUNDRED_PERCENT,
   PROTOCOL_UPG_IDX_V2_ADDED_CSM,
+  getAddress,
 } from './constants'
-import { Transfer } from '../generated/Lido/Lido'
+import {
+  Transfer as TransferEvent,
+  Transfer,
+  TransferShares as TransferSharesEvent,
+} from '../generated/Lido/Lido'
+import { StakingRouter } from '../generated/AccountingOracle/StakingRouter'
+import { extractPairedEvent, getParsedEvent, parseEventLogs } from './parser'
 
 export function _loadLidoTransferEntity(event: Transfer): LidoTransfer {
   const id = event.transaction.hash.concatI32(event.logIndex.toI32())
@@ -390,3 +399,74 @@ export function isLidoAddedCSM(block: BigInt = ZERO): bool {
 // export function isNORV2(block: BigInt = ZERO): bool {
 //   return checkAppVer(block, NOR_APP_ID, UPG_V2_BETA)
 // }
+
+export function attachNodeOperatorsEntitiesFromTransactionLogsToOracleReport(
+  event: ethereum.Event,
+  oracleReportEntity: OracleReport
+): void {
+  // load all SR modules
+  const modules = StakingRouter.bind(
+    getAddress('STAKING_ROUTER')
+  ).getStakingModules()
+
+  // parse all events from tx receipt
+  const parsedEvents = parseEventLogs(event, getAddress('LIDO'))
+
+  log.warning('handleExtraDataSubmitted - parsedEvents length: {}', [
+    parsedEvents.length.toString(),
+  ])
+
+  // extracting all 'Transfer' and 'TransferShares' pairs from tx receipt
+  const transferEventPairs = extractPairedEvent(
+    parsedEvents,
+    'Transfer',
+    'TransferShares'
+  )
+
+  const burnerAddress = getAddress('BURNER')
+  for (let i = 0; i < transferEventPairs.length; i++) {
+    const eventTransfer = getParsedEvent<TransferEvent>(
+      transferEventPairs[i],
+      0
+    )
+    const eventTransferShares = getParsedEvent<TransferSharesEvent>(
+      transferEventPairs[i],
+      1
+    )
+
+    // creating reward records for NOs to preserve data structure compatibility
+    for (let j = 0; j < modules.length; j++) {
+      // process transfers from module's addresses, excluding transfers to burner
+      if (
+        eventTransfer.params.from == modules[j].stakingModuleAddress &&
+        eventTransfer.params.to != burnerAddress
+      ) {
+        let id = eventTransfer.transaction.hash.concatI32(
+          eventTransfer.logIndex.toI32()
+        )
+
+        const nodeOperatorFees = new NodeOperatorFees(id)
+        // Reference to TotalReward entity
+        nodeOperatorFees.totalReward = oracleReportEntity.totalReward
+        nodeOperatorFees.address = eventTransfer.params.to
+        nodeOperatorFees.fee = eventTransfer.params.value
+        nodeOperatorFees.save()
+
+        id = event.transaction.hash.concat(eventTransfer.params.to)
+        // id = event.transaction.hash.toHex() + '-' + eventTransfer.params.to.toHexString()
+        let nodeOperatorShare = NodeOperatorsShares.load(id)
+        if (!nodeOperatorShare) {
+          nodeOperatorShare = new NodeOperatorsShares(id)
+          // Reference to TotalReward entity
+          nodeOperatorShare.totalReward = oracleReportEntity.totalReward
+          nodeOperatorShare.address = eventTransfer.params.to
+          nodeOperatorShare.shares = ZERO
+        }
+        nodeOperatorShare.shares = nodeOperatorShare.shares.plus(
+          eventTransferShares.params.sharesValue
+        )
+        nodeOperatorShare.save()
+      }
+    }
+  }
+}

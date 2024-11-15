@@ -1,17 +1,12 @@
 import {
-  Transfer as TransferEvent,
-  TransferShares as TransferSharesEvent,
-} from '../generated/Lido/Lido'
-import {
   ExtraDataSubmitted as ExtraDataSubmittedEvent,
   ProcessingStarted as ProcessingStartedEvent,
 } from '../generated/AccountingOracle/AccountingOracle'
-import { StakingRouter } from '../generated/AccountingOracle/StakingRouter'
-import { NodeOperatorsShares, NodeOperatorFees } from '../generated/schema'
-import { ZERO, getAddress } from './constants'
-
-import { _loadOracleReport, isLidoAddedCSM } from './helpers'
-import { extractPairedEvent, getParsedEvent, parseEventLogs } from './parser'
+import {
+  _loadOracleReport,
+  attachNodeOperatorsEntitiesFromTransactionLogsToOracleReport,
+  isLidoAddedCSM,
+} from './helpers'
 
 export function handleProcessingStarted(event: ProcessingStartedEvent): void {
   // OracleReport could exists already at this moment in case repeated report for the same epoch
@@ -31,73 +26,12 @@ export function handleExtraDataSubmitted(event: ExtraDataSubmittedEvent): void {
   oracleReportEntity.save()
 
   if (isLidoAddedCSM(event.block.number)) {
+    // after CSM release now NodeOperatorFees and Shares entities handled by handleRewardDistributionStateChanged
     return
   }
 
-  // note: we stopped supporting NodeOperatorFees & NodeOperatorsShares entities after CSM upgrade
-  // events Transfer and TransferShares are not in the same transaction with event ExtraDataSubmitted
-
-  // load all SR modules
-  const modules = StakingRouter.bind(
-    getAddress('STAKING_ROUTER')
-  ).getStakingModules()
-
-  // parse all events from tx receipt
-  const parsedEvents = parseEventLogs(event, getAddress('LIDO'))
-
-  // extracting all 'Transfer' and 'TransferShares' pairs from tx receipt
-  const transferEventPairs = extractPairedEvent(
-    parsedEvents,
-    'Transfer',
-    'TransferShares'
+  attachNodeOperatorsEntitiesFromTransactionLogsToOracleReport(
+    event,
+    oracleReportEntity
   )
-
-  const burnerAddress = getAddress('BURNER')
-  for (let i = 0; i < transferEventPairs.length; i++) {
-    const eventTransfer = getParsedEvent<TransferEvent>(
-      transferEventPairs[i],
-      0
-    )
-    const eventTransferShares = getParsedEvent<TransferSharesEvent>(
-      transferEventPairs[i],
-      1
-    )
-
-    // creating reward records for NOs to preserve data structure compatibility
-    for (let j = 0; j < modules.length; j++) {
-      // process transfers from module's addresses, excluding transfers to burner
-      if (
-        eventTransfer.params.from == modules[j].stakingModuleAddress &&
-        eventTransfer.params.to != burnerAddress
-      ) {
-        let id = eventTransfer.transaction.hash.concatI32(
-          eventTransfer.logIndex.toI32()
-        )
-        // let id = event.transaction.hash.toHex() + '-' + eventTransfer.logIndex.toString()
-
-        // @todo merge NodeOperatorFees & NodeOperatorsShares ?
-        const nodeOperatorFees = new NodeOperatorFees(id)
-        // Reference to TotalReward entity
-        nodeOperatorFees.totalReward = oracleReportEntity.totalReward
-        nodeOperatorFees.address = eventTransfer.params.to
-        nodeOperatorFees.fee = eventTransfer.params.value
-        nodeOperatorFees.save()
-
-        id = event.transaction.hash.concat(eventTransfer.params.to)
-        // id = event.transaction.hash.toHex() + '-' + eventTransfer.params.to.toHexString()
-        let nodeOperatorShare = NodeOperatorsShares.load(id)
-        if (!nodeOperatorShare) {
-          nodeOperatorShare = new NodeOperatorsShares(id)
-          // Reference to TotalReward entity
-          nodeOperatorShare.totalReward = oracleReportEntity.totalReward
-          nodeOperatorShare.address = eventTransfer.params.to
-          nodeOperatorShare.shares = ZERO
-        }
-        nodeOperatorShare.shares = nodeOperatorShare.shares.plus(
-          eventTransferShares.params.sharesValue
-        )
-        nodeOperatorShare.save()
-      }
-    }
-  }
 }
