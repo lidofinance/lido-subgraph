@@ -412,9 +412,10 @@ export function attachNodeOperatorsEntitiesFromTransactionLogsToOracleReport(
   // parse all events from tx receipt
   const parsedEvents = parseEventLogs(event, getAddress('LIDO'))
 
-  log.warning('handleExtraDataSubmitted - parsedEvents length: {}', [
-    parsedEvents.length.toString(),
-  ])
+  log.info(
+    'attachNodeOperatorsEntitiesFromTransactionLogsToOracleReport - parsedEvents length: {}',
+    [parsedEvents.length.toString()]
+  )
 
   // extracting all 'Transfer' and 'TransferShares' pairs from tx receipt
   const transferEventPairs = extractPairedEvent(
