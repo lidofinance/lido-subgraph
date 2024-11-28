@@ -261,7 +261,7 @@ PROTOCOL_UPG_BLOCKS.set('holesky', [
   BigInt.fromI32(30592), // V1
   BigInt.fromI32(30592), // V1_SHARES
   BigInt.fromI32(30592), // V2
-  BigInt.fromI32(1818028), // V2 CSM Update
+  BigInt.fromI32(1819268), // V2 CSM Update
 ])
 
 export const PROTOCOL_UPG_APP_VERS = new TypedMap<Bytes, i32[]>()
