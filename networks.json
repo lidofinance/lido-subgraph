@@ -16,6 +16,10 @@
       "address": "0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5",
       "startBlock": 11473216
     },
+    "NodeOperatorsRegistryV2": {
+      "address": "0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5",
+      "startBlock": 21090119
+    },
     "Voting": {
       "address": "0x2e59A20f205bB85a89C53f1936454680651E618e",
       "startBlock": 11473216
@@ -99,6 +103,10 @@
     "NodeOperatorsRegistry": {
       "address": "0x595F64Ddc3856a3b5Ff4f4CC1d1fb4B46cFd2bAC",
       "startBlock": 30592
+    },
+    "NodeOperatorsRegistryV2": {
+      "address": "0x595F64Ddc3856a3b5Ff4f4CC1d1fb4B46cFd2bAC",
+      "startBlock": 1819268
     },
     "Voting": {
       "address": "0xdA7d2573Df555002503F29aA4003e398d28cc00f",
