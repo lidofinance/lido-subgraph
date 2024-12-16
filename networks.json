@@ -16,9 +16,13 @@
       "address": "0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5",
       "startBlock": 11473216
     },
-    "NodeOperatorsRegistryV2": {
+    "NodeOperatorsRegistryV2CuratedModule": {
       "address": "0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5",
-      "startBlock": 21090119
+      "startBlock": 21043699
+    },
+    "NodeOperatorsRegistryV2SimpleDVTModule": {
+      "address": "0xaE7B191A31f627b4eB1d4DaC64eaB9976995b433",
+      "startBlock": 21043699
     },
     "Voting": {
       "address": "0x2e59A20f205bB85a89C53f1936454680651E618e",
@@ -104,8 +108,13 @@
       "address": "0x595F64Ddc3856a3b5Ff4f4CC1d1fb4B46cFd2bAC",
       "startBlock": 30592
     },
-    "NodeOperatorsRegistryV2": {
+
+    "NodeOperatorsRegistryV2CuratedModule": {
       "address": "0x595F64Ddc3856a3b5Ff4f4CC1d1fb4B46cFd2bAC",
+      "startBlock": 1819268
+    },
+    "NodeOperatorsRegistryV2SimpleDVTModule": {
+      "address": "0x11a93807078f8BB880c1BD0ee4C387537de4b4b6",
       "startBlock": 1819268
     },
     "Voting": {

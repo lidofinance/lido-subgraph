@@ -420,11 +420,15 @@ export function attachNodeOperatorsEntitiesFromTransactionLogsToOracleReport(
   )
 
   if (transferEventPairs.length === 0) {
-    log.warning('transferEventPairs is empty', [])
+    log.warning(
+      `transferEventPairs is empty (tx=${event.transaction.hash.toHexString()})`,
+      []
+    )
   } else {
-    log.info('transferEventPairs length - {}', [
-      transferEventPairs.length.toString(),
-    ])
+    log.info(
+      `transferEventPairs length=${transferEventPairs.length.toString()} (tx=${event.transaction.hash.toHexString()})`,
+      []
+    )
   }
 
   const burnerAddress = getAddress('BURNER')

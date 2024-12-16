@@ -21,13 +21,20 @@ export function handleRewardDistributionStateChanged(
   const refSlot = accountingOracle.try_getLastProcessingRefSlot()
 
   if (refSlot.reverted) {
-    log.warning(`accountingOracle.try_getLastProcessingRefSlot reverted`, [])
+    log.warning(
+      `[RewardDistributionStateChangedEvent] accountingOracle.try_getLastProcessingRefSlot reverted`,
+      []
+    )
     return
   }
+
   const oracleReportEntity = _loadOracleReport(refSlot.value, event)
 
   if (!oracleReportEntity) {
-    log.warning(`oracleReportEntity is not found with id ${refSlot.value}`, [])
+    log.warning(
+      `[RewardDistributionStateChangedEvent] oracleReportEntity is not found with id ${refSlot.value}`,
+      []
+    )
     return
   }
 
