@@ -1,4 +1,4 @@
-import { RewardDistributionStateChanged as RewardDistributionStateChangedEvent } from '../generated/NodeOperatorsRegistryV2/NodeOperatorsRegistryV2'
+import { RewardDistributionStateChanged as RewardDistributionStateChangedEvent } from '../generated/NodeOperatorsRegistryV2SimpleDVTModule/NodeOperatorsRegistryV2SimpleDVTModule'
 import { AccountingOracle } from '../generated/AccountingOracle/AccountingOracle'
 import { getAddress } from './constants'
 import {
