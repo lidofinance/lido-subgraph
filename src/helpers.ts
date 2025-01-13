@@ -405,9 +405,22 @@ export function attachNodeOperatorsEntitiesFromTransactionLogsToOracleReport(
   oracleReportEntity: OracleReport
 ): void {
   // load all SR modules
-  const modules = StakingRouter.bind(
+  const dataModules = StakingRouter.bind(
     getAddress('STAKING_ROUTER')
-  ).getStakingModules()
+  ).try_getStakingModules()
+
+  if (dataModules.reverted) {
+    log.warning(
+      `getStakingModules reverted (tx=${event.transaction.hash.toHexString()}, contract address ${getAddress(
+        'STAKING_ROUTER'
+      ).toHexString()})`,
+      []
+    )
+
+    return
+  }
+
+  const modules = dataModules.value
 
   // parse all events from tx receipt
   const parsedEvents = parseEventLogs(event, getAddress('LIDO'))
