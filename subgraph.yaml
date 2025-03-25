@@ -369,3 +369,51 @@ dataSources:
         - event: FrameConfigSet(uint256,uint256)
           handler: handleFrameConfigSet
       file: ./src/HashConsensus.ts
+  - kind: ethereum/contract
+    name: NodeOperatorsRegistryV2SimpleDVTModule
+    network: mainnet
+    source:
+      abi: NodeOperatorsRegistryV2SimpleDVTModule
+      address: "0xaE7B191A31f627b4eB1d4DaC64eaB9976995b433"
+      startBlock: 21043699
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - NodeOperatorsRegistryV2SimpleDVTModule
+      abis:
+        - name: NodeOperatorsRegistryV2SimpleDVTModule
+          file: ./abis/NodeOperatorsRegistryV2SimpleDVTModule.json
+        - name: AccountingOracle
+          file: ./abis/AccountingOracle.json
+        - name: StakingRouter
+          file: ./abis/StakingRouter.json
+      eventHandlers:
+        - event: RewardDistributionStateChanged(uint8)
+          handler: handleRewardDistributionStateChanged
+      file: ./src/NodeOperatorsRegistryV2SimpleDVTModule.ts
+  - kind: ethereum/contract
+    name: NodeOperatorsRegistryV2CuratedModule
+    network: mainnet
+    source:
+      abi: NodeOperatorsRegistryV2CuratedModule
+      address: "0x55032650b14df07b85bF18A3a3eC8E0Af2e028d5"
+      startBlock: 21043699
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - NodeOperatorsRegistryV2CuratedModule
+      abis:
+        - name: NodeOperatorsRegistryV2CuratedModule
+          file: ./abis/NodeOperatorsRegistryV2CuratedModule.json
+        - name: AccountingOracle
+          file: ./abis/AccountingOracle.json
+        - name: StakingRouter
+          file: ./abis/StakingRouter.json
+      eventHandlers:
+        - event: RewardDistributionStateChanged(uint8)
+          handler: handleRewardDistributionStateChanged
+      file: ./src/NodeOperatorsRegistryV2CuratedModule.ts

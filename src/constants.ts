@@ -71,6 +71,16 @@ BURNER_ADDRESSES.set('goerli', '0x20c61C07C2E2FAb04BF5b4E12ce45a459a18f3B1')
 BURNER_ADDRESSES.set('holesky', '0x4E46BD7147ccf666E1d73A3A456fC7a68de82eCA')
 BURNER_ADDRESSES.set('hoodi', '0x4e9A9ea2F154bA34BE919CD16a4A953DCd888165')
 
+const ACCOUNTING_ORACLE_ADDRESSES = new TypedMap<string, string>()
+ACCOUNTING_ORACLE_ADDRESSES.set(
+  'mainnet',
+  '0x852deD011285fe67063a08005c71a85690503Cee'
+)
+ACCOUNTING_ORACLE_ADDRESSES.set(
+  'holesky',
+  '0x4E97A3972ce8511D87F334dA17a2C332542a5246'
+)
+
 // We presume here that initially insurance fund was the treasury
 const getInsuranceFund = (): string => {
   const cfg = LidoConfig.load('')
@@ -93,6 +103,8 @@ export const getAddress = (contract: string): Address =>
       ? getInsuranceFund()
       : contract == 'TREASURY'
       ? TREASURY_ADDRESSES.get(network)
+      : contract == 'ACCOUNTING_ORACLE'
+      ? ACCOUNTING_ORACLE_ADDRESSES.get(network)
       : null)!
   )
 
@@ -247,6 +259,13 @@ export const PROTOCOL_UPG_IDX_V1_SHARES = 1
 // 8710746
 export const PROTOCOL_UPG_IDX_V2 = 2
 
+// Added CSM (Updated AccountingOracle)
+// https://etherscan.io/tx/0x0078b3e0cecb3b50c78a22e0b1a985e6cde3bf431e9cb3b2ba4e50260122d542
+// 21043699
+// https://holesky.etherscan.io/tx/0xfce89c1e44d93e4a6c11d5c87ce23c8da132cca6f6dd7b2198ded68bf9d7569c#eventlog
+// 1819268
+export const PROTOCOL_UPG_IDX_V2_ADDED_CSM = 3
+
 // list of app's upgrade ids and corresponding min compatible contract version
 
 // block umbers corresponding protocol upgrades
@@ -256,6 +275,7 @@ PROTOCOL_UPG_BLOCKS.set('mainnet', [
   BigInt.fromI32(11473216), // V1
   BigInt.fromI32(14860268), // V1_SHARES
   BigInt.fromI32(17266004), // V2
+  BigInt.fromI32(21043699), // V2 CSM Update
 ])
 PROTOCOL_UPG_BLOCKS.set('goerli', [
   BigInt.fromI32(4533286), // V1
@@ -266,6 +286,7 @@ PROTOCOL_UPG_BLOCKS.set('holesky', [
   BigInt.fromI32(30592), // V1
   BigInt.fromI32(30592), // V1_SHARES
   BigInt.fromI32(30592), // V2
+  BigInt.fromI32(1819268), // V2 CSM Update
 ])
 PROTOCOL_UPG_BLOCKS.set('hoodi', [
   BigInt.fromI32(405), // V1
