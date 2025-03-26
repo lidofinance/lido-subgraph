@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Deploying to local graph node
     steps:
       - uses: lidofinance/check-user-permission@v3

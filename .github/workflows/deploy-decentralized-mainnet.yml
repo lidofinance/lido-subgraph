@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Deploy to the decentralized Graph network
     steps:
       - uses: lidofinance/check-user-permission@v3
