@@ -1,4 +1,4 @@
-name: Deploy Local Testnet
+name: Deploy Local Testnet Hoodi
 
 on:
   workflow_dispatch:
@@ -28,5 +28,5 @@ jobs:
             ${{ runner.os }}-yarn-
       - run: yarn install --immutable
       - run: yarn codegen
-      - run: yarn build-testnet
-      - run: yarn graph deploy --access-token '${{ secrets.AUTH_TOKEN_TESTNET }}' --node '${{ secrets.GRAPH_NODE_TESTNET }}' --ipfs '${{ secrets.GRAPH_IPFS_TESTNET }}' --headers '${{ secrets.IPFS_AUTH_TESTNET }}' lidofinance/lido-testnet --network goerli -l v2.0.0
+      - run: yarn build-hoodi
+      - run: yarn graph deploy --access-token '${{ secrets.AUTH_TOKEN_TESTNET_HOODI }}' --node '${{ secrets.GRAPH_NODE_TESTNET_HOODI }}' --ipfs '${{ secrets.GRAPH_IPFS_TESTNET_HOODI }}' --headers '{"Authorization":"${{ secrets.IPFS_AUTH_CF_TESTNET_HOODI }}","Cookie":"secret='${{ secrets.IPFS_AUTH_COOKIE_TESTNET_HOODI }}'"}' lidofinance/lido-hoodi --network hoodi -l v2.0.0

@@ -141,5 +141,47 @@
       "address": "0xa067FC95c22D51c3bC35fd4BE37414Ee8cc890d2",
       "startBlock": 30731
     }
+  },
+  "hoodi": {
+    "LidoDAO": {
+      "address": "0xA48DF029Fd2e5FCECB3886c5c2F60e3625A1E87d",
+      "startBlock": 405
+    },
+    "Lido": {
+      "address": "0x3508A952176b3c15387C97BE809eaffB1982176a",
+      "startBlock": 405
+    },
+    "LegacyOracle": {
+      "address": "0x5B70b650B7E14136eb141b5Bf46a52f962885752",
+      "startBlock": 405
+    },
+    "NodeOperatorsRegistry": {
+      "address": "0x5cDbE1590c083b5A2A64427fAA63A7cfDB91FbB5",
+      "startBlock": 405
+    },
+    "Voting": {
+      "address": "0x49B3512c44891bef83F8967d075121Bd1b07a01B",
+      "startBlock": 405
+    },
+    "EasyTrack": {
+      "address": "0x284D91a7D47850d21A6DEaaC6E538AC7E5E6fc2a",
+      "startBlock": 405
+    },
+    "StakingRouter": {
+      "address": "0xCc820558B39ee15C7C45B59390B503b83fb499A8",
+      "startBlock": 405
+    },
+    "AccountingOracle": {
+      "address": "0xcb883B1bD0a41512b42D2dB267F2A2cd919FB216",
+      "startBlock": 405
+    },
+    "WithdrawalQueue": {
+      "address": "0xfe56573178f1bcdf53F01A6E9977670dcBBD9186",
+      "startBlock": 405
+    },
+    "HashConsensus": {
+      "address": "0x32EC59a78abaca3f91527aeB2008925D5AaC1eFC",
+      "startBlock": 405
+    }
   }
 }
