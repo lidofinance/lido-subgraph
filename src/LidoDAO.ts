@@ -24,15 +24,18 @@ export function handleSetApp(event: SetAppEvent): void {
       if (entity.impl != event.params.app) {
         const repo = AppRepo.bind(Address.fromString(repoAddr))
 
-        const triedLatest = repo.try_getLatestForContractAddress(event.params.app)
+        const triedLatest = repo.try_getLatestForContractAddress(
+          event.params.app
+        )
+
         if (triedLatest.reverted) {
-          if (network === 'mainnet') {
-            throw new Error('indexing error - getLatestForContractAddress method is reverted')
+          if (network == 'mainnet') {
+            assert(false, 'getLatestForContractAddress reverted on mainnet')
           }
 
-          entity.major = 0;
-          entity.minor = 0;
-          entity.patch = 0;
+          entity.major = 0
+          entity.minor = 0
+          entity.patch = 0
         } else {
           const semVer = triedLatest.value.getSemanticVersion()
 
