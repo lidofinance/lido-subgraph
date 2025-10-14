@@ -66,6 +66,10 @@ ACCOUNTING_ORACLE_ADDRESSES.set(
   'mainnet',
   '0x852deD011285fe67063a08005c71a85690503Cee'
 )
+ACCOUNTING_ORACLE_ADDRESSES.set(
+  'hoodi',
+  '0xcb883B1bD0a41512b42D2dB267F2A2cd919FB216'
+)
 
 // We presume here that initially insurance fund was the treasury
 const getInsuranceFund = (): string => {

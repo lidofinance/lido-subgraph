@@ -89,6 +89,14 @@
     "HashConsensus": {
       "address": "0x32EC59a78abaca3f91527aeB2008925D5AaC1eFC",
       "startBlock": 405
+    },
+    "NodeOperatorsRegistryV2SimpleDVTModule": {
+      "address": "0x0B5236BECA68004DB89434462DfC3BB074d2c830",
+      "startBlock": 405
+    },
+    "NodeOperatorsRegistryV2CuratedModule": {
+      "address": "0x5cDbE1590c083b5A2A64427fAA63A7cfDB91FbB5",
+      "startBlock": 405
     }
   }
 }
