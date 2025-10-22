@@ -50,6 +50,7 @@ import {
   getRightPairedEventByLeftLogIndex,
   getParsedEvent,
   ParsedEvent,
+  getEventByNameFromLogs,
 } from './parser'
 import {
   _calcAPR_v2,
@@ -63,6 +64,7 @@ import {
   _updateTransferShares,
   isLidoTransferShares,
   isLidoV2,
+  isMatchingBurnTransferShares,
 } from './helpers'
 
 import { wcKeyCrops } from './wcKeyCrops'
@@ -182,6 +184,25 @@ export function handleTransfer(event: TransferEvent): void {
         event.logIndex
       )!
     entity.shares = eventTransferShares.params.sharesValue
+
+    const eventSharesBurnt = getEventByNameFromLogs<SharesBurntEvent>(
+      event,
+      'SharesBurnt'
+    )
+
+    if (eventSharesBurnt) {
+      let matching = isMatchingBurnTransferShares(
+        eventSharesBurnt,
+        eventTransferShares
+      )
+      if (matching) {
+        log.info(
+          'skipped handleTransfer bc it contains corresponding TransferShare to 0x0',
+          []
+        )
+        return
+      }
+    }
 
     // skip handling if nothing to handle
     if (entity.value.isZero() && entity.shares.isZero()) {

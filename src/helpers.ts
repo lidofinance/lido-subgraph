@@ -31,6 +31,7 @@ import {
   getAddress,
 } from './constants'
 import {
+  SharesBurnt as SharesBurntEvent,
   Transfer as TransferEvent,
   Transfer,
   TransferShares as TransferSharesEvent,
@@ -432,7 +433,7 @@ export function attachNodeOperatorsEntitiesFromTransactionLogsToOracleReport(
     'TransferShares'
   )
 
-  if (transferEventPairs.length === 0) {
+  if (transferEventPairs.length == 0) {
     log.warning(
       `transferEventPairs is empty (tx=${event.transaction.hash.toHexString()})`,
       []
@@ -490,4 +491,24 @@ export function attachNodeOperatorsEntitiesFromTransactionLogsToOracleReport(
       }
     }
   }
+}
+
+export function isMatchingBurnTransferShares(
+  burn: SharesBurntEvent,
+  xfer: TransferSharesEvent
+): boolean {
+  // same tx
+  if (!burn.transaction.hash.equals(xfer.transaction.hash)) return false
+
+  // same emitting contract
+  if (!burn.address.equals(xfer.address)) return false
+
+  // same params
+  if (!burn.params.account.equals(xfer.params.from)) return false
+
+  if (!xfer.params.to.equals(ZERO_ADDRESS)) return false
+
+  if (!xfer.params.sharesValue.equals(burn.params.sharesAmount)) return false
+
+  return true
 }

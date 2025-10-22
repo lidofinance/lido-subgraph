@@ -3,7 +3,6 @@ import {
   AllowedBeaconBalanceAnnualRelativeIncreaseSet as AllowedBeaconBalanceAnnualRelativeIncreaseSetEvent,
   AllowedBeaconBalanceRelativeDecreaseSet as AllowedBeaconBalanceRelativeDecreaseSetEvent,
   BeaconReportReceiverSet as BeaconReportReceiverSetEvent,
-  // BeaconReported,
   BeaconSpecSet as BeaconSpecSetEvent,
   Completed as CompletedEvent,
   ContractVersionSet as ContractVersionSetEvent,
