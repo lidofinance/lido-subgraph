@@ -58,6 +58,10 @@
       "address": "0x3508A952176b3c15387C97BE809eaffB1982176a",
       "startBlock": 405
     },
+    "LidoV3": {
+      "address": "0x3508A952176b3c15387C97BE809eaffB1982176a",
+      "startBlock": 1400000
+    },
     "LegacyOracle": {
       "address": "0x5B70b650B7E14136eb141b5Bf46a52f962885752",
       "startBlock": 405
@@ -88,6 +92,14 @@
     },
     "HashConsensus": {
       "address": "0x32EC59a78abaca3f91527aeB2008925D5AaC1eFC",
+      "startBlock": 405
+    },
+    "NodeOperatorsRegistryV2SimpleDVTModule": {
+      "address": "0x0B5236BECA68004DB89434462DfC3BB074d2c830",
+      "startBlock": 405
+    },
+    "NodeOperatorsRegistryV2CuratedModule": {
+      "address": "0x5cDbE1590c083b5A2A64427fAA63A7cfDB91FbB5",
       "startBlock": 405
     }
   }
