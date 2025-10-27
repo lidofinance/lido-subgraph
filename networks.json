@@ -8,6 +8,10 @@
       "address": "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
       "startBlock": 11473216
     },
+    "LidoV3": {
+      "address": "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
+      "startBlock": 11473216
+    },
     "LegacyOracle": {
       "address": "0x442af784A788A5bd6F42A01Ebe9F287a871243fb",
       "startBlock": 11473216
