@@ -3,7 +3,10 @@ import { parserMap } from '../generated/parserData'
 import { ZERO, ZERO_ADDRESS } from './constants'
 
 export class ParsedEvent {
-  constructor(public name: string, public event: ethereum.Event) {}
+  constructor(
+    public name: string,
+    public event: ethereum.Event
+  ) {}
 }
 
 export function parseEventLogs(
@@ -182,4 +185,15 @@ export function getParsedEventByName<T>(
     }
   }
   return null
+}
+
+export function getEventByNameFromLogs<T>(
+  event: ethereum.Event,
+  name: string
+): T | null {
+  const parsedEvents = parseEventLogs(event, event.address)
+
+  const someEvent = getParsedEventByName<T>(parsedEvents, name)
+
+  return someEvent
 }

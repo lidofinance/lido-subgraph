@@ -50,6 +50,7 @@ import {
   getRightPairedEventByLeftLogIndex,
   getParsedEvent,
   ParsedEvent,
+  getEventByNameFromLogs,
 } from './parser'
 import {
   _calcAPR_v2,
@@ -63,6 +64,7 @@ import {
   _updateTransferShares,
   isLidoTransferShares,
   isLidoV2,
+  isMatchingBurnTransferShares,
 } from './helpers'
 
 import { wcKeyCrops } from './wcKeyCrops'
@@ -182,6 +184,25 @@ export function handleTransfer(event: TransferEvent): void {
         event.logIndex
       )!
     entity.shares = eventTransferShares.params.sharesValue
+
+    const eventSharesBurnt = getEventByNameFromLogs<SharesBurntEvent>(
+      event,
+      'SharesBurnt'
+    )
+
+    if (eventSharesBurnt) {
+      let matching = isMatchingBurnTransferShares(
+        eventSharesBurnt,
+        eventTransferShares
+      )
+      if (matching) {
+        log.info(
+          'skipped handleTransfer bc it contains corresponding TransferShare to 0x0',
+          []
+        )
+        return
+      }
+    }
 
     // skip handling if nothing to handle
     if (entity.value.isZero() && entity.shares.isZero()) {
@@ -352,6 +373,25 @@ export function handleTransfer(event: TransferEvent): void {
 }
 
 export function handleSharesBurnt(event: SharesBurntEvent): void {
+  const parsedEvents = parseEventLogs(event, event.address)
+
+  const tokenETHDistributedEvent = getParsedEventByName<ETHDistributedEvent>(
+    parsedEvents,
+    'ETHDistributed',
+    event.logIndex
+  )
+
+  if (tokenETHDistributedEvent) {
+    // skip handler because it is called manually in handlerETHDistributed
+    // manual call doesn't have receipt in found SharesBurntEvent
+
+    log.info(
+      'handleSharesBurnt skipped, will be manually called in handlerETHDistributed',
+      []
+    )
+    return
+  }
+
   // shares are burned only during oracle report from LidoBurner contract
   const id = event.transaction.hash.concatI32(event.logIndex.toI32())
   // const id = event.transaction.hash.toHex() + '-' + event.logIndex.toString()
@@ -435,6 +475,10 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
 // event WithdrawalsFinalized (or WithdrawalsBatchFinalized) should be captured by Subgraph right before
 // and totalPooledEther will be decreased by amountETHToLock
 export function handleETHDistributed(event: ETHDistributedEvent): void {
+  log.warning(
+    'CHECK handleETHDistributed event.block.number {}, event.transaction.hash {}',
+    [event.block.number.toString(), event.transaction.hash.toHexString()]
+  )
   // we should process token rebase here as TokenRebased event fired last but we need new values before transfers
   // parse all events from tx receipt
   const parsedEvents = parseEventLogs(event, event.address)
