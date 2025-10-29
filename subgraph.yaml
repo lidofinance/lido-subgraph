@@ -417,3 +417,25 @@ dataSources:
         - event: RewardDistributionStateChanged(uint8)
           handler: handleRewardDistributionStateChanged
       file: ./src/NodeOperatorsRegistryV2CuratedModule.ts
+  - kind: ethereum/contract
+    name: LidoV3
+    network: mainnet
+    source:
+      abi: LidoV3
+      address: "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84"
+      startBlock: 11473216
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - LidoV3
+      abis:
+        - name: LidoV3
+          file: ./abis/LidoV3.json
+      eventHandlers:
+        - event: ExternalSharesMinted(indexed address,uint256)
+          handler: handleExternalSharesMinted
+        - event: ExternalSharesBurnt(uint256)
+          handler: handleExternalSharesBurnt
+      file: ./src/LidoV3.ts
