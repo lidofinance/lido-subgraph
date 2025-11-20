@@ -177,13 +177,75 @@ export function handleTransfer(event: TransferEvent): void {
   // now we should parse the whole tx receipt to be sure pair extraction is accurate
   if (isLidoTransferShares(event.block.number)) {
     const parsedEvents = parseEventLogs(event, event.address)
+
+    log.debug(
+      'Parsing Transfer event. tx={}, logIndex={}, parsedEventsCount={}',
+      [
+        event.transaction.hash.toHexString(),
+        event.logIndex.toString(),
+        parsedEvents.length.toString(),
+      ]
+    )
+
     // TransferShares should exists after according upgrade
+    const pairedEvents = extractPairedEvent(
+      parsedEvents,
+      'Transfer',
+      'TransferShares'
+    )
+
+    log.debug('Paired events extracted. pairedEventsCount={}', [
+      pairedEvents.length.toString(),
+    ])
+
     eventTransferShares =
       getRightPairedEventByLeftLogIndex<TransferSharesEvent>(
-        extractPairedEvent(parsedEvents, 'Transfer', 'TransferShares'),
+        pairedEvents,
         event.logIndex
-      )!
-    entity.shares = eventTransferShares.params.sharesValue
+      )
+
+    if (!eventTransferShares) {
+      log.error(
+        'TransferShares event not found for Transfer. tx={}, logIndex={}, block={}, from={}, to={}, value={}, event.address={}',
+        [
+          event.transaction.hash.toHexString(),
+          event.logIndex.toString(),
+          event.block.number.toString(),
+          event.params.from.toHexString(),
+          event.params.to.toHexString(),
+          event.params.value.toString(),
+          event.address.toHexString(),
+        ]
+      )
+      log.error('Parsed events dump: total={}, paired={}', [
+        parsedEvents.length.toString(),
+        pairedEvents.length.toString(),
+      ])
+      for (let i = 0; i < parsedEvents.length; i++) {
+        log.error('  parsedEvent[{}]: name={}, logIndex={}', [
+          i.toString(),
+          parsedEvents[i].name,
+          parsedEvents[i].event.logIndex.toString(),
+        ])
+      }
+      log.error('Paired events dump:', [])
+      for (let i = 0; i < pairedEvents.length; i++) {
+        log.error(
+          '  pairedEvent[{}]: left={} (logIndex={}), right={} (logIndex={})',
+          [
+            i.toString(),
+            pairedEvents[i][0].name,
+            pairedEvents[i][0].event.logIndex.toString(),
+            pairedEvents[i][1].name,
+            pairedEvents[i][1].event.logIndex.toString(),
+          ]
+        )
+      }
+      assert(false, 'TransferShares event not found for Transfer')
+      return // This line won't be reached, but helps type checker
+    }
+
+    entity.shares = eventTransferShares!.params.sharesValue
 
     const eventSharesBurnt = getEventByNameFromLogs<SharesBurntEvent>(
       event,
@@ -193,7 +255,7 @@ export function handleTransfer(event: TransferEvent): void {
     if (eventSharesBurnt) {
       let matching = isMatchingBurnTransferShares(
         eventSharesBurnt,
-        eventTransferShares
+        eventTransferShares!
       )
       if (matching) {
         log.info(

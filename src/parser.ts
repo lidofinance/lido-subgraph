@@ -150,6 +150,37 @@ export function extractPairedEvent(
     // eventPairs.push([events[i]])
   }
 
+  // Check if there's a completed pair after loop ends that wasn't added yet
+  if (idx0 && idx1) {
+    log.warning(
+      'Adding final pair after loop: {} (logIndex={}) + {} (logIndex={})',
+      [
+        leftName,
+        events[idx0 - 1].event.logIndex.toString(),
+        rightName,
+        events[idx1 - 1].event.logIndex.toString(),
+      ]
+    )
+    eventPairs.push([events[idx0 - 1], events[idx1 - 1]])
+    idx0 = 0
+    idx1 = 0
+  }
+
+  // Check if there's an unpaired event after loop ends
+  if (idx0 && !idx1) {
+    log.error('Unpaired {} event found (missing {}), logIndex={}', [
+      leftName,
+      rightName,
+      events[idx0 - 1].event.logIndex.toString(),
+    ])
+  } else if (idx1 && !idx0) {
+    log.error('Unpaired {} event found (missing {}), logIndex={}', [
+      rightName,
+      leftName,
+      events[idx1 - 1].event.logIndex.toString(),
+    ])
+  }
+
   return eventPairs
 }
 
