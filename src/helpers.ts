@@ -37,7 +37,12 @@ import {
   TransferShares as TransferSharesEvent,
 } from '../generated/Lido/Lido'
 import { StakingRouter } from '../generated/AccountingOracle/StakingRouter'
-import { extractPairedEvent, getParsedEvent, parseEventLogs } from './parser'
+import {
+  extractPairedEvent,
+  getParsedEvent,
+  ParsedEvent,
+  parseEventLogs,
+} from './parser'
 
 export function _loadLidoTransferEntity(event: Transfer): LidoTransfer {
   const id = event.transaction.hash.concatI32(event.logIndex.toI32())
@@ -511,4 +516,55 @@ export function isMatchingBurnTransferShares(
   if (!xfer.params.sharesValue.equals(burn.params.sharesAmount)) return false
 
   return true
+}
+
+export function logParsedEvents(
+  event: ethereum.Event,
+  parsedEvents: ParsedEvent[],
+  logName: string
+): void {
+  log.error('LogName={}, tx={}, logIndex={}, block={}, event.address={}', [
+    logName,
+    event.transaction.hash.toHexString(),
+    event.logIndex.toString(),
+    event.block.number.toString(),
+    event.address.toHexString(),
+  ])
+
+  log.error('Parsed events dump:', [])
+
+  for (let i = 0; i < parsedEvents.length; i++) {
+    log.error('  parsedEvent[{}]: name={}, logIndex={}', [
+      i.toString(),
+      parsedEvents[i].name,
+      parsedEvents[i].event.logIndex.toString(),
+    ])
+  }
+}
+export function logPairedEvents(
+  event: ethereum.Event,
+  pairedEvents: ParsedEvent[][],
+  logName: string
+): void {
+  log.error('LogName={}, tx={}, logIndex={}, block={}, event.address={}', [
+    logName,
+    event.transaction.hash.toHexString(),
+    event.logIndex.toString(),
+    event.block.number.toString(),
+    event.address.toHexString(),
+  ])
+
+  log.error('Paired events dump:', [])
+  for (let i = 0; i < pairedEvents.length; i++) {
+    log.error(
+      '  pairedEvent[{}]: left={} (logIndex={}), right={} (logIndex={})',
+      [
+        i.toString(),
+        pairedEvents[i][0].name,
+        pairedEvents[i][0].event.logIndex.toString(),
+        pairedEvents[i][1].name,
+        pairedEvents[i][1].event.logIndex.toString(),
+      ]
+    )
+  }
 }

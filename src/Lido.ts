@@ -65,6 +65,8 @@ import {
   isLidoTransferShares,
   isLidoV2,
   isMatchingBurnTransferShares,
+  logPairedEvents,
+  logParsedEvents,
 } from './helpers'
 
 import { wcKeyCrops } from './wcKeyCrops'
@@ -100,12 +102,18 @@ export function handleSubmitted(event: SubmittedEvent): void {
       event.logIndex,
       event.logIndex.plus(BigInt.fromI32(2))
     )
+
+    // todo add parsedEvents logger
+    logParsedEvents(event, parsedEvents, 'handleSubmitted')
+
     // extracting only 'Transfer' and 'TransferShares' pairs
     const transferEventPairs = extractPairedEvent(
       parsedEvents,
       'Transfer',
       'TransferShares'
     )
+
+    logPairedEvents(event, transferEventPairs, 'handleSubmitted')
 
     // expecting at only one Transfer events pair
     assert(
@@ -178,7 +186,7 @@ export function handleTransfer(event: TransferEvent): void {
   if (isLidoTransferShares(event.block.number)) {
     const parsedEvents = parseEventLogs(event, event.address)
 
-    log.debug(
+    log.warning(
       'Parsing Transfer event. tx={}, logIndex={}, parsedEventsCount={}',
       [
         event.transaction.hash.toHexString(),
@@ -194,7 +202,7 @@ export function handleTransfer(event: TransferEvent): void {
       'TransferShares'
     )
 
-    log.debug('Paired events extracted. pairedEventsCount={}', [
+    log.warning('Paired events extracted. pairedEventsCount={}', [
       pairedEvents.length.toString(),
     ])
 
@@ -205,42 +213,14 @@ export function handleTransfer(event: TransferEvent): void {
       )
 
     if (!eventTransferShares) {
-      log.error(
-        'TransferShares event not found for Transfer. tx={}, logIndex={}, block={}, from={}, to={}, value={}, event.address={}',
-        [
-          event.transaction.hash.toHexString(),
-          event.logIndex.toString(),
-          event.block.number.toString(),
-          event.params.from.toHexString(),
-          event.params.to.toHexString(),
-          event.params.value.toString(),
-          event.address.toHexString(),
-        ]
-      )
       log.error('Parsed events dump: total={}, paired={}', [
         parsedEvents.length.toString(),
         pairedEvents.length.toString(),
       ])
-      for (let i = 0; i < parsedEvents.length; i++) {
-        log.error('  parsedEvent[{}]: name={}, logIndex={}', [
-          i.toString(),
-          parsedEvents[i].name,
-          parsedEvents[i].event.logIndex.toString(),
-        ])
-      }
-      log.error('Paired events dump:', [])
-      for (let i = 0; i < pairedEvents.length; i++) {
-        log.error(
-          '  pairedEvent[{}]: left={} (logIndex={}), right={} (logIndex={})',
-          [
-            i.toString(),
-            pairedEvents[i][0].name,
-            pairedEvents[i][0].event.logIndex.toString(),
-            pairedEvents[i][1].name,
-            pairedEvents[i][1].event.logIndex.toString(),
-          ]
-        )
-      }
+
+      logParsedEvents(event, parsedEvents, 'handleTransfer')
+      logPairedEvents(event, pairedEvents, 'handleTransfer')
+
       assert(false, 'TransferShares event not found for Transfer')
       return // This line won't be reached, but helps type checker
     }

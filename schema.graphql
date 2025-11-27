@@ -1,7 +1,7 @@
 """
 Lido
 """
-type LidoConfig @entity {
+type LidoConfig @entity(immutable: false){
   id: ID!
 
   insuranceFund: Bytes
@@ -119,14 +119,14 @@ type NodeOperatorsShares @entity(immutable: true) {
   shares: BigInt!
 }
 
-type Totals @entity {
+type Totals @entity(immutable: false){
   id: ID!
 
   totalPooledEther: BigInt!
   totalShares: BigInt!
 }
 
-type Stats @entity {
+type Stats @entity(immutable: false){
   id: ID!
 
   uniqueHolders: BigInt!
@@ -134,20 +134,20 @@ type Stats @entity {
   lastOracleCompletedId: BigInt!
 }
 
-type Shares @entity {
+type Shares @entity(immutable: false){
   id: Bytes!
 
   shares: BigInt!
 }
 
-type Holder @entity {
+type Holder @entity(immutable: false){
   id: Bytes!
 
   address: Bytes!
   hasBalance: Boolean!
 }
 
-type CurrentFees @entity {
+type CurrentFees @entity(immutable: false){
   id: ID!
 
   feeBasisPoints: BigInt!
@@ -176,7 +176,7 @@ type SharesBurn @entity(immutable: true) {
 """
 Oracle
 """
-type OracleConfig @entity {
+type OracleConfig @entity(immutable: false){
   id: ID!
 
   quorum: BigInt!
@@ -192,7 +192,7 @@ type OracleConfig @entity {
   beaconReportReceiver: Bytes!
 }
 
-type OracleReport @entity {
+type OracleReport @entity(immutable: false){
   "v2 oracle report refSlot = ID"
   id: ID!
 
@@ -215,7 +215,7 @@ type OracleCompleted @entity(immutable: true) {
   logIndex: BigInt!
 }
 
-type TotalReward @entity {
+type TotalReward @entity(immutable: false){
   "transactionHash"
   id: Bytes!
 
@@ -277,7 +277,7 @@ type TotalReward @entity {
   logIndex: BigInt!
 }
 
-type OracleMember @entity {
+type OracleMember @entity(immutable: false){
   id: Bytes!
 
   member: Bytes!
@@ -308,7 +308,7 @@ type BeaconReport @entity(immutable: true) {
 # NodeOperatorsRegistry
 # """
 
-type NodeOperatorSigningKey @entity {
+type NodeOperatorSigningKey @entity(immutable: false){
   id: Bytes!
 
   operatorId: BigInt!
@@ -323,7 +323,7 @@ type NodeOperatorSigningKey @entity {
   logIndex: BigInt!
 }
 
-type NodeOperator @entity {
+type NodeOperator @entity(immutable: false){
   id: ID!
 
   name: String!
@@ -340,7 +340,7 @@ type NodeOperator @entity {
   logIndex: BigInt!
 }
 
-type NodeOperatorKeysOpIndex @entity {
+type NodeOperatorKeysOpIndex @entity(immutable: false){
   id: Bytes!
 
   index: BigInt!
@@ -349,7 +349,7 @@ type NodeOperatorKeysOpIndex @entity {
 """
 Voting
 """
-type VotingConfig @entity {
+type VotingConfig @entity(immutable: false){
   id: ID!
 
   supportRequiredPct: BigInt!
@@ -358,7 +358,7 @@ type VotingConfig @entity {
   objectionPhaseTime: BigInt!
 }
 
-type Voting @entity {
+type Voting @entity(immutable: false){
   id: ID!
 
   index: Int!
@@ -395,7 +395,7 @@ type VotingObjection @entity(immutable: true) {
 """
 EasyTrack
 """
-type Motion @entity {
+type Motion @entity(immutable: false){
   id: ID!
 
   creator: Bytes!
@@ -421,7 +421,7 @@ type Motion @entity {
   logIndex: BigInt!
 }
 
-type EasyTrackConfig @entity {
+type EasyTrackConfig @entity(immutable: false){
   id: ID!
 
   evmScriptExecutor: Bytes!
@@ -431,7 +431,7 @@ type EasyTrackConfig @entity {
   isPaused: Boolean!
 }
 
-type Role @entity {
+type Role @entity(immutable: false){
   id: Bytes!
 
   role: Bytes!
@@ -440,7 +440,7 @@ type Role @entity {
   isActive: Boolean!
 }
 
-type EVMScriptFactory @entity {
+type EVMScriptFactory @entity(immutable: false){
   id: Bytes!
 
   address: Bytes!
@@ -466,7 +466,7 @@ type Objection @entity(immutable: true) {
 """
 Lido DAO
 """
-type AppVersion @entity {
+type AppVersion @entity(immutable: false){
   id: Bytes!
   major: Int!
   minor: Int!
@@ -481,7 +481,7 @@ type AppVersion @entity {
 
 # WithdrawalQueue
 
-type WithdrawalQueueConfig @entity {
+type WithdrawalQueueConfig @entity(immutable: false){
   id: ID!
 
   isBunkerMode: Boolean!
