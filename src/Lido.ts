@@ -92,14 +92,9 @@ export function handleSubmitted(event: SubmittedEvent): void {
   // after TransferShares event has been added just take shares value from it
   // calc shares value otherwise
   if (isLidoTransferShares(event.block.number)) {
-    // limit parsing by 2 next events
-    // such approach cover both cases when Transfer was emitted before and wise versa
-    const parsedEvents = parseEventLogs(
-      event,
-      event.address,
-      event.logIndex,
-      event.logIndex.plus(BigInt.fromI32(2))
-    )
+    // Parse all events from Lido contract in this transaction
+    // Note: receipt.logs might use transaction-local logIndex instead of block-global
+    const parsedEvents = parseEventLogs(event, event.address)
     // extracting only 'Transfer' and 'TransferShares' pairs
     const transferEventPairs = extractPairedEvent(
       parsedEvents,
@@ -107,18 +102,52 @@ export function handleSubmitted(event: SubmittedEvent): void {
       'TransferShares'
     )
 
-    // expecting at only one Transfer events pair
-    assert(
-      transferEventPairs.length == 1,
-      'no Transfer/TransferShares events on submit'
-    )
+    // Find the Transfer pair that matches this submit: from=0x0, to=sender, value=amount
+    let eventTransferShares: TransferSharesEvent | null = null
+    for (let i = 0; i < transferEventPairs.length; i++) {
+      const pairTransfer = getParsedEvent<TransferEvent>(
+        transferEventPairs[i],
+        0
+      )
+      if (
+        pairTransfer.params.from == ZERO_ADDRESS &&
+        pairTransfer.params.to == event.params.sender &&
+        pairTransfer.params.value == event.params.amount
+      ) {
+        eventTransferShares = getParsedEvent<TransferSharesEvent>(
+          transferEventPairs[i],
+          1
+        )
+        break
+      }
+    }
 
-    // const eventTransfer = getParsedEvent<Transfer>(transferEventPairs[0], 0)
-    const eventTransferShares = getParsedEvent<TransferSharesEvent>(
-      transferEventPairs[0],
-      1
-    )
-    shares = eventTransferShares.params.sharesValue
+    if (!eventTransferShares) {
+      log.error(
+        'TransferShares not found for Submitted. tx={}, logIndex={}, block={}, sender={}, amount={}',
+        [
+          event.transaction.hash.toHexString(),
+          event.logIndex.toString(),
+          event.block.number.toString(),
+          event.params.sender.toHexString(),
+          event.params.amount.toString(),
+        ]
+      )
+      log.error('Parsed events: total={}, paired={}', [
+        parsedEvents.length.toString(),
+        transferEventPairs.length.toString(),
+      ])
+      for (let i = 0; i < parsedEvents.length; i++) {
+        log.error('  [{}] {} logIndex={}', [
+          i.toString(),
+          parsedEvents[i].name,
+          parsedEvents[i].event.logIndex.toString(),
+        ])
+      }
+      assert(false, 'TransferShares event not found for Submitted')
+    }
+
+    shares = eventTransferShares!.params.sharesValue
   } else {
     /**
      * Use 1:1 ether-shares ratio when:
@@ -176,14 +205,83 @@ export function handleTransfer(event: TransferEvent): void {
   let eventTransferShares: TransferSharesEvent | null = null
   // now we should parse the whole tx receipt to be sure pair extraction is accurate
   if (isLidoTransferShares(event.block.number)) {
+    // Parse ALL events from Lido contract in this transaction
+    // Note: receipt.logs might use transaction-local logIndex instead of block-global
     const parsedEvents = parseEventLogs(event, event.address)
+
     // TransferShares should exists after according upgrade
-    eventTransferShares =
-      getRightPairedEventByLeftLogIndex<TransferSharesEvent>(
-        extractPairedEvent(parsedEvents, 'Transfer', 'TransferShares'),
-        event.logIndex
-      )!
-    entity.shares = eventTransferShares.params.sharesValue
+    const pairedEvents = extractPairedEvent(
+      parsedEvents,
+      'Transfer',
+      'TransferShares'
+    )
+
+    // Find the right pair by matching Transfer parameters (from, to, value)
+    // instead of relying on logIndex which might be transaction-local
+    eventTransferShares = null
+    for (let i = 0; i < pairedEvents.length; i++) {
+      const pairTransfer = getParsedEvent<TransferEvent>(pairedEvents[i], 0)
+      if (
+        pairTransfer.params.from == event.params.from &&
+        pairTransfer.params.to == event.params.to &&
+        pairTransfer.params.value == event.params.value
+      ) {
+        eventTransferShares = getParsedEvent<TransferSharesEvent>(
+          pairedEvents[i],
+          1
+        )
+        break
+      }
+    }
+
+    if (!eventTransferShares) {
+      log.error(
+        'TransferShares not found for Transfer. tx={}, logIndex={}, block={}, from={}, to={}, value={}',
+        [
+          event.transaction.hash.toHexString(),
+          event.logIndex.toString(),
+          event.block.number.toString(),
+          event.params.from.toHexString(),
+          event.params.to.toHexString(),
+          event.params.value.toString(),
+        ]
+      )
+      log.error(
+        'Debug: event.address={}, logIndexRange=[{}, {}], receipt.logs.length={}',
+        [
+          event.address.toHexString(),
+          event.logIndex.toString(),
+          event.logIndex.plus(BigInt.fromI32(2)).toString(),
+          event.receipt ? event.receipt!.logs.length.toString() : '0',
+        ]
+      )
+      log.error('Parsed events: total={}, paired={}', [
+        parsedEvents.length.toString(),
+        pairedEvents.length.toString(),
+      ])
+      for (let i = 0; i < parsedEvents.length; i++) {
+        log.error('  [{}] {} logIndex={}', [
+          i.toString(),
+          parsedEvents[i].name,
+          parsedEvents[i].event.logIndex.toString(),
+        ])
+      }
+      if (pairedEvents.length > 0) {
+        log.error('Paired events:', [])
+        for (let i = 0; i < pairedEvents.length; i++) {
+          log.error('  {}({}) <-> {}({})', [
+            pairedEvents[i][0].name,
+            pairedEvents[i][0].event.logIndex.toString(),
+            pairedEvents[i][1].name,
+            pairedEvents[i][1].event.logIndex.toString(),
+          ])
+        }
+      }
+      assert(false, 'TransferShares event not found for Transfer')
+      return // This line won't be reached, but helps type checker
+    }
+
+    entity.shares = eventTransferShares!.params.sharesValue
 
     const eventSharesBurnt = getEventByNameFromLogs<SharesBurntEvent>(
       event,
@@ -193,7 +291,7 @@ export function handleTransfer(event: TransferEvent): void {
     if (eventSharesBurnt) {
       let matching = isMatchingBurnTransferShares(
         eventSharesBurnt,
-        eventTransferShares
+        eventTransferShares!
       )
       if (matching) {
         log.info(
