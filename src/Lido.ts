@@ -103,7 +103,6 @@ export function handleSubmitted(event: SubmittedEvent): void {
       event.logIndex.plus(BigInt.fromI32(2))
     )
 
-    // todo add parsedEvents logger
     logParsedEvents(event, parsedEvents, 'handleSubmitted')
 
     // extracting only 'Transfer' and 'TransferShares' pairs
@@ -115,6 +114,19 @@ export function handleSubmitted(event: SubmittedEvent): void {
 
     logPairedEvents(event, transferEventPairs, 'handleSubmitted')
 
+    if (transferEventPairs.length != 1) {
+      const receiptLogsCount = event.receipt ? event.receipt!.logs.length : 0
+      log.error(
+        'handleSubmitted receipt logs count={}, parsedEvents={}, pairs={}, tx={}, logIndex={}',
+        [
+          receiptLogsCount.toString(),
+          parsedEvents.length.toString(),
+          transferEventPairs.length.toString(),
+          event.transaction.hash.toHexString(),
+          event.logIndex.toString(),
+        ]
+      )
+    }
     // expecting at only one Transfer events pair
     assert(
       transferEventPairs.length == 1,
@@ -213,6 +225,10 @@ export function handleTransfer(event: TransferEvent): void {
       )
 
     if (!eventTransferShares) {
+      const receiptLogsCount = event.receipt ? event.receipt!.logs.length : 0
+      log.error('handleTransfer receipt logs count={}', [
+        receiptLogsCount.toString(),
+      ])
       log.error('Parsed events dump: total={}, paired={}', [
         parsedEvents.length.toString(),
         pairedEvents.length.toString(),
@@ -225,7 +241,7 @@ export function handleTransfer(event: TransferEvent): void {
       return // This line won't be reached, but helps type checker
     }
 
-    entity.shares = eventTransferShares!.params.sharesValue
+    entity.shares = eventTransferShares.params.sharesValue
 
     const eventSharesBurnt = getEventByNameFromLogs<SharesBurntEvent>(
       event,
@@ -235,7 +251,7 @@ export function handleTransfer(event: TransferEvent): void {
     if (eventSharesBurnt) {
       let matching = isMatchingBurnTransferShares(
         eventSharesBurnt,
-        eventTransferShares!
+        eventTransferShares
       )
       if (matching) {
         log.info(
