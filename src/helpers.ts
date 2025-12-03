@@ -523,7 +523,7 @@ export function logParsedEvents(
   parsedEvents: ParsedEvent[],
   logName: string
 ): void {
-  log.error('LogName={}, tx={}, logIndex={}, block={}, event.address={}', [
+  log.warning('LogName={}, tx={}, logIndex={}, block={}, event.address={}', [
     logName,
     event.transaction.hash.toHexString(),
     event.logIndex.toString(),
@@ -531,10 +531,10 @@ export function logParsedEvents(
     event.address.toHexString(),
   ])
 
-  log.error('Parsed events dump:', [])
+  log.warning('Parsed events dump:', [])
 
   for (let i = 0; i < parsedEvents.length; i++) {
-    log.error('  parsedEvent[{}]: name={}, logIndex={}', [
+    log.warning('  parsedEvent[{}]: name={}, logIndex={}', [
       i.toString(),
       parsedEvents[i].name,
       parsedEvents[i].event.logIndex.toString(),
@@ -546,7 +546,7 @@ export function logPairedEvents(
   pairedEvents: ParsedEvent[][],
   logName: string
 ): void {
-  log.error('LogName={}, tx={}, logIndex={}, block={}, event.address={}', [
+  log.warning('LogName={}, tx={}, logIndex={}, block={}, event.address={}', [
     logName,
     event.transaction.hash.toHexString(),
     event.logIndex.toString(),
@@ -554,9 +554,9 @@ export function logPairedEvents(
     event.address.toHexString(),
   ])
 
-  log.error('Paired events dump:', [])
+  log.warning('Paired events dump:', [])
   for (let i = 0; i < pairedEvents.length; i++) {
-    log.error(
+    log.warning(
       '  pairedEvent[{}]: left={} (logIndex={}), right={} (logIndex={})',
       [
         i.toString(),

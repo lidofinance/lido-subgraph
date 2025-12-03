@@ -33,6 +33,10 @@ export function parseEventLogs(
       if (eventParserOpts) {
         const name = eventParserOpts[0]
         const params = eventParserOpts.slice(1)
+        log.warning('CHECK logIndex={}, tx={}', [
+          receipt.logs[i].logIndex.toString(),
+          receipt.transactionHash.toHexString(),
+        ])
         const event = new ethereum.Event(
           receipt.logs[i].address,
           receipt.logs[i].logIndex,

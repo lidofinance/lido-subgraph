@@ -103,8 +103,6 @@ export function handleSubmitted(event: SubmittedEvent): void {
       event.logIndex.plus(BigInt.fromI32(2))
     )
 
-    logParsedEvents(event, parsedEvents, 'handleSubmitted')
-
     // extracting only 'Transfer' and 'TransferShares' pairs
     const transferEventPairs = extractPairedEvent(
       parsedEvents,
@@ -112,9 +110,10 @@ export function handleSubmitted(event: SubmittedEvent): void {
       'TransferShares'
     )
 
-    logPairedEvents(event, transferEventPairs, 'handleSubmitted')
-
     if (transferEventPairs.length != 1) {
+      logParsedEvents(event, parsedEvents, 'handleSubmitted')
+      logPairedEvents(event, transferEventPairs, 'handleSubmitted')
+
       const receiptLogsCount = event.receipt ? event.receipt!.logs.length : 0
       log.error(
         'handleSubmitted receipt logs count={}, parsedEvents={}, pairs={}, tx={}, logIndex={}',
@@ -199,7 +198,7 @@ export function handleTransfer(event: TransferEvent): void {
     const parsedEvents = parseEventLogs(event, event.address)
 
     log.warning(
-      'Parsing Transfer event. tx={}, logIndex={}, parsedEventsCount={}',
+      'Parsing handleTransfer event. tx={}, logIndex={}, parsedEventsCount={}',
       [
         event.transaction.hash.toHexString(),
         event.logIndex.toString(),
@@ -226,10 +225,10 @@ export function handleTransfer(event: TransferEvent): void {
 
     if (!eventTransferShares) {
       const receiptLogsCount = event.receipt ? event.receipt!.logs.length : 0
-      log.error('handleTransfer receipt logs count={}', [
+      log.warning('handleTransfer receipt logs count={}', [
         receiptLogsCount.toString(),
       ])
-      log.error('Parsed events dump: total={}, paired={}', [
+      log.warning('Parsed events dump: total={}, paired={}', [
         parsedEvents.length.toString(),
         pairedEvents.length.toString(),
       ])
@@ -443,7 +442,7 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
     // skip handler because it is called manually in handlerETHDistributed
     // manual call doesn't have receipt in found SharesBurntEvent
 
-    log.info(
+    log.warning(
       'handleSharesBurnt skipped, will be manually called in handlerETHDistributed',
       []
     )
