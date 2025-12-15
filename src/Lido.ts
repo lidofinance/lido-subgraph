@@ -197,8 +197,8 @@ export function handleTransfer(event: TransferEvent): void {
   if (isLidoTransferShares(event.block.number)) {
     const parsedEvents = parseEventLogs(event, event.address)
 
-    log.warning(
-      'Parsing handleTransfer event. tx={}, logIndex={}, parsedEventsCount={}',
+    log.info(
+      'handleTransfer, isLidoTransferShares case tx={}, logIndex={}, parsedEvents.length={}',
       [
         event.transaction.hash.toHexString(),
         event.logIndex.toString(),
@@ -213,10 +213,6 @@ export function handleTransfer(event: TransferEvent): void {
       'TransferShares'
     )
 
-    log.warning('Paired events extracted. pairedEventsCount={}', [
-      pairedEvents.length.toString(),
-    ])
-
     eventTransferShares =
       getRightPairedEventByLeftLogIndex<TransferSharesEvent>(
         pairedEvents,
@@ -224,10 +220,11 @@ export function handleTransfer(event: TransferEvent): void {
       )
 
     if (!eventTransferShares) {
-      const receiptLogsCount = event.receipt ? event.receipt!.logs.length : 0
-      log.warning('handleTransfer receipt logs count={}', [
-        receiptLogsCount.toString(),
-      ])
+      const receiptFirstLogIndex =
+        event.receipt && event.receipt!.logs.length > 0
+          ? event.receipt!.logs[0].logIndex.toString()
+          : 'none'
+
       log.warning('Parsed events dump: total={}, paired={}', [
         parsedEvents.length.toString(),
         pairedEvents.length.toString(),
@@ -236,6 +233,14 @@ export function handleTransfer(event: TransferEvent): void {
       logParsedEvents(event, parsedEvents, 'handleTransfer')
       logPairedEvents(event, pairedEvents, 'handleTransfer')
 
+      log.error(
+        'handleTransfer failed tx={}, logIndex={}, first receipt logIndex={}',
+        [
+          event.transaction.hash.toHexString(),
+          event.logIndex.toString(),
+          receiptFirstLogIndex,
+        ]
+      )
       assert(false, 'TransferShares event not found for Transfer')
       return // This line won't be reached, but helps type checker
     }

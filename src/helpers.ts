@@ -21,6 +21,7 @@ import {
   SECONDS_PER_YEAR,
   PROTOCOL_UPG_IDX_V1_SHARES,
   PROTOCOL_UPG_IDX_V2,
+  PROTOCOL_UPG_IDX_V3,
   ZERO,
   ZERO_ADDRESS,
   PROTOCOL_UPG_APP_VERS,
@@ -396,6 +397,12 @@ export function isLidoTransferShares(block: BigInt = ZERO): bool {
 
 export function isLidoAddedCSM(block: BigInt = ZERO): bool {
   return checkAppVer(block, LIDO_APP_ID, PROTOCOL_UPG_IDX_V2_ADDED_CSM)
+}
+
+// no needed to use for now, there is code for backward compatibility
+// maybe used in future that V3 changed order of SharesBurnt and ETHDistributed
+export function isLidoV3(block: BigInt = ZERO): bool {
+  return checkAppVer(block, LIDO_APP_ID, PROTOCOL_UPG_IDX_V3)
 }
 
 // export function isOracleV2(block: BigInt = ZERO): bool {

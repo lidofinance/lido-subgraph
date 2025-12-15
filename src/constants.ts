@@ -220,6 +220,9 @@ export const PROTOCOL_UPG_IDX_V2 = 2
 // 21043699
 export const PROTOCOL_UPG_IDX_V2_ADDED_CSM = 3
 
+// Lido v3 deploy
+export const PROTOCOL_UPG_IDX_V3 = 4
+
 // list of app's upgrade ids and corresponding min compatible contract version
 
 // block umbers corresponding protocol upgrades
@@ -227,15 +230,18 @@ export const PROTOCOL_UPG_IDX_V2_ADDED_CSM = 3
 export const PROTOCOL_UPG_BLOCKS = new TypedMap<string, BigInt[]>()
 PROTOCOL_UPG_BLOCKS.set('mainnet', [
   BigInt.fromI32(11473216), // V1
-  BigInt.fromI32(14860268), // V1_SHARES
+  BigInt.fromI32(14860268), // V1_SHARES 14811700
   BigInt.fromI32(17266004), // V2
   BigInt.fromI32(21043699), // V2 CSM Update
+  BigInt.fromI32(23938902), // V3
 ])
 
 PROTOCOL_UPG_BLOCKS.set('hoodi', [
   BigInt.fromI32(405), // V1
   BigInt.fromI32(405), // V1_SHARES
   BigInt.fromI32(405), // V2
+  BigInt.fromI32(405), // V2 CSM Update (same block on hoodi)
+  BigInt.fromI32(1400000), // V3
 ])
 
 export const PROTOCOL_UPG_APP_VERS = new TypedMap<Bytes, i32[]>()
@@ -245,6 +251,7 @@ if (network == 'mainnet') {
     1, // V1, v1.0.0
     3, // V1_SHARES, v3.0.0,
     4, // V2, expected v4.0.0
+    5, // V3, expected v5.0.0
   ])
   PROTOCOL_UPG_APP_VERS.set(NOR_APP_ID_MAINNET, [
     1, // V1, v1.0.0
