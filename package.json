@@ -46,7 +46,7 @@
     "typescript": "5.2.2"
   },
   "subgraphBuildHash": {
-    "thegraph-v2.1.17": "", // not deployed yet
+    "thegraph-v2.1.17": "<not deployed yet>",
     "thegraph-v2.1.16": "QmdSjtPFe2p8ABLYFx5TPbtgyj5tmmBmxVb4T8d32KR6UR",
     "chainstack-staging": "QmeTiPNC2pv2tmDojhnGn22BQm4G6f1mzdJucKwtNn76Z8",
     "local": "QmQc7mZCcwPE6hVKZ56JQCUkF7oBAzhcNktuUrqYGnoHvK"
