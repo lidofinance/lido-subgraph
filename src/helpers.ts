@@ -21,6 +21,7 @@ import {
   SECONDS_PER_YEAR,
   PROTOCOL_UPG_IDX_V1_SHARES,
   PROTOCOL_UPG_IDX_V2,
+  PROTOCOL_UPG_IDX_V3,
   ZERO,
   ZERO_ADDRESS,
   PROTOCOL_UPG_APP_VERS,
@@ -37,7 +38,12 @@ import {
   TransferShares as TransferSharesEvent,
 } from '../generated/Lido/Lido'
 import { StakingRouter } from '../generated/AccountingOracle/StakingRouter'
-import { extractPairedEvent, getParsedEvent, parseEventLogs } from './parser'
+import {
+  extractPairedEvent,
+  getParsedEvent,
+  ParsedEvent,
+  parseEventLogs,
+} from './parser'
 
 export function _loadLidoTransferEntity(event: Transfer): LidoTransfer {
   const id = event.transaction.hash.concatI32(event.logIndex.toI32())
@@ -393,6 +399,12 @@ export function isLidoAddedCSM(block: BigInt = ZERO): bool {
   return checkAppVer(block, LIDO_APP_ID, PROTOCOL_UPG_IDX_V2_ADDED_CSM)
 }
 
+// no needed to use for now, there is code for backward compatibility
+// maybe used in future that V3 changed order of SharesBurnt and ETHDistributed
+export function isLidoV3(block: BigInt = ZERO): bool {
+  return checkAppVer(block, LIDO_APP_ID, PROTOCOL_UPG_IDX_V3)
+}
+
 // export function isOracleV2(block: BigInt = ZERO): bool {
 //   return checkAppVer(block, ORACLE_APP_ID, UPG_V2_BETA)
 // }
@@ -511,4 +523,55 @@ export function isMatchingBurnTransferShares(
   if (!xfer.params.sharesValue.equals(burn.params.sharesAmount)) return false
 
   return true
+}
+
+export function logParsedEvents(
+  event: ethereum.Event,
+  parsedEvents: ParsedEvent[],
+  logName: string
+): void {
+  log.warning('LogName={}, tx={}, logIndex={}, block={}, event.address={}', [
+    logName,
+    event.transaction.hash.toHexString(),
+    event.logIndex.toString(),
+    event.block.number.toString(),
+    event.address.toHexString(),
+  ])
+
+  log.warning('Parsed events dump:', [])
+
+  for (let i = 0; i < parsedEvents.length; i++) {
+    log.warning('  parsedEvent[{}]: name={}, logIndex={}', [
+      i.toString(),
+      parsedEvents[i].name,
+      parsedEvents[i].event.logIndex.toString(),
+    ])
+  }
+}
+export function logPairedEvents(
+  event: ethereum.Event,
+  pairedEvents: ParsedEvent[][],
+  logName: string
+): void {
+  log.warning('LogName={}, tx={}, logIndex={}, block={}, event.address={}', [
+    logName,
+    event.transaction.hash.toHexString(),
+    event.logIndex.toString(),
+    event.block.number.toString(),
+    event.address.toHexString(),
+  ])
+
+  log.warning('Paired events dump:', [])
+  for (let i = 0; i < pairedEvents.length; i++) {
+    log.warning(
+      '  pairedEvent[{}]: left={} (logIndex={}), right={} (logIndex={})',
+      [
+        i.toString(),
+        pairedEvents[i][0].name,
+        pairedEvents[i][0].event.logIndex.toString(),
+        pairedEvents[i][1].name,
+        pairedEvents[i][1].event.logIndex.toString(),
+      ]
+    )
+  }
 }

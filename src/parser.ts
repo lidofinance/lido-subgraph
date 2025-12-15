@@ -19,6 +19,23 @@ export function parseEventLogs(
 
   let receipt = baseEvent.receipt
   if (receipt && receipt.logs.length > 1) {
+    const lastIndex = receipt.logs.length - 1
+    log.info(
+      'parseEventLogs baseEvent.logIndex={}, tx={}, receipt.logs[0].logIndex={}, receipt.logs[lastIndex].logIndex={}, receipt.logs[0].topics[0]={}, receipt.logs[lastIndex].topics[0]={}',
+      [
+        baseEvent.logIndex.toString(),
+        receipt.transactionHash.toHexString(),
+        receipt.logs[0].logIndex.toString(),
+        receipt.logs[lastIndex].logIndex.toString(),
+        receipt.logs[0].topics.length > 0
+          ? receipt.logs[0].topics[0].toHexString()
+          : 'null',
+        receipt.logs[lastIndex].topics.length > 0
+          ? receipt.logs[lastIndex].topics[0].toHexString()
+          : 'null',
+      ]
+    )
+
     for (let i = 0; i < receipt.logs.length; i++) {
       // skip events out of indexes range
       if (
@@ -33,6 +50,7 @@ export function parseEventLogs(
       if (eventParserOpts) {
         const name = eventParserOpts[0]
         const params = eventParserOpts.slice(1)
+
         const event = new ethereum.Event(
           receipt.logs[i].address,
           receipt.logs[i].logIndex,
@@ -147,7 +165,6 @@ export function extractPairedEvent(
       log.error('Pair not found for events <{}, {}>', [leftName, rightName])
       throw new Error('Pair event missed')
     }
-    // eventPairs.push([events[i]])
   }
 
   return eventPairs

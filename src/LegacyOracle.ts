@@ -81,6 +81,10 @@ export function handleCompleted(event: CompletedEvent): void {
   expectedEpochEntity.save()
 
   if (isLidoV2(event.block.number)) {
+    log.warning(
+      'skip handleCompleted in favor of ETHDistributed event handler, block: {}',
+      [event.block.number.toString()]
+    )
     // skip in favor of ETHDistributed event handler
     return
   }

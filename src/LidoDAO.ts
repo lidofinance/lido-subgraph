@@ -6,7 +6,6 @@ import {
   KERNEL_APP_BASES_NAMESPACE,
   APP_REPOS,
   ZERO_ADDRESS,
-  network,
 } from './constants'
 
 export function handleSetApp(event: SetAppEvent): void {
@@ -24,19 +23,17 @@ export function handleSetApp(event: SetAppEvent): void {
       if (entity.impl != event.params.app) {
         const repo = AppRepo.bind(Address.fromString(repoAddr))
 
+        // @deprecated: Aragon repos don't support new releases
         const triedLatest = repo.try_getLatestForContractAddress(
           event.params.app
         )
 
         if (triedLatest.reverted) {
-          if (network == 'mainnet') {
-            assert(false, 'getLatestForContractAddress reverted on mainnet')
-          }
-
           entity.major = 0
           entity.minor = 0
           entity.patch = 0
         } else {
+          // todo: getting version from contract directly
           const semVer = triedLatest.value.getSemanticVersion()
 
           entity.major = semVer[0]

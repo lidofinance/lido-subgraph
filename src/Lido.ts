@@ -65,6 +65,8 @@ import {
   isLidoTransferShares,
   isLidoV2,
   isMatchingBurnTransferShares,
+  logPairedEvents,
+  logParsedEvents,
 } from './helpers'
 
 import { wcKeyCrops } from './wcKeyCrops'
@@ -100,6 +102,7 @@ export function handleSubmitted(event: SubmittedEvent): void {
       event.logIndex,
       event.logIndex.plus(BigInt.fromI32(2))
     )
+
     // extracting only 'Transfer' and 'TransferShares' pairs
     const transferEventPairs = extractPairedEvent(
       parsedEvents,
@@ -107,6 +110,22 @@ export function handleSubmitted(event: SubmittedEvent): void {
       'TransferShares'
     )
 
+    if (transferEventPairs.length != 1) {
+      logParsedEvents(event, parsedEvents, 'handleSubmitted')
+      logPairedEvents(event, transferEventPairs, 'handleSubmitted')
+
+      const receiptLogsCount = event.receipt ? event.receipt!.logs.length : 0
+      log.error(
+        'handleSubmitted receipt logs count={}, parsedEvents={}, pairs={}, tx={}, logIndex={}',
+        [
+          receiptLogsCount.toString(),
+          parsedEvents.length.toString(),
+          transferEventPairs.length.toString(),
+          event.transaction.hash.toHexString(),
+          event.logIndex.toString(),
+        ]
+      )
+    }
     // expecting at only one Transfer events pair
     assert(
       transferEventPairs.length == 1,
@@ -177,12 +196,55 @@ export function handleTransfer(event: TransferEvent): void {
   // now we should parse the whole tx receipt to be sure pair extraction is accurate
   if (isLidoTransferShares(event.block.number)) {
     const parsedEvents = parseEventLogs(event, event.address)
+
+    log.info(
+      'handleTransfer, isLidoTransferShares case tx={}, logIndex={}, parsedEvents.length={}',
+      [
+        event.transaction.hash.toHexString(),
+        event.logIndex.toString(),
+        parsedEvents.length.toString(),
+      ]
+    )
+
     // TransferShares should exists after according upgrade
+    const pairedEvents = extractPairedEvent(
+      parsedEvents,
+      'Transfer',
+      'TransferShares'
+    )
+
     eventTransferShares =
       getRightPairedEventByLeftLogIndex<TransferSharesEvent>(
-        extractPairedEvent(parsedEvents, 'Transfer', 'TransferShares'),
+        pairedEvents,
         event.logIndex
-      )!
+      )
+
+    if (!eventTransferShares) {
+      const receiptFirstLogIndex =
+        event.receipt && event.receipt!.logs.length > 0
+          ? event.receipt!.logs[0].logIndex.toString()
+          : 'none'
+
+      log.warning('Parsed events dump: total={}, paired={}', [
+        parsedEvents.length.toString(),
+        pairedEvents.length.toString(),
+      ])
+
+      logParsedEvents(event, parsedEvents, 'handleTransfer')
+      logPairedEvents(event, pairedEvents, 'handleTransfer')
+
+      log.error(
+        'handleTransfer failed tx={}, logIndex={}, first receipt logIndex={}',
+        [
+          event.transaction.hash.toHexString(),
+          event.logIndex.toString(),
+          receiptFirstLogIndex,
+        ]
+      )
+      assert(false, 'TransferShares event not found for Transfer')
+      return // This line won't be reached, but helps type checker
+    }
+
     entity.shares = eventTransferShares.params.sharesValue
 
     const eventSharesBurnt = getEventByNameFromLogs<SharesBurntEvent>(
@@ -385,7 +447,7 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
     // skip handler because it is called manually in handlerETHDistributed
     // manual call doesn't have receipt in found SharesBurntEvent
 
-    log.info(
+    log.warning(
       'handleSharesBurnt skipped, will be manually called in handlerETHDistributed',
       []
     )
