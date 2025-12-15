@@ -33,6 +33,7 @@ export function handleSetApp(event: SetAppEvent): void {
           entity.minor = 0
           entity.patch = 0
         } else {
+          // todo: getting version from contract directly
           const semVer = triedLatest.value.getSemanticVersion()
 
           entity.major = semVer[0]
