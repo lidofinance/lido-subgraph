@@ -565,6 +565,10 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
 
   // Totals should be already non-null on oracle report
   const totals = _loadTotalsEntity()!
+  // In Lido V3, totalPooledEther = internalEther + (externalShares * internalEther) / internalShares.
+  // The integer division in externalEther can cause totalPooledEther to increase by 1 wei more
+  // than Submitted.amount on some deposits, creating a drift vs our incremental tracking.
+  // Tolerate exactly 1 wei as expected rounding noise; fail on anything larger as a real mismatch.
   const ethDiff = totals.totalPooledEther.minus(tokenRebasedEvent.params.preTotalEther).abs()
   assert(
     ethDiff <= ONE,
