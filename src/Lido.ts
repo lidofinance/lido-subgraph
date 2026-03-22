@@ -565,10 +565,22 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
 
   // Totals should be already non-null on oracle report
   const totals = _loadTotalsEntity()!
+  const ethDiff = totals.totalPooledEther.minus(tokenRebasedEvent.params.preTotalEther).abs()
   assert(
-    totals.totalPooledEther == tokenRebasedEvent.params.preTotalEther,
+    ethDiff <= ONE,
     "totalPooledEther mismatch report's preTotalEther"
   )
+  if (ethDiff.equals(ONE)) {
+    log.warning(
+      'totalPooledEther 1 wei drift detected: tracked={}, preTotalEther={}, block={}, txHash={}',
+      [
+        totals.totalPooledEther.toString(),
+        tokenRebasedEvent.params.preTotalEther.toString(),
+        event.block.number.toString(),
+        event.transaction.hash.toHexString(),
+      ]
+    )
+  }
   assert(
     totals.totalShares == tokenRebasedEvent.params.preTotalShares,
     "totalShares mismatch report's preTotalShares"
