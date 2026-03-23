@@ -566,20 +566,21 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
   // Totals should be already non-null on oracle report
   const totals = _loadTotalsEntity()!
   // In Lido V3, totalPooledEther = internalEther + (externalShares * internalEther) / internalShares.
-  // The integer division in externalEther can cause totalPooledEther to increase by 1 wei more
-  // than Submitted.amount on some deposits, creating a drift vs our incremental tracking.
-  // Tolerate exactly 1 wei as expected rounding noise; fail on anything larger as a real mismatch.
-  const ethDiff = totals.totalPooledEther.minus(tokenRebasedEvent.params.preTotalEther).abs()
+  // The integer division in externalEther causes the on-chain value to grow slightly faster than
+  // our incremental tracking (Submitted.amount), so tracked can only ever be <= preTotalEther.
+  // If tracked > preTotalEther, something is genuinely wrong — fail hard.
+  // If tracked < preTotalEther, it's expected rounding drift — warn and continue (line below syncs to postTotalEther).
   assert(
-    ethDiff <= ONE,
-    "totalPooledEther mismatch report's preTotalEther"
+    totals.totalPooledEther <= tokenRebasedEvent.params.preTotalEther,
+    "totalPooledEther exceeds preTotalEther"
   )
-  if (ethDiff.equals(ONE)) {
+  if (totals.totalPooledEther < tokenRebasedEvent.params.preTotalEther) {
     log.warning(
-      'totalPooledEther 1 wei drift detected: tracked={}, preTotalEther={}, block={}, txHash={}',
+      'totalPooledEther drift detected: tracked={}, preTotalEther={}, diff={}, block={}, txHash={}',
       [
         totals.totalPooledEther.toString(),
         tokenRebasedEvent.params.preTotalEther.toString(),
+        tokenRebasedEvent.params.preTotalEther.minus(totals.totalPooledEther).toString(),
         event.block.number.toString(),
         event.transaction.hash.toHexString(),
       ]
