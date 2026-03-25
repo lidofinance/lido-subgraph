@@ -58,6 +58,7 @@ dataSources:
           receipt: true
         - event: SharesBurnt(indexed address,uint256,uint256,uint256)
           handler: handleSharesBurnt
+          receipt: true
         - event: ETHDistributed(indexed uint256,uint256,uint256,uint256,uint256,uint256)
           handler: handleETHDistributed
           receipt: true

@@ -448,8 +448,8 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
     // manual call doesn't have receipt in found SharesBurntEvent
 
     log.warning(
-      'handleSharesBurnt skipped, will be manually called in handlerETHDistributed',
-      []
+      'handleSharesBurnt skipped, will be manually called in handlerETHDistributed, logIndex={} tx={}',
+      [event.logIndex.toString(), event.transaction.hash.toHexString()]
     )
     return
   }
@@ -537,10 +537,6 @@ export function handleSharesBurnt(event: SharesBurntEvent): void {
 // event WithdrawalsFinalized (or WithdrawalsBatchFinalized) should be captured by Subgraph right before
 // and totalPooledEther will be decreased by amountETHToLock
 export function handleETHDistributed(event: ETHDistributedEvent): void {
-  log.warning(
-    'CHECK handleETHDistributed event.block.number {}, event.transaction.hash {}',
-    [event.block.number.toString(), event.transaction.hash.toHexString()]
-  )
   // we should process token rebase here as TokenRebased event fired last but we need new values before transfers
   // parse all events from tx receipt
   const parsedEvents = parseEventLogs(event, event.address)
@@ -588,7 +584,10 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
   }
   assert(
     totals.totalShares == tokenRebasedEvent.params.preTotalShares,
-    "totalShares mismatch report's preTotalShares"
+    "totalShares mismatch report's preTotalShares" +
+      totals.totalShares.toString() +
+      ' == ' +
+      tokenRebasedEvent.params.preTotalShares.toString()
   )
 
   // update totalPooledEther for correct SharesBurnt
@@ -600,16 +599,15 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
   const sharesBurntEvent = getParsedEventByName<SharesBurntEvent>(
     parsedEvents,
     'SharesBurnt',
-    event.logIndex,
+    ZERO,
     tokenRebasedEvent.logIndex
   )
 
   if (sharesBurntEvent) {
-    // log.warning('Event sharesBurntEvent when ETHDistributed! block: {} txHash: {} logIdx: {} ', [
-    //   sharesBurntEvent.block.number.toString(),
-    //   sharesBurntEvent.transaction.hash.toHexString(),
-    //   sharesBurntEvent.logIndex.toString()
-    // ])
+    log.warning('handleSharesBurnt called manually logIndex={} tx={}', [
+      event.logIndex.toString(),
+      event.transaction.hash.toHexString(),
+    ])
     handleSharesBurnt(sharesBurntEvent)
   }
 
