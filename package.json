@@ -1,6 +1,6 @@
 {
   "name": "lido-subgraph",
-  "version": "2.1.19",
+  "version": "2.1.20",
   "license": "MIT",
   "scripts": {
     "codegen": "rm -rf ./generated && graph codegen && node genParserData.js",
@@ -44,12 +44,6 @@
     "matchstick-as": "0.6.0",
     "prettier": "3.0.3",
     "typescript": "5.2.2"
-  },
-  "subgraphBuildHash": {
-    "thegraph-v2.1.17": "<not deployed yet>",
-    "thegraph-v2.1.16": "QmdSjtPFe2p8ABLYFx5TPbtgyj5tmmBmxVb4T8d32KR6UR",
-    "chainstack-staging": "QmeTiPNC2pv2tmDojhnGn22BQm4G6f1mzdJucKwtNn76Z8",
-    "local": "QmQc7mZCcwPE6hVKZ56JQCUkF7oBAzhcNktuUrqYGnoHvK"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
