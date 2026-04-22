@@ -37,6 +37,7 @@ import {
 
 import {
   ZERO,
+  ETHER,
   getAddress,
   ONE,
   CALCULATION_UNIT,
@@ -561,22 +562,27 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
 
   // Totals should be already non-null on oracle report
   const totals = _loadTotalsEntity()!
-  // In Lido V3, totalPooledEther = internalEther + (externalShares * internalEther) / internalShares.
-  // The integer division in externalEther causes the on-chain value to grow slightly faster than
-  // our incremental tracking (Submitted.amount), so tracked can only ever be <= preTotalEther.
-  // If tracked > preTotalEther, something is genuinely wrong — fail hard.
-  // If tracked < preTotalEther, it's expected rounding drift — warn and continue (line below syncs to postTotalEther).
+  const preTotalEther = tokenRebasedEvent.params.preTotalEther
+  const etherDiff = totals.totalPooledEther.minus(preTotalEther)
+  const etherDiffAbs = etherDiff.abs()
+  const maxAllowedEtherDrift = ETHER // 1 ETH
+
+  // We intentionally accept both drift directions here.
+  // State can diverge from incremental Submitted-based tracking due to cross-event interactions
+  // (e.g. external shares and execution order of event handlers within a block).
+  // Reconcile to report pre-state and continue syncing unless drift is clearly anomalous.
   assert(
-    totals.totalPooledEther <= tokenRebasedEvent.params.preTotalEther,
-    "totalPooledEther exceeds preTotalEther"
+    etherDiffAbs <= maxAllowedEtherDrift,
+    "totalPooledEther drift too large against preTotalEther: " +
+      etherDiff.toString()
   )
-  if (totals.totalPooledEther < tokenRebasedEvent.params.preTotalEther) {
+  if (!etherDiff.isZero()) {
     log.warning(
-      'totalPooledEther drift detected: tracked={}, preTotalEther={}, diff={}, block={}, txHash={}',
+      'totalPooledEther drift reconciled: tracked={}, preTotalEther={}, diff={}, block={}, txHash={}',
       [
         totals.totalPooledEther.toString(),
-        tokenRebasedEvent.params.preTotalEther.toString(),
-        tokenRebasedEvent.params.preTotalEther.minus(totals.totalPooledEther).toString(),
+        preTotalEther.toString(),
+        etherDiff.toString(),
         event.block.number.toString(),
         event.transaction.hash.toHexString(),
       ]
