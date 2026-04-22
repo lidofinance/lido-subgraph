@@ -34,6 +34,7 @@ import {
   LidoConfig,
   LidoTransfer,
 } from '../generated/schema'
+import { ExternalBadDebtInternalized as ExternalBadDebtInternalizedEvent } from '../generated/LidoV3/LidoV3'
 
 import {
   ZERO,
@@ -561,6 +562,29 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
 
   // Totals should be already non-null on oracle report
   const totals = _loadTotalsEntity()!
+  const externalBadDebtEvent =
+    getParsedEventByName<ExternalBadDebtInternalizedEvent>(
+      parsedEvents,
+      'ExternalBadDebtInternalized',
+      ZERO,
+      event.logIndex
+    )
+  if (
+    externalBadDebtEvent &&
+    totals.totalPooledEther != tokenRebasedEvent.params.preTotalEther
+  ) {
+    log.warning(
+      'sync totalPooledEther to preTotalEther due to ExternalBadDebtInternalized: tracked={}, preTotalEther={}, block={}, txHash={}',
+      [
+        totals.totalPooledEther.toString(),
+        tokenRebasedEvent.params.preTotalEther.toString(),
+        event.block.number.toString(),
+        event.transaction.hash.toHexString(),
+      ]
+    )
+    totals.totalPooledEther = tokenRebasedEvent.params.preTotalEther
+    totals.save()
+  }
   // In Lido V3, totalPooledEther = internalEther + (externalShares * internalEther) / internalShares.
   // The integer division in externalEther causes the on-chain value to grow slightly faster than
   // our incremental tracking (Submitted.amount), so tracked can only ever be <= preTotalEther.
