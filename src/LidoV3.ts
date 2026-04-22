@@ -33,8 +33,8 @@ export function handleExternalSharesBurnt(
   const totals = _loadTotalsEntity()!
 
   assert(
-    totals.totalShares >= event.params.amountOfShares,
-    'external shares burnt exceed totalShares'
+    totals.totalShares > BigInt.zero(),
+    'external shares burnt with zero totalShares'
   )
 
   const pooledEtherDelta = event.params.amountOfShares
@@ -47,6 +47,5 @@ export function handleExternalSharesBurnt(
   )
 
   totals.totalPooledEther = totals.totalPooledEther.minus(pooledEtherDelta)
-  totals.totalShares = totals.totalShares.minus(event.params.amountOfShares)
   totals.save()
 }
