@@ -568,7 +568,7 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
   // If tracked < preTotalEther, it's expected rounding drift — warn and continue (line below syncs to postTotalEther).
   assert(
     totals.totalPooledEther <= tokenRebasedEvent.params.preTotalEther,
-    "totalPooledEther exceeds preTotalEther"
+    'totalPooledEther exceeds preTotalEther'
   )
   if (totals.totalPooledEther < tokenRebasedEvent.params.preTotalEther) {
     log.warning(
@@ -576,7 +576,9 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
       [
         totals.totalPooledEther.toString(),
         tokenRebasedEvent.params.preTotalEther.toString(),
-        tokenRebasedEvent.params.preTotalEther.minus(totals.totalPooledEther).toString(),
+        tokenRebasedEvent.params.preTotalEther
+          .minus(totals.totalPooledEther)
+          .toString(),
         event.block.number.toString(),
         event.transaction.hash.toHexString(),
       ]
@@ -584,7 +586,7 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
   }
   assert(
     totals.totalShares == tokenRebasedEvent.params.preTotalShares,
-    "totalShares mismatch report's preTotalShares" +
+    "totalShares mismatch report's preTotalShares " +
       totals.totalShares.toString() +
       ' == ' +
       tokenRebasedEvent.params.preTotalShares.toString()
