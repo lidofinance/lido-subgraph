@@ -86,6 +86,7 @@ describe('handleCompleted() before Lido v2', () => {
     let totals = new Totals('')
     totals.totalPooledEther = INITIAL_BEACON_BALANCE
     totals.totalShares = INITIAL_BEACON_BALANCE
+    totals.maxPositivePooledEtherDrift = BigInt.zero()
     totals.save()
 
     let curFee = new CurrentFees('')
@@ -217,6 +218,7 @@ describe('handleCompleted() before Lido v2', () => {
     let totals = new Totals('')
     totals.totalPooledEther = BigInt.fromString('7434367928985000000000')
     totals.totalShares = BigInt.fromString('7434367928985000000000')
+    totals.maxPositivePooledEtherDrift = BigInt.zero()
     totals.save()
 
     let prevDay = OracleCompleted.load(lastCompletedId.toString())!
