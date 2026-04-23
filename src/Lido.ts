@@ -34,10 +34,11 @@ import {
   LidoConfig,
   LidoTransfer,
 } from '../generated/schema'
+import { ExternalBadDebtInternalized as ExternalBadDebtInternalizedEvent } from '../generated/LidoV3/LidoV3'
+import { ExternalSharesMinted as ExternalSharesMintedEvent } from '../generated/LidoV3/LidoV3'
 
 import {
   ZERO,
-  ETHER,
   getAddress,
   ONE,
   CALCULATION_UNIT,
@@ -426,6 +427,33 @@ export function handleTransfer(event: TransferEvent): void {
         // throws error if no submissionEntity
         entity.shares = submissionEntity.shares
       }
+
+      const submittedEvent = getEventByNameFromLogs<SubmittedEvent>(
+        event,
+        'Submitted'
+      )
+      const externalSharesMintedEvent =
+        getEventByNameFromLogs<ExternalSharesMintedEvent>(
+          event,
+          'ExternalSharesMinted'
+        )
+
+      // Generic Lido.mintShares() mint path changes totalShares without emitting
+      // Submitted / ExternalSharesMinted / ETHDistributed-specific reward entities.
+      // Keep totals in sync for these zero-address mint transfers explicitly.
+      if (!submittedEvent && !externalSharesMintedEvent) {
+        totals.totalShares = totals.totalShares.plus(entity.shares)
+        totals.save()
+
+        log.warning(
+          'handled generic zero-address mint transfer: shares={}, tx={}, logIndex={}',
+          [
+            entity.shares.toString(),
+            event.transaction.hash.toHexString(),
+            event.logIndex.toString(),
+          ]
+        )
+      }
     }
   }
   // upd account's shares and stats
@@ -562,35 +590,72 @@ export function handleETHDistributed(event: ETHDistributedEvent): void {
 
   // Totals should be already non-null on oracle report
   const totals = _loadTotalsEntity()!
-  const preTotalEther = tokenRebasedEvent.params.preTotalEther
-  const etherDiff = totals.totalPooledEther.minus(preTotalEther)
-  const etherDiffAbs = etherDiff.abs()
-  const maxAllowedEtherDrift = ETHER // 1 ETH
-
-  // We intentionally accept both drift directions here.
-  // State can diverge from incremental Submitted-based tracking due to cross-event interactions
-  // (e.g. external shares and execution order of event handlers within a block).
-  // Reconcile to report pre-state and continue syncing unless drift is clearly anomalous.
-  assert(
-    etherDiffAbs <= maxAllowedEtherDrift,
-    "totalPooledEther drift too large against preTotalEther: " +
-      etherDiff.toString()
-  )
-  if (!etherDiff.isZero()) {
+  const positiveDriftBudget = totals.maxPositivePooledEtherDrift
+  const externalBadDebtEvent =
+    getParsedEventByName<ExternalBadDebtInternalizedEvent>(
+      parsedEvents,
+      'ExternalBadDebtInternalized',
+      ZERO,
+      event.logIndex
+    )
+  if (
+    externalBadDebtEvent &&
+    totals.totalPooledEther != tokenRebasedEvent.params.preTotalEther
+  ) {
     log.warning(
-      'totalPooledEther drift reconciled: tracked={}, preTotalEther={}, diff={}, block={}, txHash={}',
+      'sync totalPooledEther to preTotalEther due to ExternalBadDebtInternalized: tracked={}, preTotalEther={}, block={}, txHash={}',
       [
         totals.totalPooledEther.toString(),
-        preTotalEther.toString(),
-        etherDiff.toString(),
+        tokenRebasedEvent.params.preTotalEther.toString(),
+        event.block.number.toString(),
+        event.transaction.hash.toHexString(),
+      ]
+    )
+    totals.totalPooledEther = tokenRebasedEvent.params.preTotalEther
+    totals.save()
+  }
+  // In Lido V3, totalPooledEther = internalEther + (externalShares * internalEther) / internalShares.
+  // The integer division in externalEther usually causes the on-chain value to grow slightly faster than
+  // our incremental tracking, so tracked can legitimately be below preTotalEther. Plain ExternalSharesBurnt
+  // can also leave a small accumulated positive drift because the emitted stETH amount and totalPooledEther
+  // delta use different rounded formulas. We track that drift budget between reports and fail if exceeded.
+  if (totals.totalPooledEther > tokenRebasedEvent.params.preTotalEther) {
+    const positiveDiff = totals.totalPooledEther.minus(
+      tokenRebasedEvent.params.preTotalEther
+    )
+    assert(
+      positiveDiff <= positiveDriftBudget,
+      'totalPooledEther exceeds preTotalEther'
+    )
+    log.warning(
+      'totalPooledEther positive drift detected: tracked={}, preTotalEther={}, diff={}, budget={}, block={}, txHash={}',
+      [
+        totals.totalPooledEther.toString(),
+        tokenRebasedEvent.params.preTotalEther.toString(),
+        positiveDiff.toString(),
+        positiveDriftBudget.toString(),
+        event.block.number.toString(),
+        event.transaction.hash.toHexString(),
+      ]
+    )
+  } else if (totals.totalPooledEther < tokenRebasedEvent.params.preTotalEther) {
+    log.warning(
+      'totalPooledEther drift detected: tracked={}, preTotalEther={}, diff={}, block={}, txHash={}',
+      [
+        totals.totalPooledEther.toString(),
+        tokenRebasedEvent.params.preTotalEther.toString(),
+        tokenRebasedEvent.params.preTotalEther
+          .minus(totals.totalPooledEther)
+          .toString(),
         event.block.number.toString(),
         event.transaction.hash.toHexString(),
       ]
     )
   }
+  totals.maxPositivePooledEtherDrift = ZERO
   assert(
     totals.totalShares == tokenRebasedEvent.params.preTotalShares,
-    "totalShares mismatch report's preTotalShares" +
+    "totalShares mismatch report's preTotalShares " +
       totals.totalShares.toString() +
       ' == ' +
       tokenRebasedEvent.params.preTotalShares.toString()

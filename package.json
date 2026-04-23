@@ -1,6 +1,6 @@
 {
   "name": "lido-subgraph",
-  "version": "2.1.20",
+  "version": "2.1.25",
   "license": "MIT",
   "scripts": {
     "codegen": "rm -rf ./generated && graph codegen && node genParserData.js",
