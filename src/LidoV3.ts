@@ -8,7 +8,7 @@ import {
   Transfer as TransferEvent,
   TransferShares as TransferSharesEvent,
 } from '../generated/LidoV3/LidoV3'
-import { ZERO, ZERO_ADDRESS } from './constants'
+import { ONE, ZERO, ZERO_ADDRESS } from './constants'
 import { _loadTotalsEntity } from './helpers'
 import {
   extractPairedEvent,
@@ -132,25 +132,32 @@ export function handleExternalSharesBurnt(
     totals.totalPooledEther = totals.totalPooledEther.minus(
       sharesBurntEvent.params.preRebaseTokenAmount
     )
+    // Plain external share burns can reduce on-chain totalPooledEther by 1 wei more than
+    // SharesBurnt.preRebaseTokenAmount because totalPooledEther is derived from a separately
+    // rounded external-ether term. Track that possible per-burn overshoot until the next report.
+    totals.maxPositivePooledEtherDrift =
+      totals.maxPositivePooledEtherDrift.plus(ONE)
     totals.save()
     return
   }
 
   const bufferTransferEvent = findMatchingBufferTransfer(event, parsedEvents)
   if (bufferTransferEvent) {
-    assert(
-      totals.totalShares > BigInt.zero(),
-      'external shares rebalance with zero totalShares'
+    // rebalanceExternalEtherToInternal requires msg.value to match
+    // getPooledEthBySharesRoundUp(amountOfShares). On-chain this results in a
+    // zero-or-small-positive totalPooledEther rebase that cannot be recovered
+    // exactly from emitted events alone. Keeping tracked totalPooledEther
+    // unchanged is a safe lower bound: any residual drift stays non-positive
+    // until the next oracle report, which handleETHDistributed already tolerates.
+    log.warning(
+      'skip pooled ether mutation for ExternalEtherTransferredToBuffer path amount={} shares={} tx={} logIndex={}',
+      [
+        bufferTransferEvent.params.amount.toString(),
+        event.params.amountOfShares.toString(),
+        event.transaction.hash.toHexString(),
+        event.logIndex.toString(),
+      ]
     )
-
-    const externalEtherDelta = event.params.amountOfShares
-      .times(totals.totalPooledEther)
-      .div(totals.totalShares)
-
-    totals.totalPooledEther = totals.totalPooledEther
-      .plus(bufferTransferEvent.params.amount)
-      .minus(externalEtherDelta)
-    totals.save()
     return
   }
 
