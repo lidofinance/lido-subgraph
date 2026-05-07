@@ -170,6 +170,7 @@ export function _loadTotalsEntity(create: bool = false): Totals | null {
     totals = new Totals('')
     totals.totalPooledEther = ZERO
     totals.totalShares = ZERO
+    totals.maxPositivePooledEtherDrift = ZERO
   }
   return totals
 }

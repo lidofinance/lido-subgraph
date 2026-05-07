@@ -124,6 +124,7 @@ type Totals @entity(immutable: false){
 
   totalPooledEther: BigInt!
   totalShares: BigInt!
+  maxPositivePooledEtherDrift: BigInt!
 }
 
 type Stats @entity(immutable: false){

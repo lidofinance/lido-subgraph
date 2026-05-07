@@ -437,6 +437,8 @@ dataSources:
       eventHandlers:
         - event: ExternalSharesMinted(indexed address,uint256)
           handler: handleExternalSharesMinted
+          receipt: true
         - event: ExternalSharesBurnt(uint256)
           handler: handleExternalSharesBurnt
+          receipt: true
       file: ./src/LidoV3.ts
